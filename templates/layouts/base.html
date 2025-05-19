@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AdminLTE 3 | {% block title %}{% endblock title %}</title>
+  <title>OptiSoin</title>
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -14,18 +14,19 @@
   <link rel="stylesheet" href="{% static 'plugins/overlayScrollbars/css/OverlayScrollbars.min.css' %}">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
-
+  <link rel="shortcut icon" href="{% static 'img/CHU_icon.png' %}" type="image/x-icon">
+  
 
   {% block extrastyle %}{% endblock extrastyle %}
 </head>
-<body class="{% block bodyclass %}{% endblock bodyclass %}">
+<body class="{% block bodyclass %}{% endblock bodyclass %} sidebar-collapse">
 
   <div class="wrapper">
 
     {% block preloader %}
       <!-- Preloader -->
       <div class="preloader flex-column justify-content-center align-items-center">
-        <img class="animation__shake" src="{% static 'dist/img/AdminLTELogo.png' %}" alt="AdminLTELogo" height="60" width="60">
+        <img class="animation__shake" src="{% static 'img/IMT_logo.png' %}" alt="IMT Mines Albi" height="500" width="1000">
       </div>
     {% endblock preloader %}
 
