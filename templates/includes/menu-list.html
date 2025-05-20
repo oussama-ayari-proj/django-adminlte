@@ -50,160 +50,31 @@
         </a>
       </li>
 
-
-    <!-- <li class="nav-item">
-      <a href="{% url 'widgets' %}" class="nav-link {% if 'widgets' in segment %}active{% endif %}">
-        <i class="nav-icon fas fa-th"></i>
-        <p>
-          Widgets
-          <span class="right badge badge-danger">New</span>
-        </p>
-      </a>
-    </li> -->
-    <!-- <li class="nav-item">
-      <a href="{% url 'collapsed_sidebar' %}" class="nav-link {% if 'collapsed_sidebar' in segment %}active{% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Collapsed Sidebar</p>
-      </a>
-    </li> -->
-    <li class="nav-item {% if 'charts' in parent %} menu-open {% endif %}">
-      <a href="#" class="nav-link {% if 'charts' in parent %}active{% endif %}">
-        <i class="nav-icon fas fa-chart-pie"></i>
-        <p>
-          Charts
-          <i class="right fas fa-angle-left"></i>
-        </p>
-      </a>
-      <ul class="nav nav-treeview">
-        <li class="nav-item">
-          <a href="{% url 'chartjs' %}" class="nav-link {% if 'chartjs' in segment %}active{% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>ChartJS</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'flot' %}" class="nav-link {% if 'flot' in segment %}active{% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Flot</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'inline' %}" class="nav-link {% if 'inline' in segment %}active{% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Inline</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'uplot' %}" class="nav-link {% if 'uplot' in segment %}active{% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>uPlot</p>
-          </a>
-        </li>
-      </ul>
-    </li>
-    <li class="nav-item {% if 'ui' in parent %} menu-open {% endif %}">
-      <a href="#" class="nav-link {% if 'ui' in parent %}active{% endif %}">
-        <i class="nav-icon fas fa-tree"></i>
-        <p>
-          UI Elements
-          <i class="fas fa-angle-left right"></i>
-        </p>
-      </a>
-      <ul class="nav nav-treeview">
-        <li class="nav-item">
-          <a href="{% url 'ui_general' %}" class="nav-link {% if 'general' in segment %}active{% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>General</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'ui_icons' %}" class="nav-link {% if 'icons' in segment %}active{% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Icons</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'ui_buttons' %}" class="nav-link {% if 'buttons' in segment %}active{% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Buttons</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'ui_sliders' %}" class="nav-link {% if 'sliders' in segment %}active{% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Sliders</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'ui_modals_alerts' %}" class="nav-link {% if 'modals_alerts' in segment %}active{% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Modals & Alerts</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'ui_navbar_tabs' %}" class="nav-link {% if 'navbar_tabs' in segment %}active{% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Navbar & Tabs</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'ui_timeline' %}" class="nav-link {% if 'timeline' in segment %}active{% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Timeline</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'ui_ribbons' %}" class="nav-link {% if 'ribbons' in segment %}active{% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Ribbons</p>
-          </a>
-        </li>
-      </ul>
-    </li>
-    <li class="nav-item {% if 'forms' in parent %} menu-open {% endif %}">
-      <a href="#" class="nav-link {% if 'forms' in parent %} active {% endif %}">
-        <i class="nav-icon fas fa-edit"></i>
-        <p>
-          Forms
-          <i class="fas fa-angle-left right"></i>
-        </p>
-      </a>
-      <ul class="nav nav-treeview">
-        <li class="nav-item">
-          <a href="{% url 'form_general' %}"
-            class="nav-link {% if 'form_general' in segment %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>General Elements</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'form_advanced' %}" class="nav-link {% if 'advanced_form' in segment %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Advanced Elements</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'form_editors' %}" class="nav-link {% if 'text_editors' in segment %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Editors</p>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a href="{% url 'form_validation' %}" class="nav-link {% if 'validation' in segment %} active {% endif %}">
-            <i class="far fa-circle nav-icon"></i>
-            <p>Validation</p>
-          </a>
-        </li>
-      </ul>
-    </li>
-  
-    <li class="nav-header">EXAMPLES</li>
+    <li class="nav-header">Predictions</li>
     <li class="nav-item">
-      <a href="{% url 'examples_calendar' %}" class="nav-link {% if 'calendar' in segment %} active {% endif %} ">
-        <i class="nav-icon far fa-calendar-alt"></i>
+      <a href="/predictions" class="nav-link {% if 'ui' in parent %}active{% endif %}">
+        <i class="nav-icon fas fa-eye"></i>
         <p>
-          Calendar
-          <span class="badge badge-info right">2</span>
+          Time Series
+        </p>
+      </a>
+    </li>
+
+    <li class="nav-header">Plannification</li>
+    <li class="nav-item">
+      <a href="/plannifications" class="nav-link {% if 'ui' in parent %}active{% endif %}">
+        <i class="nav-icon fas fa-calendar"></i>
+        <p>
+          Capacité infinie
+        </p>
+      </a>
+    </li>
+
+    <li class="nav-item">
+      <a href="/plannifications/sans_contraintes/" class="nav-link {% if 'ui' in parent %}active{% endif %}">
+        <i class="nav-icon fas fa-calendar-week"></i>
+        <p>
+          Capacité Finie (Contraintes)
         </p>
       </a>
     </li>

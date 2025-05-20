@@ -56,14 +56,10 @@ INSTALLED_APPS = [
     # Serve UI pages
     "apps.pages",
 
-    # Dynamic DT
-    "apps.dyn_dt",
-
-    # Dynamic API
-    "apps.dyn_api",
-
     # Charts
     "apps.charts",
+    "apps.predictions",
+    "apps.plannifications",
 
     # Tooling API-GEN
     'rest_framework',            # Include DRF           # <-- NEW 
