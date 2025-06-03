@@ -28,11 +28,68 @@
     <div class="content"  style="margin-left:1rem;">
       <div class="container-fluid">
         <div class="row">
-          <iframe title="dashboard_2" width="100%" height="1080" src="https://app.powerbi.com/reportEmbed?reportId=2ab05af5-51ff-450b-b3d9-8171489a71bf&autoAuth=true&ctid=c52528b4-09d5-422b-bde4-32b5b0271115" frameborder="0" allowFullScreen="true"></iframe>
+          <div id="information-part" class="content" role="tabpanel" aria-labelledby="information-part-trigger">
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="form-group">
+                <label for="excelFile">File input</label>
+                <div class="input-group">
+                  <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="excelFile" name="excel_file" required>
+                    <label class="custom-file-label" for="excelFile">Choose file</label>
+                  </div>
+                  <div class="input-group-append">
+                    <span class="input-group-text">Upload</span>
+                  </div>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+          </div>
         </div>
         <!-- /.row -->
+        <div class="row mt-4">
+          <div class="col-12">
+            <h3>Database Table</h3>
+            <table class="table table-bordered table-sm">
+              <thead>
+                <tr>
+                  <th>Code UF</th>
+                  <th>Libellé standard</th>
+                  <th>Code ETB</th>
+                  <th>Code POLE</th>
+                  <th>Hébebergement</th>
+                  <th>Type UF</th>
+                  <th>Libellé Type UF</th>
+                  <th>Type activité</th>
+                  <th>Libellé activité</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in records %}
+                <tr>
+                  <td>{{ row.code_uf }}</td>
+                  <td>{{ row.libelle_standard }}</td>
+                  <td>{{ row.code_etb }}</td>
+                  <td>{{ row.code_pole }}</td>
+                  <td>{{ row.heb }}</td>
+                  <td>{{ row.type_uf }}</td>
+                  <td>{{ row.libelle_type_uf }}</td>
+                  <td>{{ row.type_activite }}</td>
+                  <td>{{ row.libelle_type_activite }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="17">No records found.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
       <!-- /.container-fluid -->
+       
     </div>
     <!-- /.content -->
   </div>
