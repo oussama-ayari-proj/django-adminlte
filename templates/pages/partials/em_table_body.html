@@ -1,0 +1,12 @@
+<tbody id="em-table-body">
+    {% for em in ems %}
+        <tr>
+            <td>{{ em.code_em }}</td>
+            <td>{{ em.libelle_standard }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">Aucune équipe médicale trouvée.</td>
+        </tr>
+    {% endfor %}
+</tbody>

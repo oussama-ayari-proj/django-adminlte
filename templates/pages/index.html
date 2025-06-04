@@ -27,64 +27,277 @@
     <!-- Main content -->
     <div class="content"  style="margin-left:1rem;">
       <div class="container-fluid">
-        <div class="row">
-          <div id="information-part" class="content" role="tabpanel" aria-labelledby="information-part-trigger">
-            <form method="post" enctype="multipart/form-data">
-              {% csrf_token %}
-              <div class="form-group">
-                <label for="excelFile">File input</label>
-                <div class="input-group">
-                  <div class="custom-file">
-                    <input type="file" class="custom-file-input" id="excelFile" name="excel_file" required>
-                    <label class="custom-file-label" for="excelFile">Choose file</label>
-                  </div>
-                  <div class="input-group-append">
-                    <span class="input-group-text">Upload</span>
-                  </div>
-                </div>
-              </div>
-              <button type="submit" class="btn btn-primary">Submit</button>
+        
+        <div class="row mt-4">
+          <div class="col-lg-6">
+            <!-- Search form -->
+            <h3>UFH</h3>
+            <form method="get" class="form-inline mb-3" id="search-form">
+              <select name="field" class="form-control mr-2" id="uf-search-field">
+                <option value="libelle_standard" {% if field == "libelle_standard" %}selected{% endif %}>Libellé standard</option>
+                <option value="code_uf" {% if field == "code_uf" %}selected{% endif %}>Code UF</option>
+                <option value="code_etb" {% if field == "code_etb" %}selected{% endif %}>Code ETB</option>
+                <option value="code_pole" {% if field == "code_pole" %}selected{% endif %}>Code POLE</option>
+                <option value="type_uf" {% if field == "type_uf" %}selected{% endif %}>Type UF</option>
+                <option value="libelle_type_uf" {% if field == "libelle_type_uf" %}selected{% endif %}>Libellé Type UF</option>
+                <option value="type_activite" {% if field == "type_activite" %}selected{% endif %}>Type activité</option>
+                <option value="libelle_type_activite" {% if field == "libelle_type_activite" %}selected{% endif %}>Libellé activité</option>
+              </select>
+              <select class="form-control mr-2" id="unique-values-dropdown" style="min-width:150px;">
+                <option value="">-- Valeurs uniques --</option>
+                <!-- Options will be filled by JS -->
+              </select>
             </form>
+            
+            <div id="uf-table-container">
+              <table class="table table-bordered table-sm" id="results-table">
+                <thead>
+                  <tr>
+                    <th>Code UF</th>
+                    <th>Libellé standard</th>
+                    <th>Code ETB</th>
+                    <th>Code POLE</th>
+                    <th>Hébebergement</th>
+                    <th>Type UF</th>
+                    <th>Libellé Type UF</th>
+                    <th>Type activité</th>
+                    <th>Libellé activité</th>
+                  </tr>
+                </thead>
+                <tbody id="uf-table-body">
+                  {% for row in ufs %}
+                  <tr>
+                    <td>{{ row.code_uf }}</td>
+                    <td>{{ row.libelle_standard }}</td>
+                    <td>{{ row.code_etb }}</td>
+                    <td>{{ row.code_pole }}</td>
+                    <td>{{ row.heb }}</td>
+                    <td>{{ row.type_uf }}</td>
+                    <td>{{ row.libelle_type_uf }}</td>
+                    <td>{{ row.type_activite }}</td>
+                    <td>{{ row.libelle_type_activite }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="17">No ufs found.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <div id="uf-pagination">
+                <nav aria-label="Page navigation">
+                  <ul class="pagination justify-content-center">
+                    {% if ufs.has_previous %}
+                      <li class="page-item">
+                        <a class="page-link uf-page-link" href="#" data-page="{{ ufs.previous_page_number }}" aria-label="Previous">
+                          <span aria-hidden="true">&laquo;</span>
+                        </a>
+                      </li>
+                    {% else %}
+                      <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                      </li>
+                    {% endif %}
+                    {% for num in ufs.paginator.page_range %}
+                      {% if ufs.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                      {% elif num > ufs.number|add:'-6' and num < ufs.number|add:'6' %}
+                        <li class="page-item">
+                          <a class="page-link uf-page-link" href="#" data-page="{{ num }}">{{ num }}</a>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                    {% if ufs.has_next %}
+                      <li class="page-item">
+                        <a class="page-link uf-page-link" href="#" data-page="{{ ufs.next_page_number }}" aria-label="Next">
+                          <span aria-hidden="true">&raquo;</span>
+                        </a>
+                      </li>
+                    {% else %}
+                      <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                      </li>
+                    {% endif %}
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <h3>Séjours</h3>
+            <!-- Sejour search form -->
+            <form method="get" class="form-inline mb-3" id="sejour-search-form">
+              <select name="sejour_field" class="form-control mr-2" id="sejour-search-field">
+                <option value="num_sequence" {% if sejour_field == "num_sequence" %}selected{% endif %}>Num Sequence</option>
+                <option value="code_uf" {% if sejour_field == "code_uf" %}selected{% endif %}>Code UF</option>
+                <option value="code_em" {% if sejour_field == "code_em" %}selected{% endif %}>Code EM</option>
+                <option value="duree_sejour" {% if sejour_field == "duree_sejour" %}selected{% endif %}>Durée Séjour</option>
+                <option value="type_sejour" {% if sejour_field == "type_sejour" %}selected{% endif %}>Type Séjour</option>
+                <option value="date_sortie" {% if sejour_field == "date_sortie" %}selected{% endif %}>Date Sortie</option>
+                <option value="ghs" {% if sejour_field == "ghs" %}selected{% endif %}>GHS</option>
+                <option value="sexe" {% if sejour_field == "sexe" %}selected{% endif %}>Sexe</option>
+                <option value="age_entree" {% if sejour_field == "age_entree" %}selected{% endif %}>Âge Entrée</option>
+                <option value="semaine_entree" {% if sejour_field == "semaine_entree" %}selected{% endif %}>Semaine Entrée</option>
+                <option value="date_entree" {% if sejour_field == "date_entree" %}selected{% endif %}>Date Entrée</option>
+              </select>
+              <select class="form-control mr-2" id="sejour-unique-values-dropdown" style="min-width:150px;">
+                <option value="">-- Valeurs uniques --</option>
+                <!-- Options will be filled by JS -->
+              </select>
+              
+            </form>
+            <div id="sejour-table-container">
+              <table class="table table-bordered table-sm" id="sejour-table">
+                <thead>
+                  <tr>
+                    <th>Num Sequence</th>
+                    <th>Code UF</th>
+                    <th>Code EM</th>
+                    <th>Durée Séjour</th>
+                    <th>Type Séjour</th>
+                    <th>Date Sortie</th>
+                    <th>GHS</th>
+                    <th>Sexe</th>
+                    <th>Âge Entrée</th>
+                    <th>Semaine Entrée</th>
+                    <th>Date Entrée</th>
+                  </tr>
+                </thead>
+                <tbody id="sejour-table-body">
+                  {% for sejour in sejours %}
+                  <tr>
+                    <td>{{ sejour.num_sequence }}</td>
+                    <td>{{ sejour.code_uf }}</td>
+                    <td>{{ sejour.code_em }}</td>
+                    <td>{{ sejour.duree_sejour }}</td>
+                    <td>{{ sejour.type_sejour }}</td>
+                    <td>{{ sejour.date_sortie }}</td>
+                    <td>{{ sejour.ghs }}</td>
+                    <td>{{ sejour.sexe }}</td>
+                    <td>{{ sejour.age_entree }}</td>
+                    <td>{{ sejour.semaine_entree }}</td>
+                    <td>{{ sejour.date_entree }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="11">No sejours found.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <div id="sejour-pagination">
+                <nav aria-label="Page navigation">
+                  <ul class="pagination justify-content-center">
+                    {% if sejours.has_previous %}
+                      <li class="page-item">
+                        <a class="page-link sejour-page-link" href="#" data-page="{{ sejours.previous_page_number }}" aria-label="Previous">
+                          <span aria-hidden="true">&laquo;</span>
+                        </a>
+                      </li>
+                    {% else %}
+                      <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                      </li>
+                    {% endif %}
+                    {% for num in sejours.paginator.page_range %}
+                      {% if sejours.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                      {% elif num > sejours.number|add:'-6' and num < sejours.number|add:'6' %}
+                        <li class="page-item">
+                          <a class="page-link sejour-page-link" href="#" data-page="{{ num }}">{{ num }}</a>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                    {% if sejours.has_next %}
+                      <li class="page-item">
+                        <a class="page-link sejour-page-link" href="#" data-page="{{ sejours.next_page_number }}" aria-label="Next">
+                          <span aria-hidden="true">&raquo;</span>
+                        </a>
+                      </li>
+                    {% else %}
+                      <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                      </li>
+                    {% endif %}
+                  </ul>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
-        <!-- /.row -->
         <div class="row mt-4">
-          <div class="col-12">
-            <h3>Database Table</h3>
-            <table class="table table-bordered table-sm">
-              <thead>
-                <tr>
-                  <th>Code UF</th>
-                  <th>Libellé standard</th>
-                  <th>Code ETB</th>
-                  <th>Code POLE</th>
-                  <th>Hébebergement</th>
-                  <th>Type UF</th>
-                  <th>Libellé Type UF</th>
-                  <th>Type activité</th>
-                  <th>Libellé activité</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for row in records %}
-                <tr>
-                  <td>{{ row.code_uf }}</td>
-                  <td>{{ row.libelle_standard }}</td>
-                  <td>{{ row.code_etb }}</td>
-                  <td>{{ row.code_pole }}</td>
-                  <td>{{ row.heb }}</td>
-                  <td>{{ row.type_uf }}</td>
-                  <td>{{ row.libelle_type_uf }}</td>
-                  <td>{{ row.type_activite }}</td>
-                  <td>{{ row.libelle_type_activite }}</td>
-                </tr>
-                {% empty %}
-                <tr>
-                  <td colspan="17">No records found.</td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+          <div class="col-lg-6">
+            <h3>Equipe médicale</h3>
+            <form method="get" class="form-inline mb-3" id="em-search-form">
+              <select name="em_field" class="form-control mr-2" id="em-search-field">
+                <option value="code_em" {% if em_field == "code_em" %}selected{% endif %}>Code EM</option>
+                <option value="libelle_standard" {% if em_field == "libelle_standard" %}selected{% endif %}>Libellé EM</option>
+              </select>
+              <select class="form-control mr-2" id="em-unique-values-dropdown" style="min-width:150px;">
+                <option value="">-- Valeurs uniques --</option>
+                <!-- Options will be filled by JS -->
+              </select>
+              
+            </form>
+            <div id="em-table-container" style="max-height: 400px; overflow-y: auto;">
+              <table class="table table-bordered table-sm" id="em-table">
+                <thead>
+                  <tr>
+                    <th>Code EM</th>
+                    <th>Libellé EM</th>
+                  </tr>
+                </thead>
+                <tbody id="em-table-body">
+                  {% for em in ems %}
+                  <tr>
+                    <td>{{ em.code_em }}</td>
+                    <td>{{ em.libelle_standard }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="6">Aucune équipe médicale trouvée.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <div id="em-pagination">
+                <nav aria-label="Page navigation">
+                  <ul class="pagination justify-content-center">
+                    {% if ems.has_previous %}
+                      <li class="page-item">
+                        <a class="page-link em-page-link" href="#" data-page="{{ ems.previous_page_number }}" aria-label="Previous">
+                          <span aria-hidden="true">&laquo;</span>
+                        </a>
+                      </li>
+                    {% else %}
+                      <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                      </li>
+                    {% endif %}
+                    {% for num in ems.paginator.page_range %}
+                      {% if ems.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                      {% elif num > ems.number|add:'-6' and num < ems.number|add:'6' %}
+                        <li class="page-item">
+                          <a class="page-link em-page-link" href="#" data-page="{{ num }}">{{ num }}</a>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                    {% if ems.has_next %}
+                      <li class="page-item">
+                        <a class="page-link em-page-link" href="#" data-page="{{ ems.next_page_number }}" aria-label="Next">
+                          <span aria-hidden="true">&raquo;</span>
+                        </a>
+                      </li>
+                    {% else %}
+                      <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                      </li>
+                    {% endif %}
+                  </ul>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -98,11 +311,13 @@
   {% endblock content %}
 
   {% block extra_scripts %}
-  
+    <script>
+      window.ajaxEmPaginationUrl = "{% url 'ajax_em_pagination' %}";
+    </script>
     <!-- OPTIONAL SCRIPTS -->
     <script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
     <!-- AdminLTE dashboard demo (This is only for demo purposes) -->
     <script src="{% static 'dist/js/pages/dashboard3.js' %}"></script>
-  
+    <script src="{% static 'js/dashboard.js' %}"></script>
   {% endblock extra_scripts %}
 

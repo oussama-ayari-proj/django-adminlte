@@ -1,0 +1,21 @@
+<tbody id="sejour-table-body">
+  {% for sejour in sejours %}
+  <tr>
+    <td>{{ sejour.num_sequence }}</td>
+    <td>{{ sejour.code_uf }}</td>
+    <td>{{ sejour.code_em }}</td>
+    <td>{{ sejour.duree_sejour }}</td>
+    <td>{{ sejour.type_sejour }}</td>
+    <td>{{ sejour.date_sortie }}</td>
+    <td>{{ sejour.ghs }}</td>
+    <td>{{ sejour.sexe }}</td>
+    <td>{{ sejour.age_entree }}</td>
+    <td>{{ sejour.semaine_entree }}</td>
+    <td>{{ sejour.date_entree }}</td>
+  </tr>
+  {% empty %}
+  <tr>
+    <td colspan="11">No sejours found.</td>
+  </tr>
+  {% endfor %}
+</tbody>

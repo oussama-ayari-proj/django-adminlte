@@ -16,6 +16,41 @@ class UF(models.Model):
     def __str__(self):
         return str(self.code_uf)
 
+class Sejour(models.Model):
+    num_sequence = models.IntegerField(null=True, db_column='num_sequence')
+    code_uf = models.IntegerField(null=True, db_column='code_UF')
+    code_em = models.IntegerField(null=True, db_column='code_EM')
+    duree_sejour = models.IntegerField(null=True, db_column='duree_sejour')
+    type_sejour = models.TextField(null=True, db_column='type_sejour')
+    date_sortie = models.DateField(null=True, db_column='date_sortie')
+    ghs = models.TextField(null=True, db_column='ghs')
+    sexe = models.IntegerField(null=True, db_column='sexe')
+    age_entree = models.IntegerField(null=True, db_column='age_entree')
+    semaine_entree = models.IntegerField(null=True, db_column='semaine_entree')
+    date_entree = models.DateField(null=True, db_column='date_entree')
+
+    class Meta:
+        db_table = 'sejours'
+        managed = False
+
+    def __str__(self):
+        return f"Sejour {self.id}"
+
+
+class EM(models.Model):
+    code_em = models.IntegerField(db_column='code_EM', primary_key=True)
+    libelle_standard = models.TextField(null=True, db_column='libelle_EM')
+    
+    class Meta:
+        db_table = 'EM'
+        managed = False
+
+    def __str__(self):
+        return str(self.code_em)
+
+
+
+
 
 
 

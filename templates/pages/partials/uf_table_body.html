@@ -1,0 +1,19 @@
+<tbody id="uf-table-body">
+  {% for row in ufs %}
+  <tr>
+    <td>{{ row.code_uf }}</td>
+    <td>{{ row.libelle_standard }}</td>
+    <td>{{ row.code_etb }}</td>
+    <td>{{ row.code_pole }}</td>
+    <td>{{ row.heb }}</td>
+    <td>{{ row.type_uf }}</td>
+    <td>{{ row.libelle_type_uf }}</td>
+    <td>{{ row.type_activite }}</td>
+    <td>{{ row.libelle_type_activite }}</td>
+  </tr>
+  {% empty %}
+  <tr>
+    <td colspan="17">No ufs found.</td>
+  </tr>
+  {% endfor %}
+</tbody>
