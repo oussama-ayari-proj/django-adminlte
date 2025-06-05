@@ -39,20 +39,28 @@
     {% endif %}
     {% endfor %}
     {% endif %}
+    <li class="nav-header">Dashboard</li>
+      <li class="nav-item">
+        <a href="/" class="nav-link ">
+          <i class="nav-icon fas fa-database"></i>
+          <p>
+            Table des données
+          </p>
+        </a>
+      </li>
 
       <li class="nav-item">
-        <a href="/" class="nav-link {% if 'dashboard' in parent %} active {% endif %}">
+        <a href="/dashboard" class="nav-link ">
           <i class="nav-icon fas fa-tachometer-alt"></i>
           <p>
             Dashboard
-            
           </p>
         </a>
       </li>
 
     <li class="nav-header">Predictions</li>
     <li class="nav-item">
-      <a href="/predictions" class="nav-link {% if 'ui' in parent %}active{% endif %}">
+      <a href="/predictions" class="nav-link">
         <i class="nav-icon fas fa-eye"></i>
         <p>
           Time Series
@@ -62,7 +70,7 @@
 
     <li class="nav-header">Plannification</li>
     <li class="nav-item">
-      <a href="/plannifications" class="nav-link {% if 'ui' in parent %}active{% endif %}">
+      <a href="/plannifications" class="nav-link">
         <i class="nav-icon fas fa-calendar"></i>
         <p>
           Capacité infinie
@@ -71,7 +79,7 @@
     </li>
 
     <li class="nav-item">
-      <a href="/plannifications/sans_contraintes/" class="nav-link {% if 'ui' in parent %}active{% endif %}">
+      <a href="/plannifications/sans_contraintes/" class="nav-link">
         <i class="nav-icon fas fa-calendar-week"></i>
         <p>
           Capacité Finie (Contraintes)

@@ -22,5 +22,6 @@ urlpatterns = [
     path('plannifications/', include('apps.plannifications.urls')),
     path('charts/', include('apps.charts.urls')),
     path("admin/", admin.site.urls),
+    path('dashboard/', include('apps.dashboard.urls')),
     path("", include('admin_adminlte.urls'))
 ]
