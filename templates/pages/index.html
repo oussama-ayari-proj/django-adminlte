@@ -43,14 +43,14 @@
                 <option value="type_activite" {% if field == "type_activite" %}selected{% endif %}>Type activité</option>
                 <option value="libelle_type_activite" {% if field == "libelle_type_activite" %}selected{% endif %}>Libellé activité</option>
               </select>
-              <select class="form-control mr-2" id="unique-values-dropdown" style="min-width:150px;">
+              <select class="form-control mr-2" id="uf-unique-values-dropdown" style="min-width:150px;">
                 <option value="">-- Valeurs uniques --</option>
                 <!-- Options will be filled by JS -->
               </select>
             </form>
             
             <div id="uf-table-container">
-              <table class="table table-bordered table-sm" id="results-table">
+              <table style="background-color: white;" class="table table-bordered table-sm" id="results-table">
                 <thead>
                   <tr>
                     <th>Code UF</th>
@@ -147,7 +147,7 @@
               
             </form>
             <div id="sejour-table-container">
-              <table class="table table-bordered table-sm" id="sejour-table">
+              <table style="background-color: white;" class="table table-bordered table-sm" id="sejour-table">
                 <thead>
                   <tr>
                     <th>Num Sequence</th>
@@ -240,7 +240,7 @@
               
             </form>
             <div id="em-table-container" style="max-height: 400px; overflow-y: auto;">
-              <table class="table table-bordered table-sm" id="em-table">
+              <table style="background-color: white;" class="table table-bordered table-sm" id="em-table">
                 <thead>
                   <tr>
                     <th>Code EM</th>
@@ -299,6 +299,153 @@
               </div>
             </div>
           </div>
+          <div class="col-lg-6">
+            <h3>Pole</h3>
+            <form method="get" class="form-inline mb-3" id="pole-search-form">
+              <select name="pole_field" class="form-control mr-2" id="pole-search-field">
+                <option value="code_pole" {% if pole_field == "code_pole" %}selected{% endif %}>Code pole</option>
+                <option value="libelle_standard" {% if pole_field == "libelle_standard" %}selected{% endif %}>Libellé pole</option>
+              </select>
+              <select class="form-control mr-2" id="pole-unique-values-dropdown" style="min-width:150px;">
+                <option value="">-- Valeurs uniques --</option>
+                <!-- Options will be filled by JS -->
+              </select>
+            </form>
+            <div id="pole-table-container" style="max-height: 400px; overflow-y: auto;">
+              <table style="background-color: white;" class="table table-bordered table-sm" id="pole-table">
+                <thead>
+                  <tr>
+                    <th>Code pole</th>
+                    <th>Libellé pole</th>
+                  </tr>
+                </thead>
+                <tbody id="pole-table-body">
+                  {% for pole in poles %}
+                  <tr>
+                    <td>{{ pole.code_pole }}</td>
+                    <td>{{ pole.libelle_standard }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="6">Aucune équipe médicale trouvée.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <div id="pole-pagination">
+                <nav aria-label="Page navigation">
+                  <ul class="pagination justify-content-center">
+                    {% if poles.has_previous %}
+                      <li class="page-item">
+                        <a class="page-link pole-page-link" href="#" data-page="{{ poles.previous_page_number }}" aria-label="Previous">
+                          <span aria-hidden="true">&laquo;</span>
+                        </a>
+                      </li>
+                    {% else %}
+                      <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                      </li>
+                    {% endif %}
+                    {% for num in poles.paginator.page_range %}
+                      {% if poles.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                      {% elif num > poles.number|add:'-6' and num < poles.number|add:'6' %}
+                        <li class="page-item">
+                          <a class="page-link pole-page-link" href="#" data-page="{{ num }}">{{ num }}</a>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                    {% if poles.has_next %}
+                      <li class="page-item">
+                        <a class="page-link pole-page-link" href="#" data-page="{{ poles.next_page_number }}" aria-label="Next">
+                          <span aria-hidden="true">&raquo;</span>
+                        </a>
+                      </li>
+                    {% else %}
+                      <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                      </li>
+                    {% endif %}
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-4">
+          <div class="col-lg-6">
+            <h3>Etablissement</h3>
+            <form method="get" class="form-inline mb-3" id="etb-search-form">
+              <select name="etb_field" class="form-control mr-2" id="etb-search-field">
+                <option value="code_etb" {% if etb_field == "code_etb" %}selected{% endif %}>Code etb</option>
+                <option value="libelle_standard" {% if etb_field == "libelle_standard" %}selected{% endif %}>Libellé etb</option>
+              </select>
+              <select class="form-control mr-2" id="etb-unique-values-dropdown" style="min-width:150px;">
+                <option value="">-- Valeurs uniques --</option>
+                <!-- Options will be filled by JS -->
+              </select>
+            </form>
+            <div id="etb-table-container" style="max-height: 400px; overflow-y: auto;">
+              <table style="background-color: white;" class="table table-bordered table-sm" id="etb-table">
+                <thead>
+                  <tr>
+                    <th>Code etb</th>
+                    <th>Libellé etb</th>
+                  </tr>
+                </thead>
+                <tbody id="etb-table-body">
+                  {% for etb in etbs %}
+                  <tr>
+                    <td>{{ etb.code_etb }}</td>
+                    <td>{{ etb.libelle_standard }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="6">Aucune équipe médicale trouvée.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <div id="etb-pagination">
+                <nav aria-label="Page navigation">
+                  <ul class="pagination justify-content-center">
+                    {% if etbs.has_previous %}
+                      <li class="page-item">
+                        <a class="page-link etb-page-link" href="#" data-page="{{ etbs.previous_page_number }}" aria-label="Previous">
+                          <span aria-hidden="true">&laquo;</span>
+                        </a>
+                      </li>
+                    {% else %}
+                      <li class="page-item disabled">
+                        <span class="page-link">&laquo;</span>
+                      </li>
+                    {% endif %}
+                    {% for num in etbs.paginator.page_range %}
+                      {% if etbs.number == num %}
+                        <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                      {% elif num > etbs.number|add:'-6' and num < etbs.number|add:'6' %}
+                        <li class="page-item">
+                          <a class="page-link etb-page-link" href="#" data-page="{{ num }}">{{ num }}</a>
+                        </li>
+                      {% endif %}
+                    {% endfor %}
+                    {% if etbs.has_next %}
+                      <li class="page-item">
+                        <a class="page-link etb-page-link" href="#" data-page="{{ etbs.next_page_number }}" aria-label="Next">
+                          <span aria-hidden="true">&raquo;</span>
+                        </a>
+                      </li>
+                    {% else %}
+                      <li class="page-item disabled">
+                        <span class="page-link">&raquo;</span>
+                      </li>
+                    {% endif %}
+                  </ul>
+                </nav>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
       <!-- /.container-fluid -->
@@ -311,9 +458,6 @@
   {% endblock content %}
 
   {% block extra_scripts %}
-    <script>
-      window.ajaxEmPaginationUrl = "{% url 'ajax_em_pagination' %}";
-    </script>
     <!-- OPTIONAL SCRIPTS -->
     <script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
     <!-- AdminLTE dashboard demo (This is only for demo purposes) -->

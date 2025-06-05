@@ -48,6 +48,29 @@ class EM(models.Model):
     def __str__(self):
         return str(self.code_em)
 
+class Pole(models.Model):
+    code_pole = models.BigIntegerField(db_column='code_Pole', primary_key=True)
+    libelle_standard = models.TextField(null=True, db_column='libelle_Pole')
+    
+    class Meta:
+        db_table = 'Pole'
+        managed = False
+
+    def __str__(self):
+        return str(self.code_pole)
+    
+
+class ETB(models.Model):
+    code_etb = models.BigIntegerField(db_column='code_ETB', primary_key=True)
+    libelle_standard = models.TextField(null=True, db_column='libelle_ETB')
+    
+    class Meta:
+        db_table = 'ETB'
+        managed = False
+
+    def __str__(self):
+        return str(self.code_etb)
+
 
 
 

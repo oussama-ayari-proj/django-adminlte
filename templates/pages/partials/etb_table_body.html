@@ -1,0 +1,12 @@
+<tbody id="etb-table-body">
+                  {% for etb in etbs %}
+                  <tr>
+                    <td>{{ etb.code_etb }}</td>
+                    <td>{{ etb.libelle_standard }}</td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="6">Aucune équipe médicale trouvée.</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>

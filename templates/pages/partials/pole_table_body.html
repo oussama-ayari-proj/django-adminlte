@@ -1,0 +1,12 @@
+<tbody id="pole-table-body">
+    {% for pole in poles %}
+    <tr>
+        <td>{{ pole.code_pole }}</td>
+        <td>{{ pole.libelle_standard }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="6">Aucune équipe médicale trouvée.</td>
+    </tr>
+    {% endfor %}
+</tbody>
