@@ -27,12 +27,67 @@
     </section>
 
     <!-- Main content -->
-    <section class="content">
+    <section class="content" style="margin-left:1rem;">
       <div class="container-fluid">
-        <div class="row">
-          
+        <div class="row mt-4">
+          <div class="col-lg-4">
+            <form method="get" class="form-inline mb-3" id="ufh-libelle-form">
+              <label for="ufh-libelle-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Sélectionner UFH Libellé:</label>
+              <select class="form-control mr-2" id="ufh-libelle-dropdown" name="ufh_libelle" style="font-size: 2rem;height: auto;">
+                <option value="">-- Choisir un libellé --</option>
+                {% for ufh in ufh_libelles %}
+                  <option value="{{ ufh.code_uf }}">{{ ufh.libelle_standard }}</option>
+                {% endfor %}
+              </select>
+            </form>
+          </div>
+          <div class="col-lg-6 d-flex align-items-stretch justify-content-center">
+            <div class="w-100 d-flex flex-row justify-content-center align-items-stretch">
+              <div class="text-center mr-5 d-flex flex-column justify-content-center" style="flex:1;">
+                <label class="mb-2" style="font-size: 2.5rem;color:#227F79">Etablissement:</label>
+                <span id="etb-value" style="font-size: 2.2rem; display: block;">-</span>
+                <label class="mb-2 mt-4" style="font-size: 2.5rem;color:#227F79">Pôle:</label>
+                <span id="pole-value" style="font-size: 2.2rem; display: block;">-</span>
+              </div>
+              <div class="text-center ml-5 d-flex flex-column justify-content-center align-items-center" style="flex:1; min-height:100%;">
+                <label class="mb-2" style="font-size: 2.5rem;color:#227F79">Lits installés moyens:</label>
+                <div style="display: flex; align-items: center; justify-content: center;">
+                  <img src="../../static/assets/images/lit-hopital-medical.avif" alt="" srcset="" style="width: 200px; height: 200px; margin-right: 20px;">
+                  <span id="lits-fermes-value" style="font-size: 2.2rem; display: block;">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         <!-- /.row -->
+        <div class="row">
+          <div class="col-lg-6 d-flex align-items-stretch justify-content-center">
+            <div class="text-center mt-5 w-100 col-lg-5">
+              <label class="mb-2" style="font-size: 2rem;color:#227F79">Métiers</label>
+              <div class="table-responsive">
+                <table class="table table-bordered table-sm" id="metiers-table" style="font-size: 1.3rem;background-color: white;">
+                  
+                  <tbody id="metiers-table-body">
+                    <!-- Métiers will be inserted here by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-2 d-flex align-items-stretch justify-content-center">
+            <div class="text-center mt-5 w-100 col-lg-5">
+              <label class="mb-2" style="font-size: 2rem;color:#227F79">Effectif</label>
+              <div id="metier-count">
+                
+              </div>
+            </div>
+
+          </div>
+          
+        </div>
+        
+
       </div><!-- /.container-fluid -->
     </section>
     <!-- /.content -->
@@ -43,5 +98,92 @@
   {% block extra_scripts %}
   <!-- ChartJS -->
   <script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById('ufh-libelle-dropdown').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const codeUfh = selectedOption.value;
+        const libelle = selectedOption.text;
+        console.log('Selected code UFH:', codeUfh);
+        console.log('Selected libellé:', libelle);
+        get_etb(codeUfh);
+        get_pole(codeUfh);
+        get_lits_fermes(codeUfh);
+        get_metiers(codeUfh);
+      });
+    });
+    function get_etb(code_ufh) {
+      fetch("/dashboard/get_etb/?code_ufh=" + code_ufh)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Data received:', data);
+          document.getElementById('etb-value').innerText = data.etb_libelle_standard || '-';
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
+    }
+    function get_pole(code_ufh) {
+      fetch("/dashboard/get_pole/?code_ufh=" + code_ufh)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Data received:', data);
+          document.getElementById('pole-value').innerText = data.pole || '-';
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
+    }
+    function get_lits_fermes(code_ufh) {
+      fetch("/dashboard/get_lits_fermes/?code_ufh=" + code_ufh)
+        .then(response => response.json())
+        .then (data => {
+          console.log('Data received:', data);
+          document.getElementById('lits-fermes-value').innerText = data.lits || '-';
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
+    }
+    function get_metiers(code_ufh) {
+      fetch("/dashboard/get_metiers/?code_ufh=" + code_ufh)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Data received:', data);
+          const metiersTableBody = document.getElementById('metiers-table-body');
+          metiersTableBody.innerHTML = '';
+          (data.metiers || []).forEach(metier => {
+            const row = document.createElement('tr');
+            const cell = document.createElement('td');
+            cell.textContent = metier;
+            cell.style.cursor = 'pointer';
+            cell.addEventListener('click', function() {
+              document.querySelectorAll('#metiers-table-body tr').forEach(tr => tr.classList.remove('table-active'));
+              row.classList.add('table-active');
+              get_metier_count(code_ufh, metier);
+            });
+            row.appendChild(cell);
+            metiersTableBody.appendChild(row);
+          });
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
+    }
+
+    function get_metier_count(code_ufh, metier) {
+      fetch(`/dashboard/get_metier_count/?code_ufh=${encodeURIComponent(code_ufh)}&metier=${encodeURIComponent(metier)}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Metier count data received:', data);
+          document.getElementById('metier-count').innerHTML = `
+            <p style="font-size: 2rem;">${data.count || 0}</p>
+          `;
+        })
+        .catch(error => {
+          console.error('Error fetching metier count:', error);
+        });
+    }
+  </script>
 
 {% endblock extra_scripts %}
