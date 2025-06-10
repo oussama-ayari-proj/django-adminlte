@@ -1,0 +1,155 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} Plannifications (capacité infini) {% endblock title %}
+
+{% block bodyclass %} hold-transition sidebar-mini  {% endblock bodyclass %}
+
+ {% block content %}
+
+  <!-- Content Wrapper. Contains page content -->
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <section class="content-header" style="margin-left:1rem;">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Corrélation Absences - lits fermés</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Corrélation Absences - lits fermés</li>
+            </ol>
+          </div>
+        </div>
+      </div><!-- /.container-fluid -->
+    </section>
+
+    <!-- Main content -->
+    <section class="content" style="margin-left:1rem;">
+      <div class="container-fluid">
+        <div class="row mt-4">
+          <div class="col-lg-4">
+            <form method="get" class="form-inline mb-3" id="pole-form">
+              <label for="pole-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Pôle:</label>
+              <select class="form-control mr-2" id="pole-dropdown" name="pole_libelle" style="font-size: 2rem;height: auto;">
+                <option value="">-- Choisir un Pôle --</option>
+                {% for p in poles %}
+                  <option value="{{ p.code_pole }}">{{ p.libelle_standard }}</option>
+                {% endfor %}
+              </select>
+            </form>
+          </div>
+          <div class="col-lg-4">
+            <form method="get" class="form-inline mb-3" id="metier-form">
+              <label for="metier-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Métiers:</label>
+              <select class="form-control mr-2" id="metier-dropdown" name="metier_libelle" style="font-size: 2rem;height: auto;">
+                <option value="">-- Choisir un Métier --</option>
+              </select>
+            </form>
+          </div>
+        </div>
+        <div class="row mt-6">
+          <div class="col-lg-12">
+            <form method="get" class="form-inline mb-3" id="ufh-form">
+              <label for="ufh-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Libellé UFH:</label>
+              <select class="form-control mr-2" id="ufh-dropdown" name="ufh_libelle" style="font-size: 2rem;height: auto;">
+                <option value="">-- Choisir un UFH --</option>
+              </select>
+            </form>
+          </div>
+        </div>
+        <div class="row mt-4">
+          <div class="col-lg-4">
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+              <table class="table table-bordered table-sm" id="data-table" style="font-size: 1.3rem;background-color: white;width: 1000px;">
+                <thead>
+                  <tr>
+                    <th>Semaine</th>
+                    <th>Agents abs. imprévu</th>
+                    <th>Agents abs. prévu</th>
+                    <th>Lits fermés moyen</th>
+                  </tr>
+                </thead>
+                <tbody id="data-table-body">
+                  <!-- Data will be inserted here by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+    </section>
+    <!-- /.content -->
+  </div>
+
+  {% endblock content %}
+
+  {% block extra_scripts %}
+    <script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const poleDropdown = document.getElementById('pole-dropdown');
+            const ufhDropdown = document.getElementById('ufh-dropdown');
+            const metierDropdown = document.getElementById('metier-dropdown');
+    
+            // Function to update the charts based on selected pole and UFH
+            function get_ufs() {
+                const selectedPole = poleDropdown.value;
+                console.log('Selected Pole:', selectedPole);
+                fetch(`/correlation-absences-lits/get_ufs/?code_pole=${selectedPole}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        ufhDropdown.innerHTML = '<option value="">-- Choisir un UFH --</option>';
+                        (data.ufs || []).forEach(uf => {
+                            const option = document.createElement('option');
+                            option.value = uf.code_uf;
+                            option.textContent = uf.libelle_standard;
+                            ufhDropdown.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            }
+            
+            poleDropdown.addEventListener('change', get_ufs);
+
+            function get_data(){
+                const selectedUfh = ufhDropdown.value;
+                console.log('Selected UFH:', selectedUfh);
+                fetch(`/correlation-absences-lits/get_data/?code_uf=${selectedUfh}&code_pole=${poleDropdown.value}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('RH data:', data);
+                        const tableBody = document.getElementById('data-table-body');
+                        tableBody.innerHTML = '';
+                        (data.data || []).forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                              <td>${row.semaine ?? '-'}</td>
+                              <td>${row.agents_abs_imprevu ?? '-'}</td>
+                              <td>${row.agents_abs_prevu ?? '-'}</td>
+                              <td>${row.lits_fermes_moyen ?? '-'}</td>
+                            `;
+                            tableBody.appendChild(tr);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+                fetch(`/correlation-absences-lits/get_metiers/?code_uf=${selectedUfh}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Metiers data:', data);
+                        metierDropdown.innerHTML = '<option value="">-- Choisir un Métier --</option>';
+                        (data.metiers || []).forEach(metier => {
+                            const option = document.createElement('option');
+                            option.value = metier;
+                            option.textContent = metier;
+                            metierDropdown.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching data:', error));
+            }
+
+            ufhDropdown.addEventListener('change', get_data);
+        });
+    </script>
+  {% endblock extra_scripts %}

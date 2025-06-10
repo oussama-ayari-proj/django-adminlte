@@ -77,16 +77,27 @@ def get_metiers(request):
         try:
             metiers = RH.objects.filter(code_uf=code_uf).values_list('metier', flat=True).distinct()
             metiers_list = [m for m in metiers if m]
+            total_effectif = 0
+            for metier in metiers_list:
+                entries = RH.objects.filter(code_uf=code_uf, metier=metier)
+                if entries.exists():
+                    from statistics import mean
+                    avg = mean(entries.values_list('effectif_total', flat=True))
+                    distinct_entries = entries.values_list('metier', flat=True).distinct().count()
+                    total_effectif += round(avg * distinct_entries) if distinct_entries else 0
             return JsonResponse({
                 'metiers': metiers_list,
+                'total_effectif': total_effectif,
             })
         except Exception:
             return JsonResponse({
                 'metiers': [],
+                'total_effectif': 0,
             })
     else:
         return JsonResponse({
                 'metiers': [],
+                'total_effectif': 0,
             })
     
 
@@ -100,7 +111,7 @@ def get_metier_count(request):
             avg = mean(entries.values_list('effectif_total', flat=True)) if entries else 0
             distinct_entries = entries.values_list('metier', flat=True).distinct().count()
             return JsonResponse({
-                'count': round(avg*distinct_entries,1) if distinct_entries else 0,
+                'count': round(avg*distinct_entries) if distinct_entries else 0,
             })
         except Exception:
             return JsonResponse({

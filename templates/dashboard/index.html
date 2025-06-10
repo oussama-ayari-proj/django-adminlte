@@ -60,7 +60,14 @@
           </div>
         </div>
         <!-- /.row -->
-        <div class="row">
+
+        <div class="row" style="margin-top: 8rem;">
+          <div class="col-lg-2 d-flex align-items-stretch justify-content-center">
+            <div class="text-center mt-5 w-100">
+              <label class="mb-2" style="font-size: 2rem;color:#227F79">Nombre de métiers uniques</label>
+              <div id="unique-metiers-count" style="font-size: 2.2rem;">-</div>
+            </div>
+          </div>
           <div class="col-lg-6 d-flex align-items-stretch justify-content-center">
             <div class="text-center mt-5 w-100 col-lg-5">
               <label class="mb-2" style="font-size: 2rem;color:#227F79">Métiers</label>
@@ -74,10 +81,9 @@
               </div>
             </div>
           </div>
-
           <div class="col-lg-2 d-flex align-items-stretch justify-content-center">
             <div class="text-center mt-5 w-100 col-lg-5">
-              <label class="mb-2" style="font-size: 2rem;color:#227F79">Effectif</label>
+              <label class="mb-2 w-100" style="font-size: 2rem;color:#227F79">Effectif</label>
               <div id="metier-count">
                 
               </div>
@@ -85,9 +91,16 @@
 
           </div>
           
-        </div>
-        
+          <div class="col-lg-2 d-flex align-items-stretch justify-content-center">
+            <div class="text-center mt-5 w-100 col-lg-5">
+              <label class="mb-2 w-100" style="font-size: 2rem;color:#227F79">Effectif Total</label>
+              <div id="effectif-total">
+                
+              </div>
+            </div>
 
+          </div>
+        </div>
       </div><!-- /.container-fluid -->
     </section>
     <!-- /.content -->
@@ -98,6 +111,7 @@
   {% block extra_scripts %}
   <!-- ChartJS -->
   <script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
+  
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('ufh-libelle-dropdown').addEventListener('change', function() {
@@ -106,6 +120,8 @@
         const libelle = selectedOption.text;
         console.log('Selected code UFH:', codeUfh);
         console.log('Selected libellé:', libelle);
+        document.getElementById('metier-count').innerHTML = "";
+        document.querySelector('#metier-count').parentNode.querySelector('label').innerHTML = `Effectif`;
         get_etb(codeUfh);
         get_pole(codeUfh);
         get_lits_fermes(codeUfh);
@@ -116,7 +132,7 @@
       fetch("/dashboard/get_etb/?code_ufh=" + code_ufh)
         .then(response => response.json())
         .then(data => {
-          console.log('Data received:', data);
+          //console.log('Data received:', data);
           document.getElementById('etb-value').innerText = data.etb_libelle_standard || '-';
         })
         .catch(error => {
@@ -127,7 +143,7 @@
       fetch("/dashboard/get_pole/?code_ufh=" + code_ufh)
         .then(response => response.json())
         .then(data => {
-          console.log('Data received:', data);
+          //console.log('Data received:', data);
           document.getElementById('pole-value').innerText = data.pole || '-';
         })
         .catch(error => {
@@ -138,7 +154,7 @@
       fetch("/dashboard/get_lits_fermes/?code_ufh=" + code_ufh)
         .then(response => response.json())
         .then (data => {
-          console.log('Data received:', data);
+          //console.log('Data received:', data);
           document.getElementById('lits-fermes-value').innerText = data.lits || '-';
         })
         .catch(error => {
@@ -149,9 +165,15 @@
       fetch("/dashboard/get_metiers/?code_ufh=" + code_ufh)
         .then(response => response.json())
         .then(data => {
-          console.log('Data received:', data);
+          console.log('Data received:', data.metiers);
+          console.log('Total effectif:', data.total_effectif);
           const metiersTableBody = document.getElementById('metiers-table-body');
           metiersTableBody.innerHTML = '';
+          // Update unique metiers count
+          document.getElementById('unique-metiers-count').innerText = (data.metiers || []).length;
+          document.getElementById('effectif-total').innerHTML = `
+            <p style="font-size: 2rem;">${data.total_effectif || 0}</p>
+          `;
           (data.metiers || []).forEach(metier => {
             const row = document.createElement('tr');
             const cell = document.createElement('td');
@@ -160,6 +182,8 @@
             cell.addEventListener('click', function() {
               document.querySelectorAll('#metiers-table-body tr').forEach(tr => tr.classList.remove('table-active'));
               row.classList.add('table-active');
+              // Update the Effectif label with the selected metier
+              document.querySelector('#metier-count').parentNode.querySelector('label').innerHTML = `Effectif ${metier}`;
               get_metier_count(code_ufh, metier);
             });
             row.appendChild(cell);
@@ -175,9 +199,9 @@
       fetch(`/dashboard/get_metier_count/?code_ufh=${encodeURIComponent(code_ufh)}&metier=${encodeURIComponent(metier)}`)
         .then(response => response.json())
         .then(data => {
-          console.log('Metier count data received:', data);
+          //console.log('Metier count data received:', data);
           document.getElementById('metier-count').innerHTML = `
-            <p style="font-size: 2rem;">${data.count || 0}</p>
+            <p style="font-size: 2rem;color:black;">${data.count || 0}</p>
           `;
         })
         .catch(error => {
