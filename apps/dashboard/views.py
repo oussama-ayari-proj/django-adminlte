@@ -5,7 +5,6 @@ from django.views.decorators.http import require_GET
 from django.http import JsonResponse
 from statistics import mean
 
-
 def index(request):
     # ...existing code...
     ufh_libelles = UF.objects.values('libelle_standard', 'code_uf').distinct().order_by('libelle_standard')
@@ -121,3 +120,4 @@ def get_metier_count(request):
         return JsonResponse({
                 'count': 0,
             })
+    

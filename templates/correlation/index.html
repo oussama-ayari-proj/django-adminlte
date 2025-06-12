@@ -6,8 +6,12 @@
 {% block bodyclass %} hold-transition sidebar-mini  {% endblock bodyclass %}
 
  {% block content %}
-
   <!-- Content Wrapper. Contains page content -->
+  <style>
+    li {
+      font-size: 2rem;
+    }
+  </style>
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <section class="content-header" style="margin-left:1rem;">
@@ -18,8 +22,8 @@
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Corrélation Absences - lits fermés</li>
+              <li class="breadcrumb-item" style="font-size: 1.5rem"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active" style="font-size: 1.5rem">Corrélation Absences - lits fermés</li>
             </ol>
           </div>
         </div>
@@ -44,14 +48,16 @@
           <div class="col-lg-4">
             <form method="get" class="form-inline mb-3" id="metier-form">
               <label for="metier-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Métiers:</label>
-              <select class="form-control mr-2" id="metier-dropdown" name="metier_libelle" style="font-size: 2rem;height: auto;">
-                <option value="">-- Choisir un Métier --</option>
-              </select>
+              <div class="select2-purple" style="min-width:300px;width:100%;font-size: 2rem;">
+                <select class="select2" id="metier-dropdown" name="metier_libelle" multiple="multiple" data-placeholder="-- Choisir un Métier --" data-dropdown-css-class="select2-purple" style="width: 100%; font-size:2rem;">
+                  <option value="">-- Choisir un Métier --</option>
+                </select>
+              </div>
             </form>
           </div>
         </div>
         <div class="row mt-6">
-          <div class="col-lg-12">
+          <div class="col-lg-6">
             <form method="get" class="form-inline mb-3" id="ufh-form">
               <label for="ufh-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Libellé UFH:</label>
               <select class="form-control mr-2" id="ufh-dropdown" name="ufh_libelle" style="font-size: 2rem;height: auto;">
@@ -86,13 +92,26 @@
   {% endblock content %}
 
   {% block extra_scripts %}
+    <link href="{% static 'plugins/select2/css/select2.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}" rel="stylesheet" />
+    <script src="{% static 'plugins/select2/js/select2.full.min.js' %}"></script>
     <script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const poleDropdown = document.getElementById('pole-dropdown');
             const ufhDropdown = document.getElementById('ufh-dropdown');
             const metierDropdown = document.getElementById('metier-dropdown');
-    
+
+            // Initialize Select2 for Métiers multi-select
+            if (window.jQuery && $(metierDropdown).select2) {
+                $(metierDropdown).select2({
+                    theme: 'bootstrap4',
+                    dropdownCssClass: 'select2-purple',
+                    placeholder: '-- Choisir un Métier --',
+                    width: 'resolve'
+                });
+            }
+
             // Function to update the charts based on selected pole and UFH
             function get_ufs() {
                 const selectedPole = poleDropdown.value;
@@ -119,7 +138,6 @@
                 fetch(`/correlation-absences-lits/get_data/?code_uf=${selectedUfh}&code_pole=${poleDropdown.value}`)
                     .then(response => response.json())
                     .then(data => {
-                        console.log('RH data:', data);
                         const tableBody = document.getElementById('data-table-body');
                         tableBody.innerHTML = '';
                         (data.data || []).forEach(row => {
@@ -137,7 +155,6 @@
                 fetch(`/correlation-absences-lits/get_metiers/?code_uf=${selectedUfh}`)
                     .then(response => response.json())
                     .then(data => {
-                        console.log('Metiers data:', data);
                         metierDropdown.innerHTML = '<option value="">-- Choisir un Métier --</option>';
                         (data.metiers || []).forEach(metier => {
                             const option = document.createElement('option');
@@ -150,6 +167,30 @@
             }
 
             ufhDropdown.addEventListener('change', get_data);
+
+            $('#metier-dropdown').on('change', function() {
+                const selectedMetiers = $(this).val(); // Array of selected values
+                const selectedUfh = ufhDropdown.value;
+                console.log('Selected Metiers:', selectedMetiers);
+                // Send request to backend with selected métiers and update table
+                fetch(`/correlation-absences-lits/get_data_metiers/?code_uf=${selectedUfh}&metiers=${selectedMetiers ? selectedMetiers.join(',') : ''}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const tableBody = document.getElementById('data-table-body');
+                        tableBody.innerHTML = '';
+                        (data.data || []).forEach(row => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                              <td>${row.semaine ?? '-'}</td>
+                              <td>${row.agents_abs_imprevu ?? '-'}</td>
+                              <td>${row.agents_abs_prevu ?? '-'}</td>
+                              <td>${row.lits_fermes_moyen ?? '-'}</td>
+                            `;
+                            tableBody.appendChild(tr);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching filtered data:', error));
+            });
         });
     </script>
   {% endblock extra_scripts %}
