@@ -68,7 +68,7 @@
         </div>
         <div class="row mt-4">
           <div class="col-lg-4">
-            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+            <div class="table-responsive" style="max-height: 900px; overflow-y: auto;">
               <table class="table table-bordered table-sm" id="data-table" style="font-size: 1.3rem;background-color: white;width: 1000px;">
                 <thead>
                   <tr>
@@ -79,12 +79,33 @@
                   </tr>
                 </thead>
                 <tbody id="data-table-body">
-                  <!-- Data will be inserted here by JS -->
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
+          <div class="col-lg-8">
+            <h1>Corrélation</h1>
+            <div id="ccf-values" style="font-size:2.7rem; margin-top:2.5rem;padding-right: 2rem;">
+              <div style="margin-bottom: 2.2rem; display: flex; align-items: center;justify-content: space-between;">
+                <div>
+                  Abs total et lits fermés: <span id="ccf-abs-total" style="margin-left:1.2rem; font-weight: bold;">-</span>
+                </div>
+                <span id="ccf-abs-total-signif" style="margin-left:2.5rem;"></span>
+              </div>
+              <div style="margin-bottom: 2.2rem; display: flex; align-items: center;justify-content: space-between;">
+                <div>
+                  Abs Prévue et lits fermés: <span id="ccf-prevu" style="margin-left:1.2rem; font-weight: bold;">-</span>
+                </div>
+                <span id="ccf-prevu-signif" style="margin-left:2.5rem;"></span>
+              </div>
+              <div style="margin-bottom: 2.2rem; display: flex; align-items: center;justify-content: space-between;">
+                <div>
+                  Abs Imprévue et lits fermés: <span id="ccf-imprevu" style="margin-left:1.2rem; font-weight: bold;">-</span>
+                </div>
+                <span id="ccf-imprevu-signif" style="margin-left:2.5rem;"></span>
+              </div>
+            </div>
+          </div>
     </section>
     <!-- /.content -->
   </div>
@@ -102,7 +123,6 @@
             const ufhDropdown = document.getElementById('ufh-dropdown');
             const metierDropdown = document.getElementById('metier-dropdown');
 
-            // Initialize Select2 for Métiers multi-select
             if (window.jQuery && $(metierDropdown).select2) {
                 $(metierDropdown).select2({
                     theme: 'bootstrap4',
@@ -112,10 +132,8 @@
                 });
             }
 
-            // Function to update the charts based on selected pole and UFH
             function get_ufs() {
                 const selectedPole = poleDropdown.value;
-                console.log('Selected Pole:', selectedPole);
                 fetch(`/correlation-absences-lits/get_ufs/?code_pole=${selectedPole}`)
                     .then(response => response.json())
                     .then(data => {
@@ -134,7 +152,6 @@
 
             function get_data(){
                 const selectedUfh = ufhDropdown.value;
-                console.log('Selected UFH:', selectedUfh);
                 fetch(`/correlation-absences-lits/get_data/?code_uf=${selectedUfh}&code_pole=${poleDropdown.value}`)
                     .then(response => response.json())
                     .then(data => {
@@ -169,14 +186,33 @@
             ufhDropdown.addEventListener('change', get_data);
 
             $('#metier-dropdown').on('change', function() {
-                const selectedMetiers = $(this).val(); // Array of selected values
+                const selectedMetiers = $(this).val();
                 const selectedUfh = ufhDropdown.value;
-                console.log('Selected Metiers:', selectedMetiers);
-                // Send request to backend with selected métiers and update table
                 fetch(`/correlation-absences-lits/get_data_metiers/?code_uf=${selectedUfh}&metiers=${selectedMetiers ? selectedMetiers.join(',') : ''}`)
                     .then(response => response.json())
                     .then(data => {
                         const tableBody = document.getElementById('data-table-body');
+                        // Display CCF values
+                        function setSignificance(val, spanId) {
+                          const span = document.getElementById(spanId);
+                          if (val !== undefined && !isNaN(val)) {
+                            if (Math.abs(val) > 0.5) {
+                              span.textContent = 'Corrélation significatif';
+                              span.style.color = 'green';
+                            } else {
+                              span.textContent = 'Corrélation non significatif';
+                              span.style.color = 'red';
+                            }
+                          } else {
+                            span.textContent = '';
+                          }
+                        }
+    document.getElementById('ccf-abs-total').textContent = (data.ccf_abs_total !== undefined) ? data.ccf_abs_total.toFixed(3) : '-';
+    setSignificance(data.ccf_abs_total, 'ccf-abs-total-signif');
+    document.getElementById('ccf-prevu').textContent = (data.ccf_prevu !== undefined) ? data.ccf_prevu.toFixed(3) : '-';
+    setSignificance(data.ccf_prevu, 'ccf-prevu-signif');
+    document.getElementById('ccf-imprevu').textContent = (data.ccf_imprevu !== undefined) ? data.ccf_imprevu.toFixed(3) : '-';
+    setSignificance(data.ccf_imprevu, 'ccf-imprevu-signif');
                         tableBody.innerHTML = '';
                         (data.data || []).forEach(row => {
                             const tr = document.createElement('tr');

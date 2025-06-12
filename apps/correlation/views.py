@@ -5,11 +5,11 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from collections import defaultdict
 
+from statsmodels.tsa.stattools import ccf
+import math
+import pandas as pd
 
-# Create your views here.
-def form(request):
-    # This view is not implemented in the provided code snippet
-    return render(request, 'pages/forms/advanced.html', {})
+
 def index(request):
     poles = Pole.objects.all().order_by('libelle_standard')
     return render(request, 'correlation/index.html',{
@@ -117,22 +117,25 @@ def get_data_metiers(request):
             lits = Lit.objects.filter(code_uf=code_uf).order_by('semaine')
             if not lits.exists():
                 return JsonResponse({'data': []})
-            semaine_agg = defaultdict(lambda: {'agents_abs_imprevu': 0, 'agents_abs_prevu': 0})
-            for row in rhs.values('semaine', 'agents_abs_imprevu', 'agents_abs_prevu'):
+            semaine_agg = defaultdict(lambda: {'agents_abs_imprevu': 0, 'agents_abs_prevu': 0,'abs_total': 0})
+            for row in rhs.values('semaine', 'agents_abs_imprevu', 'agents_abs_prevu', 'abs_total'):
                 semaine = row['semaine']
                 semaine_agg[semaine]['agents_abs_imprevu'] += row['agents_abs_imprevu'] or 0
                 semaine_agg[semaine]['agents_abs_prevu'] += row['agents_abs_prevu'] or 0
+                semaine_agg[semaine]['abs_total'] += row['abs_total'] or 0
             lits_by_semaine = {l.semaine: l.lits_fermes_moyen for l in lits}
             data = [
                 {
                     'semaine': semaine,
                     'agents_abs_imprevu': values['agents_abs_imprevu'],
                     'agents_abs_prevu': values['agents_abs_prevu'],
+                    'abs_total': values['abs_total'],
                     'lits_fermes_moyen': round(lits_by_semaine.get(semaine), 2)
                 }
                 for semaine, values in sorted(semaine_agg.items())
             ]
-            return JsonResponse({'data': data})
+            ccf_value, ccf_value2, ccf_value3 = calculer_ccf(data)
+            return JsonResponse({'data': data, 'ccf_abs_total': ccf_value, 'ccf_prevu': ccf_value2, 'ccf_imprevu': ccf_value3})
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     elif code_uf:
@@ -143,11 +146,12 @@ def get_data_metiers(request):
         if not lits.exists():
             return JsonResponse({'error': 'No lits found for this UF'}, status=404)
             
-        semaine_agg = defaultdict(lambda: {'agents_abs_imprevu': 0, 'agents_abs_prevu': 0})
-        for row in rhs.values('semaine', 'agents_abs_imprevu', 'agents_abs_prevu'):
+        semaine_agg = defaultdict(lambda: {'agents_abs_imprevu': 0, 'agents_abs_prevu': 0, 'abs_total': 0})
+        for row in rhs.values('semaine', 'agents_abs_imprevu', 'agents_abs_prevu', 'abs_total'):
             semaine = row['semaine']
             semaine_agg[semaine]['agents_abs_imprevu'] += row['agents_abs_imprevu'] or 0
             semaine_agg[semaine]['agents_abs_prevu'] += row['agents_abs_prevu'] or 0
+            semaine_agg[semaine]['abs_total'] += row['abs_total'] or 0
             # Add lits_fermes_moyen from Lits, indexed by semaine
         lits_by_semaine = {l.semaine: l.lits_fermes_moyen for l in lits}
             # Prepare the aggregated data as a list of dicts
@@ -156,12 +160,38 @@ def get_data_metiers(request):
                     'semaine': semaine,
                     'agents_abs_imprevu': values['agents_abs_imprevu'],
                     'agents_abs_prevu': values['agents_abs_prevu'],
+                    'abs_total': values['abs_total'],
                     'lits_fermes_moyen': round(lits_by_semaine.get(semaine),2)
                 }
                 for semaine, values in sorted(semaine_agg.items())
             ]
+        ccf_value, ccf_value2, ccf_value3 = calculer_ccf(data)
         return JsonResponse({
                 'data': data,
+                'ccf_abs_total': ccf_value,
+                'ccf_prevu': ccf_value2,
+                'ccf_imprevu': ccf_value3
             })
     else:
         return JsonResponse({'error': 'Invalid parameters'}, status=400)
+    
+
+
+def calculer_ccf(data):
+    df = pd.DataFrame(data)
+
+    cross_corr_values = ccf(df['abs_total'], df['lits_fermes_moyen'])
+    cross_corr2= ccf(df['agents_abs_prevu'], df['lits_fermes_moyen'])
+    cross_corr3= ccf(df['agents_abs_imprevu'], df['lits_fermes_moyen'])
+
+    # Just take the first cross-correlation value for illustration
+    ccf_value = cross_corr_values[0]
+    ccf_value2 = cross_corr2[0]
+    ccf_value3 = cross_corr3[0]
+
+    if math.isnan(ccf_value) or math.isnan(ccf_value2) or math.isnan(ccf_value3):
+        ccf_value = 0
+        ccf_value2=0
+        ccf_value3=0
+    
+    return ccf_value, ccf_value2, ccf_value3
