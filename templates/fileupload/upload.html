@@ -1,0 +1,78 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} Téléchargement de Fichier {% endblock title %}
+{% block bodyclass %} hold-transition sidebar-mini  {% endblock bodyclass %}
+
+{% block content %}
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Téléchargement de Fichier</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="#">Accueil</a></li>
+                        <li class="breadcrumb-item active">Téléchargement de Fichier</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Télécharger un Fichier pour Traitement</h3>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger">
+                        <h5><i class="icon fas fa-ban"></i> Erreur!</h5>
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    
+                    <p>Téléchargez un fichier à traiter. Formats pris en charge:</p>
+                    <ul>
+                        <li>Fichiers CSV (.csv)</li>
+                        <li>Fichiers Excel (.xlsx, .xls)</li>
+                        <li>Fichiers JSON (.json)</li>
+                        <li>Fichiers texte (.txt)</li>
+                    </ul>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <div class="custom-file">
+                                <input type="file" class="custom-file-input" id="customFile" name="file" required>
+                                <label class="custom-file-label" for="customFile">Choisir un fichier</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">
+                            <i class="fas fa-upload"></i> Télécharger et Traiter
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<link href="{% static 'plugins/select2/css/select2.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}" rel="stylesheet" />
+    <script src="{% static 'plugins/select2/js/select2.full.min.js' %}"></script>
+    <script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
+<script>
+    $(".custom-file-input").on("change", function() {
+        var fileName = $(this).val().split("\\").pop();
+        $(this).siblings(".custom-file-label").addClass("selected").html(fileName);
+    });
+</script>
+{% endblock extra_scripts%}

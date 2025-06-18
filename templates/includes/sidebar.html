@@ -2,7 +2,50 @@
 <style>
   .sidebar-mini.sidebar-collapse .main-sidebar{
     width: 5.34rem;
-}
+  }
+  
+  /* Style pour que la barre latérale reste fixe lors du défilement */
+  .main-sidebar {
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1038;
+  }
+  
+  /* Style pour le contenu de la barre latérale */
+  .sidebar {
+    height: calc(100% - 4rem);
+    overflow-y: auto;
+    padding-bottom: 0;
+  }
+  
+  /* Ajuster le contenu principal pour qu'il ne soit pas caché par la barre latérale */
+  .content-wrapper {
+    margin-left: 250px;
+  }
+  
+  /* Ajuster lorsque la barre latérale est réduite */
+  .sidebar-collapse .content-wrapper {
+    margin-left: 4.6rem;
+  }
+  
+  /* Amélioration du comportement de survol */
+  .sidebar-mini.sidebar-collapse .main-sidebar:hover {
+    width: 250px !important;
+    z-index: 1038;
+  }
+  
+  /* Assurer que les éléments de menu s'affichent correctement au survol */
+  .sidebar-mini.sidebar-collapse .main-sidebar:hover .nav-sidebar .nav-link p,
+  .sidebar-mini.sidebar-collapse .main-sidebar:hover .brand-text,
+  .sidebar-mini.sidebar-collapse .main-sidebar:hover .user-panel .info {
+    display: inline-block !important;
+    margin-left: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
 </style>
 <!-- Main Sidebar Container -->
 <aside class="main-sidebar sidebar-light-primary elevation-1">
@@ -10,9 +53,7 @@
   <a href="/" class="brand-link">
     <img src="{% static 'img/CHU_logo.svg' %}" alt="CHU Logo" class="">
     
-  </a>
-
-  <!-- Sidebar -->
+  </a>  <!-- Sidebar -->
   <div class="sidebar">
     <!-- Sidebar user panel (optional) -->
     <div class="user-panel mt-3 pb-3 mb-3 d-flex">

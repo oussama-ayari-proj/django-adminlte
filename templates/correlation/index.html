@@ -8,9 +8,36 @@
  {% block content %}
   <!-- Content Wrapper. Contains page content -->
   <style>
-    li {
-      font-size: 2rem;
+  
+  .content-wrapper, .container-fluid {
+    font-size: 1.2rem;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-size: 1.7rem !important;
+  }
+  label, select, .form-control, .select2-selection__rendered, .select2-results__option {
+    font-size: 1.2rem !important;
+  }
+  table {
+    font-size: 1.1rem !important;
+  }
+  #ccf-values, #regression-equation, #regression-explanation {
+    font-size: 1.2rem !important;
+  }
+  .breadcrumb {
+    font-size: 1rem !important;
+  }
+  @media (max-width: 1200px) {
+    html, body, .content-wrapper, .container-fluid {
+      font-size: 1rem;
     }
+    h1, h2, h3, h4, h5, h6 {
+      font-size: 1.2rem !important;
+    }
+    table {
+      font-size: 0.95rem !important;
+    }
+  }
   </style>
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
@@ -34,6 +61,7 @@
     <section class="content" style="margin-left:1rem;">
       <div class="container-fluid">
         <div class="row mt-4">
+          <!-- Pole Select -->
           <div class="col-lg-4">
             <form method="get" class="form-inline mb-3" id="pole-form">
               <label for="pole-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Pôle:</label>
@@ -45,6 +73,16 @@
               </select>
             </form>
           </div>
+          <!-- UFH Select -->
+          <div class="col-lg-4">
+            <form method="get" class="form-inline mb-3" id="ufh-form">
+              <label for="ufh-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Libellé UFH:</label>
+              <select class="form-control mr-2" id="ufh-dropdown" name="ufh_libelle" style="font-size: 2rem;height: auto;">
+                <option value="">-- Choisir un UFH --</option>
+              </select>
+            </form>
+          </div>
+          <!-- Metier Select -->
           <div class="col-lg-4">
             <form method="get" class="form-inline mb-3" id="metier-form">
               <label for="metier-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Métiers:</label>
@@ -56,34 +94,9 @@
             </form>
           </div>
         </div>
-        <div class="row mt-6">
-          <div class="col-lg-6">
-            <form method="get" class="form-inline mb-3" id="ufh-form">
-              <label for="ufh-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Libellé UFH:</label>
-              <select class="form-control mr-2" id="ufh-dropdown" name="ufh_libelle" style="font-size: 2rem;height: auto;">
-                <option value="">-- Choisir un UFH --</option>
-              </select>
-            </form>
-          </div>
-        </div>
+        
         <div class="row mt-4">
-          <div class="col-lg-4">
-            <div class="table-responsive" style="max-height: 900px; overflow-y: auto;">
-              <table class="table table-bordered table-sm" id="data-table" style="font-size: 1.3rem;background-color: white;width: 1000px;">
-                <thead>
-                  <tr>
-                    <th>Semaine</th>
-                    <th>Agents abs. imprévu</th>
-                    <th>Agents abs. prévu</th>
-                    <th>Lits fermés moyen</th>
-                  </tr>
-                </thead>
-                <tbody id="data-table-body">
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <div class="col-lg-8">
+          <div class="col-lg-6">
             <h1>Corrélation</h1>
             <div id="ccf-values" style="font-size:2.7rem; margin-top:2.5rem;padding-right: 2rem;">
               <div style="margin-bottom: 2.2rem; display: flex; align-items: center;justify-content: space-between;">
@@ -104,8 +117,41 @@
                 </div>
                 <span id="ccf-imprevu-signif" style="margin-left:2.5rem;"></span>
               </div>
+              <!-- <div id="regression-equation" style="margin-top:2.5rem; font-size:2.2rem; color:#227F79; font-weight:bold;"></div> -->
+              
             </div>
           </div>
+          <div class="col-lg-6">
+            <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+              <table class="table table-bordered " id="data-table" style="font-size: 1rem;background-color: white;width: 1000px;">
+                <thead>
+                  <tr>
+                    <th>Semaine</th>
+                    <th>Agents abs. imprévu</th>
+                    <th>Agents abs. prévu</th>
+                    <th>Lits fermés moyen</th>
+                  </tr>
+                </thead>
+                <tbody id="data-table-body">
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-6" id="graph-container" style="display: none;">
+          <div class="d-flex">
+            <div class="text-center mt-4 col-6">
+              <h3>Impact de chaque métier sur la fermeture des lits</h3>
+              <div class="d-flex justify-content-center">
+                <img id="coefs-graph" src="" alt="Graphique d'impact par métier" class="img-fluid col-12">
+              </div>
+            </div>
+            <div class="text-center mt-4 col-6">
+              <div id="regression-explanation" style="margin-top:1rem;"></div>
+            </div>
+          </div>
+        </div>
     </section>
     <!-- /.content -->
   </div>
@@ -118,6 +164,7 @@
     <script src="{% static 'plugins/select2/js/select2.full.min.js' %}"></script>
     <script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>
     <script>
+
         document.addEventListener('DOMContentLoaded', function() {
             const poleDropdown = document.getElementById('pole-dropdown');
             const ufhDropdown = document.getElementById('ufh-dropdown');
@@ -150,12 +197,79 @@
             
             poleDropdown.addEventListener('change', get_ufs);
 
+            function setSignificance(val, spanId) {
+              const span = document.getElementById(spanId);
+              if (val !== undefined && !isNaN(val)) {
+                if (Math.abs(val) > 0.5) {
+                  span.textContent = 'Corrélation significatif';
+                  span.style.color = 'green';
+                } else {
+                  span.textContent = 'Corrélation non significatif';
+                  span.style.color = 'red';
+                }
+              } else {
+                    span.textContent = '';
+                }
+            }
+
             function get_data(){
                 const selectedUfh = ufhDropdown.value;
-                fetch(`/correlation-absences-lits/get_data/?code_uf=${selectedUfh}&code_pole=${poleDropdown.value}`)
+                fetch(`/correlation-absences-lits/get_data_metiers/?code_uf=${selectedUfh}&code_pole=${poleDropdown.value}`)
                     .then(response => response.json())
                     .then(data => {
+                        console.log('After UFH select : ',data);
                         const tableBody = document.getElementById('data-table-body');
+                        // Display CCF values
+                        document.getElementById('ccf-abs-total').textContent = (data.ccf_value_abs_total !== undefined) ? data.ccf_value_abs_total.toFixed(3) : '-';
+                        setSignificance(data.ccf_value_abs_total, 'ccf-abs-total-signif');
+                        document.getElementById('ccf-prevu').textContent = (data.ccf_value_agents_abs_prevu !== undefined) ? data.ccf_value_agents_abs_prevu.toFixed(3) : '-';
+                        setSignificance(data.ccf_value_agents_abs_prevu, 'ccf-prevu-signif');
+                        document.getElementById('ccf-imprevu').textContent = (data.ccf_value_agents_abs_imprevu !== undefined) ? data.ccf_value_agents_abs_imprevu.toFixed(3) : '-';
+                        setSignificance(data.ccf_value_agents_abs_imprevu, 'ccf-imprevu-signif');
+                        // Display regression equation using regression_res (metier names as keys)
+                        //const eqDiv = document.getElementById('regression-equation');
+                        const explainDiv = document.getElementById('regression-explanation');
+                        if (data.regression_res && Object.keys(data.regression_res).length > 0) {
+                          let eq = 'Équation de régression: y = ';
+                          const coefs = data.regression_res;
+                          let terms = [];
+                          let explanations = [];
+                          for (const [key, value] of Object.entries(coefs)) {
+                            if (key === 'const') continue;
+                            terms.push(`${Number(value).toFixed(3)} × "${key}"`);
+                            // Only explain for nonzero, positive coefficients
+                            if (value !== 0 && !isNaN(value) && Math.abs(value) > 1e-8) {
+                              const abs_coef = Number(value);
+                              if (abs_coef > 0) {
+                                const inv = (1 / abs_coef).toFixed(2);
+                                explanations.push(`${inv} absence(s) prévue(s) de <b>${key}</b> cause la fermeture d'un lit.`);
+                              }
+                            }
+                          }
+                          if ('const' in coefs) {
+                            terms.push(Number(coefs['const']).toFixed(3));
+                          }
+                          if (explanations.length > 0) {
+                            explainDiv.innerHTML = explanations.map(e => `<div style="font-size:1.3rem;margin-top:0.5rem;">* ${e}</div>`).join('');
+                          } else {
+                            explainDiv.innerHTML = '';
+                          }
+                          /*eq += terms.join(' + ');
+                          eqDiv.textContent = eq;
+                          */                        } else {
+                          //eqDiv.textContent = '';
+                          explainDiv.innerHTML = '';
+                        }
+                        
+                        // Show or hide the graph container based on whether graph data is available
+                        const graphContainer = document.getElementById('graph-container');
+                        if (data.graph) {
+                          document.getElementById('coefs-graph').src = 'data:image/png;base64,' + data.graph;
+                          graphContainer.style.display = 'block'; // Show the graph container
+                        } else {
+                          graphContainer.style.display = 'none'; // Hide the graph container
+                        }
+                        
                         tableBody.innerHTML = '';
                         (data.data || []).forEach(row => {
                             const tr = document.createElement('tr');
@@ -169,6 +283,8 @@
                         });
                     })
                     .catch(error => console.error('Error fetching data:', error));
+
+                
                 fetch(`/correlation-absences-lits/get_metiers/?code_uf=${selectedUfh}`)
                     .then(response => response.json())
                     .then(data => {
@@ -183,6 +299,8 @@
                     .catch(error => console.error('Error fetching data:', error));
             }
 
+
+            
             ufhDropdown.addEventListener('change', get_data);
 
             $('#metier-dropdown').on('change', function() {
@@ -191,28 +309,18 @@
                 fetch(`/correlation-absences-lits/get_data_metiers/?code_uf=${selectedUfh}&metiers=${selectedMetiers ? selectedMetiers.join(',') : ''}`)
                     .then(response => response.json())
                     .then(data => {
+                        console.log('After metier select : ',data);
                         const tableBody = document.getElementById('data-table-body');
                         // Display CCF values
-                        function setSignificance(val, spanId) {
-                          const span = document.getElementById(spanId);
-                          if (val !== undefined && !isNaN(val)) {
-                            if (Math.abs(val) > 0.5) {
-                              span.textContent = 'Corrélation significatif';
-                              span.style.color = 'green';
-                            } else {
-                              span.textContent = 'Corrélation non significatif';
-                              span.style.color = 'red';
-                            }
-                          } else {
-                            span.textContent = '';
-                          }
-                        }
-    document.getElementById('ccf-abs-total').textContent = (data.ccf_abs_total !== undefined) ? data.ccf_abs_total.toFixed(3) : '-';
-    setSignificance(data.ccf_abs_total, 'ccf-abs-total-signif');
-    document.getElementById('ccf-prevu').textContent = (data.ccf_prevu !== undefined) ? data.ccf_prevu.toFixed(3) : '-';
-    setSignificance(data.ccf_prevu, 'ccf-prevu-signif');
-    document.getElementById('ccf-imprevu').textContent = (data.ccf_imprevu !== undefined) ? data.ccf_imprevu.toFixed(3) : '-';
-    setSignificance(data.ccf_imprevu, 'ccf-imprevu-signif');
+                        document.getElementById('ccf-abs-total').textContent = (data.ccf_value_abs_total !== undefined) ? data.ccf_value_abs_total.toFixed(3) : '-';
+                        setSignificance(data.ccf_value_abs_total, 'ccf-abs-total-signif');
+                        document.getElementById('ccf-prevu').textContent = (data.ccf_value_agents_abs_prevu !== undefined) ? data.ccf_value_agents_abs_prevu.toFixed(3) : '-';
+                        setSignificance(data.ccf_value_agents_abs_prevu, 'ccf-prevu-signif');
+                        document.getElementById('ccf-imprevu').textContent = (data.ccf_value_agents_abs_imprevu !== undefined) ? data.ccf_value_agents_abs_imprevu.toFixed(3) : '-';
+                        setSignificance(data.ccf_value_agents_abs_imprevu, 'ccf-imprevu-signif');
+                        
+                        
+                        
                         tableBody.innerHTML = '';
                         (data.data || []).forEach(row => {
                             const tr = document.createElement('tr');

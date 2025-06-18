@@ -24,5 +24,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('dashboard/', include('apps.dashboard.urls')),
     path('correlation-absences-lits/', include('apps.correlation.urls')),
+    path('fileupload/', include('apps.fileupload.urls')),
     path("", include('admin_adminlte.urls'))
 ]

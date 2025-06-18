@@ -5,6 +5,41 @@
 
 {% block content %}
   <!-- Content Wrapper. Contains page content -->
+  <style>
+  .content-wrapper, .container-fluid {
+    font-size: 1.2rem;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-size: 1.7rem !important;
+  }
+  label, select, .form-control, .select2-selection__rendered, .select2-results__option {
+    font-size: 1.2rem !important;  }  table {
+    font-size: 0.85rem !important;
+  }
+  .table-container {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .data-table {
+    background-color: white;
+  }
+  .breadcrumb {
+    font-size: 1rem !important;
+  }
+  .dropdown-select {
+    min-width: 150px;
+  }
+  @media (max-width: 1200px) {
+    html, body, .content-wrapper, .container-fluid {
+      font-size: 1rem;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-size: 1.2rem !important;    }
+    table {
+      font-size: 0.75rem !important;
+    }
+  }
+  </style>
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <div class="content-header" style="margin-left:1rem;">
@@ -43,14 +78,14 @@
                 <option value="type_activite" {% if field == "type_activite" %}selected{% endif %}>Type activité</option>
                 <option value="libelle_type_activite" {% if field == "libelle_type_activite" %}selected{% endif %}>Libellé activité</option>
               </select>
-              <select class="form-control mr-2" id="uf-unique-values-dropdown" style="min-width:150px;">
+              <select class="form-control mr-2 dropdown-select" id="uf-unique-values-dropdown">
                 <option value="">-- Valeurs uniques --</option>
                 <!-- Options will be filled by JS -->
               </select>
             </form>
             
             <div id="uf-table-container">
-              <table style="background-color: white;" class="table table-bordered table-sm" id="results-table">
+              <table class="table table-bordered table-sm data-table" id="results-table">
                 <thead>
                   <tr>
                     <th>Code UF</th>
@@ -140,14 +175,14 @@
                 <option value="semaine_entree" {% if sejour_field == "semaine_entree" %}selected{% endif %}>Semaine Entrée</option>
                 <option value="date_entree" {% if sejour_field == "date_entree" %}selected{% endif %}>Date Entrée</option>
               </select>
-              <select class="form-control mr-2" id="sejour-unique-values-dropdown" style="min-width:150px;">
+              <select class="form-control mr-2 dropdown-select" id="sejour-unique-values-dropdown">
                 <option value="">-- Valeurs uniques --</option>
                 <!-- Options will be filled by JS -->
               </select>
               
             </form>
             <div id="sejour-table-container">
-              <table style="background-color: white;" class="table table-bordered table-sm" id="sejour-table">
+              <table class="table table-bordered table-sm data-table" id="sejour-table">
                 <thead>
                   <tr>
                     <th>Num Sequence</th>
@@ -233,14 +268,14 @@
                 <option value="code_em" {% if em_field == "code_em" %}selected{% endif %}>Code EM</option>
                 <option value="libelle_standard" {% if em_field == "libelle_standard" %}selected{% endif %}>Libellé EM</option>
               </select>
-              <select class="form-control mr-2" id="em-unique-values-dropdown" style="min-width:150px;">
+              <select class="form-control mr-2 dropdown-select" id="em-unique-values-dropdown">
                 <option value="">-- Valeurs uniques --</option>
                 <!-- Options will be filled by JS -->
               </select>
               
             </form>
-            <div id="em-table-container" style="max-height: 400px; overflow-y: auto;">
-              <table style="background-color: white;" class="table table-bordered table-sm" id="em-table">
+            <div id="em-table-container" class="table-container">
+              <table class="table table-bordered table-sm data-table" id="em-table">
                 <thead>
                   <tr>
                     <th>Code EM</th>
@@ -306,13 +341,13 @@
                 <option value="code_pole" {% if pole_field == "code_pole" %}selected{% endif %}>Code pole</option>
                 <option value="libelle_standard" {% if pole_field == "libelle_standard" %}selected{% endif %}>Libellé pole</option>
               </select>
-              <select class="form-control mr-2" id="pole-unique-values-dropdown" style="min-width:150px;">
+              <select class="form-control mr-2 dropdown-select" id="pole-unique-values-dropdown">
                 <option value="">-- Valeurs uniques --</option>
                 <!-- Options will be filled by JS -->
               </select>
             </form>
-            <div id="pole-table-container" style="max-height: 400px; overflow-y: auto;">
-              <table style="background-color: white;" class="table table-bordered table-sm" id="pole-table">
+            <div id="pole-table-container" class="table-container">
+              <table class="table table-bordered table-sm data-table" id="pole-table">
                 <thead>
                   <tr>
                     <th>Code pole</th>
@@ -380,13 +415,13 @@
                 <option value="code_etb" {% if etb_field == "code_etb" %}selected{% endif %}>Code etb</option>
                 <option value="libelle_standard" {% if etb_field == "libelle_standard" %}selected{% endif %}>Libellé etb</option>
               </select>
-              <select class="form-control mr-2" id="etb-unique-values-dropdown" style="min-width:150px;">
+              <select class="form-control mr-2 dropdown-select" id="etb-unique-values-dropdown">
                 <option value="">-- Valeurs uniques --</option>
                 <!-- Options will be filled by JS -->
               </select>
             </form>
-            <div id="etb-table-container" style="max-height: 400px; overflow-y: auto;">
-              <table style="background-color: white;" class="table table-bordered table-sm" id="etb-table">
+            <div id="etb-table-container" class="table-container">
+              <table class="table table-bordered table-sm data-table" id="etb-table">
                 <thead>
                   <tr>
                     <th>Code etb</th>

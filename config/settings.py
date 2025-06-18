@@ -65,6 +65,8 @@ INSTALLED_APPS = [
     # Tooling API-GEN
     'rest_framework',            # Include DRF           # <-- NEW 
     'rest_framework.authtoken',  # Include DRF Auth      # <-- NEW   
+
+    "apps.fileupload",  # File upload app
 ]
 
 MIDDLEWARE = [
