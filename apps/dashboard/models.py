@@ -25,6 +25,11 @@ class RH(models.Model):
     agents_abs_prevu = models.IntegerField(null=True, blank=True)
     effectif_total = models.IntegerField(null=True, blank=True)
     abs_total = models.IntegerField(null=True, blank=True)
+    code_metier = models.TextField(null=True, blank=True)
+    code_famille = models.TextField(null=True, blank=True)
+    famille_metier = models.TextField(db_column='Famille Métier' ,null=True, blank=True)
+    sous_famille_code = models.TextField(db_column='Sous-Famille Code' ,null=True, blank=True)
+    sous_famille_metier = models.TextField(db_column='Sous-Famille' ,null=True, blank=True)
 
     class Meta:
         db_table = 'rh_croise'

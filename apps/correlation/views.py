@@ -14,6 +14,9 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
 
+import random
+import colorsys
+
 
 def index(request):
     poles = Pole.objects.all().order_by('libelle_standard')
@@ -48,55 +51,7 @@ def clean_json(obj):
     if isinstance(obj, list):
         return [clean_json(x) for x in obj]
     return obj
-@require_GET
-def get_data(request):
-    code_uf = request.GET.get('code_uf')
-    code_pole = request.GET.get('code_pole')
-    if code_uf and code_pole:
-        try:
-            rhs = RH.objects.filter(code_uf=code_uf).order_by('semaine', 'metier')
-            if not rhs.exists():
-                return JsonResponse({'error': 'UF not found'}, status=404)
-            lits = Lit.objects.filter(code_uf=code_uf).order_by('semaine')
-            if not lits.exists():
-                return JsonResponse({'error': 'No lits found for this UF'}, status=404)
-            
-            semaine_agg = defaultdict(lambda: {'agents_abs_imprevu': 0, 'agents_abs_prevu': 0})
-            for row in rhs.values('semaine', 'agents_abs_imprevu', 'agents_abs_prevu'):
-                semaine = row['semaine']
-                semaine_agg[semaine]['agents_abs_imprevu'] += row['agents_abs_imprevu'] or 0
-                semaine_agg[semaine]['agents_abs_prevu'] += row['agents_abs_prevu'] or 0
-            # Add lits_fermes_moyen from Lits, indexed by semaine
-            lits_by_semaine = {l.semaine: l.lits_fermes_moyen for l in lits}
-            # Prepare the aggregated data as a list of dicts
-            data = [
-                {
-                    'semaine': semaine,
-                    'agents_abs_imprevu': values['agents_abs_imprevu'],
-                    'agents_abs_prevu': values['agents_abs_prevu'],
-                    'lits_fermes_moyen': round(lits_by_semaine.get(semaine),2)
-                }
-                for semaine, values in sorted(semaine_agg.items())
-            ]
-            return JsonResponse({
-                'data': data,
-            })
-        except Exception as e:
-            return JsonResponse({'error': str(e)}, status=500)
-    elif code_pole:
-        try:
-            ufs = UF.objects.filter(code_pole=code_pole)
-            ufs_list = list(ufs.values('code_uf'))
-            if not ufs_list:
-                return JsonResponse({'error': 'No UFs found for this pole'}, status=404)            
-            return JsonResponse({
-                'ufs': ufs_list,
-            })
-        except Pole.DoesNotExist:
-            return JsonResponse({'error': 'Pole not found'}, status=404)
-    else:
-        return JsonResponse({'error': 'Invalid parameters'}, status=400)
-    
+
 
 @require_GET
 def get_metiers(request):
@@ -119,6 +74,8 @@ def get_data_metiers(request):
     metiers_param = request.GET.get('metiers')
     rhs = RH.objects.filter(code_uf=code_uf)
     lits = Lit.objects.filter(code_uf=code_uf).order_by('semaine')
+    metier_graph_option=request.GET.get('metier_graph_option')
+
     if code_uf and metiers_param:
         metiers = metiers_param.split(',')
         if metiers:
@@ -135,17 +92,13 @@ def get_data_metiers(request):
             'ccf_value_agents_abs_prevu': ccf_value_agents_abs_prevu,
             'ccf_value_agents_abs_imprevu': ccf_value_agents_abs_imprevu,
         })
-    elif code_uf:
-        df_rh = pd.DataFrame(list(rhs.values('semaine', 'metier', 'agents_abs_imprevu','abs_total', 'agents_abs_prevu')))
+    if code_uf:
+        df_rh = pd.DataFrame(list(rhs.values('semaine', 'metier', 'agents_abs_imprevu','abs_total', 'agents_abs_prevu','famille_metier', 'sous_famille_metier')))
         df_lits = pd.DataFrame(list(lits.values('semaine', 'lits_fermes_moyen')))
         agg_dict = {'agents_abs_imprevu': 'sum', 'agents_abs_prevu': 'sum', 'abs_total': 'sum'}
         agg_df = df_rh.groupby('semaine', as_index=False).agg(agg_dict)
         df_res = pd.merge(agg_df, df_lits[['semaine', 'lits_fermes_moyen']], on='semaine', how='left')
         ccf_value_abs_total, ccf_value_agents_abs_prevu, ccf_value_agents_abs_imprevu = calculer_ccf(df_res)
-        pivot=df_rh.pivot(index='semaine', columns='metier', values='agents_abs_prevu').reset_index()
-        df_merged = pd.merge(pivot, df_lits, on='semaine', how='left')
-        metiers= RH.objects.filter(code_uf=code_uf).values_list('metier', flat=True).distinct()
-        metiers = [m for m in metiers if m]
         if abs(ccf_value_agents_abs_prevu)<0.5:
             return JsonResponse({
                 'data': clean_json(df_res.to_dict(orient='records')),
@@ -153,20 +106,50 @@ def get_data_metiers(request):
                 'ccf_value_agents_abs_prevu': ccf_value_agents_abs_prevu,
                 'ccf_value_agents_abs_imprevu': ccf_value_agents_abs_imprevu,
             })
-        res=regression_lineaire(df_merged, metiers)
-        graph = figure_coeffs(res)
+        res_metier, graph_metier = regression_call(df_rh,df_lits,'metier',code_uf, metier_graph_option)
+        res_famille, graph_famille = regression_call(df_rh,df_lits, 'famille_metier', code_uf, metier_graph_option)
+        res_sous_famille, graph_sous_famille = regression_call(df_rh,df_lits, 'sous_famille_metier', code_uf, metier_graph_option)
+
         return JsonResponse({
             'data': clean_json(df_res.to_dict(orient='records')),
             'ccf_value_abs_total': ccf_value_abs_total,
             'ccf_value_agents_abs_prevu': ccf_value_agents_abs_prevu,
             'ccf_value_agents_abs_imprevu': ccf_value_agents_abs_imprevu,
-            'regression_res': res,
-            'graph': graph
+            'regression_res_metier': res_metier,
+            'graph_metier': graph_metier,
+            'regression_res_famille': res_famille,
+            'graph_famille': graph_famille,
+            'regression_res_sous_famille': res_sous_famille,
+            'graph_sous_famille': graph_sous_famille
         })
     else:
         return JsonResponse({'error': 'Invalid parameters'}, status=400)
     
-    
+
+@require_GET
+def get_metier_graph(request):
+    code_uf = request.GET.get('code_uf')
+    metier_graph_option = request.GET.get('metier_graph_option')
+    rhs = RH.objects.filter(code_uf=code_uf)
+    lits = Lit.objects.filter(code_uf=code_uf).order_by('semaine')
+    df_rh = pd.DataFrame(list(rhs.values('semaine', 'metier', 'agents_abs_prevu', 'famille_metier', 'sous_famille_metier')))
+    df_lits = pd.DataFrame(list(lits.values('semaine', 'lits_fermes_moyen')))
+    if code_uf and metier_graph_option:
+
+        res_metier, graph_metier = regression_call(df_rh,df_lits,'metier',code_uf, metier_graph_option)
+
+        return JsonResponse({
+            'graph_metier': graph_metier,  
+        })
+    elif code_uf:
+
+        res_famille, graph_famille = regression_call(df_rh,df_lits, 'famille_metier', code_uf, "famille")
+
+        return JsonResponse({
+            'graph_metier': graph_famille,
+        })
+    else:
+        return JsonResponse({'error': 'Invalid parameters'}, status=400)
 
 
 def calculer_ccf(data):
@@ -197,20 +180,61 @@ def regression_lineaire(df, metiers=None):
     y = df['lits_fermes_moyen'].values
     model = LinearRegression()
     model.fit(X, y)
-    coefs = {metier: float(model.coef_[i]) for i, metier in enumerate(metier_col_map.keys())}
-    coefs['const'] = float(model.intercept_)
+    coefs = {metier: float(model.coef_[i]) if model.coef_[i]>0 else 0 for i, metier in enumerate(metier_col_map.keys())}
+    coefs['const'] = round(float(model.intercept_))
     return coefs
 
 
-def figure_coeffs(data):
+def figure_coeffs(data, title, mapping=None):
+    
+    
     plt.figure(figsize=(14,8))
     intercept = data.pop('const')
     features = list(data.keys())
     coefs = list(data.values())
-    bars = plt.bar(features, coefs, color='skyblue')
+    
+    def generate_random_colors(n):
+        """Generate n distinct random colors"""
+        colors = []
+        for i in range(n):
+            # Use HSV color space to generate distinct colors
+            hue = i / n
+            saturation = 0.7 + random.random() * 0.3  # 0.7 to 1.0
+            value = 0.6 + random.random() * 0.4       # 0.6 to 1.0
+            rgb = colorsys.hsv_to_rgb(hue, saturation, value)
+            hex_color = '#{:02x}{:02x}{:02x}'.format(
+                int(rgb[0] * 255), 
+                int(rgb[1] * 255), 
+                int(rgb[2] * 255)
+            )
+            colors.append(hex_color)
+        return colors
+    
+    if mapping:
+        unique_categories = list(set(mapping.values()))
+        category_colors = generate_random_colors(len(unique_categories))
+        color_map = dict(zip(unique_categories, category_colors))
+        
+        colors = []
+        for feature in features:
+            category = mapping.get(feature, 'AUTRES')
+            color = color_map.get(category, 'skyblue')
+            colors.append(color)
+        
+        bars = plt.bar(features, coefs, color=colors)
+        
+        # Create legend with random colors
+        legend_elements = []
+        for category in unique_categories:
+            color = color_map.get(category, 'skyblue')
+            legend_elements.append(plt.Rectangle((0,0),1,1, facecolor=color, label=category))
+        plt.legend(handles=legend_elements, loc='upper right', bbox_to_anchor=(1, 0.85))
+    else:
+        bars = plt.bar(features, coefs, color='skyblue')
+    
     plt.axhline(0, color='gray', linewidth=0.8)
 
-    plt.title("Effet de l'absence prévue sur fermeture de lits par métier", fontsize=22)
+    plt.title("Effet de l'absence prévue sur fermeture de lits par "+title, fontsize=22)
     plt.text(0.95, 0.95, f'Intercept: {intercept:.2f}',
             horizontalalignment='right',
             verticalalignment='top',
@@ -233,3 +257,40 @@ def figure_coeffs(data):
     
     plt.close()
     return graph
+
+
+def pivot_df(df, index_col, filter,value_col,df_lits):
+        pivot = df.pivot_table(index=index_col, columns=filter, values=value_col, aggfunc='sum', fill_value=0).reset_index()
+        df_merged = pd.merge(pivot, df_lits, on='semaine', how='left')
+        return df_merged
+def regression_call(df,df_lits,col,code_uf, metier_graph_option):
+    df_merged= pivot_df(df, 'semaine', col, 'agents_abs_prevu',df_lits)
+    cols= RH.objects.filter(code_uf=code_uf).values_list(col, flat=True).distinct()
+    cols = [c for c in cols if c]
+    res= regression_lineaire(df_merged, cols)
+            
+            # Create mapping
+    mapping = None
+    if col == 'sous_famille_metier':
+                # Map sous-famille to famille 
+        mapping = {}
+        sf_to_famille = RH.objects.filter(code_uf=code_uf).values('sous_famille_metier', 'famille_metier').distinct()
+        for item in sf_to_famille:
+            if item['sous_famille_metier'] and item['famille_metier']:
+                mapping[item['sous_famille_metier']] = item['famille_metier']
+    elif col == 'metier':
+        mapping = {}
+        if metier_graph_option == 'sous_famille':
+            metier_to_sf = RH.objects.filter(code_uf=code_uf).values('metier', 'sous_famille_metier').distinct()
+            for item in metier_to_sf:
+                if item['metier'] and item['sous_famille_metier']:
+                    mapping[item['metier']] = item['sous_famille_metier']
+        else:
+            metier_to_f= RH.objects.filter(code_uf=code_uf).values('metier', 'famille_metier').distinct()
+            for item in metier_to_f:
+                if item['metier'] and item['famille_metier']:
+                    mapping[item['metier']] = item['famille_metier']
+
+    graph = figure_coeffs(res.copy(), col, mapping)
+    return res, graph
+        

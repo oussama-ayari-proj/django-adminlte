@@ -138,17 +138,49 @@
             </div>
           </div>
         </div>
-
-        <div class="row mt-6" id="graph-container" style="display: none;">
+        <!-- Régression Famille métiers -->
+        <div class="row mt-8" id="graph-container-famille" style="display: none;margin-top: 100px;">
           <div class="d-flex">
-            <div class="text-center mt-4 col-6">
-              <h3>Impact de chaque métier sur la fermeture des lits</h3>
+            <div class="text-center col-6">
               <div class="d-flex justify-content-center">
-                <img id="coefs-graph" src="" alt="Graphique d'impact par métier" class="img-fluid col-12">
+                <img id="coefs-graph-famille" src="" alt="Graphique d'impact par famille de métier" class="img-fluid col-12">
               </div>
             </div>
-            <div class="text-center mt-4 col-6">
-              <div id="regression-explanation" style="margin-top:1rem;"></div>
+            <div class="text-center col-6 d-flex justify-content-center align-items-center">
+              <div id="regression-explanation-famille" style="margin-top:1rem;"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Régression sous-famille -->
+        <div class="row mt-8" id="graph-container-sous-famille" style="display: none;margin-top: 100px;">
+          <div class="d-flex">
+            <div class="text-center col-6">
+              <div class="d-flex justify-content-center">
+                <img id="coefs-graph-sous-famille" src="" alt="Graphique d'impact par sous-famille de métier" class="img-fluid col-12">
+              </div>
+            </div>
+            <div class="text-center col-6 d-flex justify-content-center align-items-center">
+              <div id="regression-explanation-sous-famille" style="margin-top:1rem;"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Régression métiers -->
+        <div class="row mt-8" id="graph-container-metier" style="display: none;margin-top: 100px;">
+          <div class="d-flex">
+            <div class="text-center col-6">
+              <div class="d-flex justify-content-center flex-column">
+                <form method="get" class="form-inline mb-3" id="metier-graph-form">
+                  <label for="metier-graph-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Légende du graph:</label>
+                  <select class="form-control mr-2" id="metier-graph-dropdown" name="metier_graph_libelle" style="font-size: 2rem;height: auto;">
+                    <option value="famille">Famille</option>
+                    <option value="sous_famille">Sous-famille</option>
+                  </select>
+                </form>
+                <img id="coefs-graph-metier" src="" alt="Graphique d'impact par métier" class="img-fluid col-12">
+              </div>
+            </div>
+            <div class="text-center col-6 d-flex justify-content-center align-items-center">
+              <div id="regression-explanation-metier" style="margin-top:1rem;"></div>
             </div>
           </div>
         </div>
@@ -212,6 +244,39 @@
                 }
             }
 
+            function displayRegressionExplanationAndGraph(reg_data,graph_data, graphContainerId,graphId, explanationId) {
+                const graphContainer = document.getElementById(graphContainerId);
+                const explainDiv = document.getElementById(explanationId);
+                if (reg_data && Object.keys(reg_data).length > 0
+                    && graph_data) {
+                    const coefs = reg_data;
+                    let explanations = [];
+                    if (coefs['const']>=0)
+                      explanations.push(`On a déja <b>${coefs['const']} Lits fermé(s)</b> avec 0 absences prévues`);
+                    for (const [key, value] of Object.entries(coefs)) {
+                        if (key === 'const') continue;
+                        if (value !== 0 && !isNaN(value) && Math.abs(value) > 1e-8) {
+                            const abs_coef = Number(value);
+                            if (abs_coef > 0) {
+                                const inv = (1 / abs_coef).toFixed(2);
+                                explanations.push(`<b>${inv} absence(s) prévue(s)</b> de <b>${key}</b> cause la fermeture d'un lit.`);
+                            }
+                        }
+                    }
+                    explainDiv.innerHTML = explanations.map((e, index) => {
+                        if (index === 0) {
+                            return `<div style="color:red;font-size:1.3rem;margin-bottom:2rem;">${e}</div>`;
+                        } else {
+                            return `<div style="font-size:1.3rem;margin-top:0.5rem;">${e}</div>`;
+                        }
+                    }).join('');
+                    document.getElementById(graphId).src = 'data:image/png;base64,' + graph_data;
+                    graphContainer.style.display = 'block'; // Show the graph container
+                } else {
+                    explainDiv.innerHTML = '';
+                    graphContainer.style.display = 'none'; // Hide the graph container
+                }
+            }
             function get_data(){
                 const selectedUfh = ufhDropdown.value;
                 fetch(`/correlation-absences-lits/get_data_metiers/?code_uf=${selectedUfh}&code_pole=${poleDropdown.value}`)
@@ -226,50 +291,10 @@
                         setSignificance(data.ccf_value_agents_abs_prevu, 'ccf-prevu-signif');
                         document.getElementById('ccf-imprevu').textContent = (data.ccf_value_agents_abs_imprevu !== undefined) ? data.ccf_value_agents_abs_imprevu.toFixed(3) : '-';
                         setSignificance(data.ccf_value_agents_abs_imprevu, 'ccf-imprevu-signif');
-                        // Display regression equation using regression_res (metier names as keys)
-                        //const eqDiv = document.getElementById('regression-equation');
-                        const explainDiv = document.getElementById('regression-explanation');
-                        if (data.regression_res && Object.keys(data.regression_res).length > 0) {
-                          let eq = 'Équation de régression: y = ';
-                          const coefs = data.regression_res;
-                          let terms = [];
-                          let explanations = [];
-                          for (const [key, value] of Object.entries(coefs)) {
-                            if (key === 'const') continue;
-                            terms.push(`${Number(value).toFixed(3)} × "${key}"`);
-                            // Only explain for nonzero, positive coefficients
-                            if (value !== 0 && !isNaN(value) && Math.abs(value) > 1e-8) {
-                              const abs_coef = Number(value);
-                              if (abs_coef > 0) {
-                                const inv = (1 / abs_coef).toFixed(2);
-                                explanations.push(`${inv} absence(s) prévue(s) de <b>${key}</b> cause la fermeture d'un lit.`);
-                              }
-                            }
-                          }
-                          if ('const' in coefs) {
-                            terms.push(Number(coefs['const']).toFixed(3));
-                          }
-                          if (explanations.length > 0) {
-                            explainDiv.innerHTML = explanations.map(e => `<div style="font-size:1.3rem;margin-top:0.5rem;">* ${e}</div>`).join('');
-                          } else {
-                            explainDiv.innerHTML = '';
-                          }
-                          /*eq += terms.join(' + ');
-                          eqDiv.textContent = eq;
-                          */                        } else {
-                          //eqDiv.textContent = '';
-                          explainDiv.innerHTML = '';
-                        }
-                        
-                        // Show or hide the graph container based on whether graph data is available
-                        const graphContainer = document.getElementById('graph-container');
-                        if (data.graph) {
-                          document.getElementById('coefs-graph').src = 'data:image/png;base64,' + data.graph;
-                          graphContainer.style.display = 'block'; // Show the graph container
-                        } else {
-                          graphContainer.style.display = 'none'; // Hide the graph container
-                        }
-                        
+                        // Display regression data (graph and explanation)
+                        displayRegressionExplanationAndGraph(data.regression_res_metier, data.graph_metier, 'graph-container-metier', 'coefs-graph-metier', 'regression-explanation-metier');
+                        displayRegressionExplanationAndGraph(data.regression_res_famille, data.graph_famille, 'graph-container-famille', 'coefs-graph-famille', 'regression-explanation-famille');
+                        displayRegressionExplanationAndGraph(data.regression_res_sous_famille, data.graph_sous_famille, 'graph-container-sous-famille', 'coefs-graph-sous-famille', 'regression-explanation-sous-famille');
                         tableBody.innerHTML = '';
                         (data.data || []).forEach(row => {
                             const tr = document.createElement('tr');
@@ -335,6 +360,18 @@
                     })
                     .catch(error => console.error('Error fetching filtered data:', error));
             });
-        });
+            $('#metier-graph-dropdown').on('change', function() {
+                const legende = $(this).val();
+                const selectedUfh = ufhDropdown.value;
+                console.log('Selected legende:', legende);
+                fetch(`/correlation-absences-lits/get_metier_graph/?code_uf=${selectedUfh}&metier_graph_option=${legende}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('After metier graph select : ',data);
+                        document.getElementById("coefs-graph-metier").src = 'data:image/png;base64,' + data.graph_metier;
+                    })
+                    .catch(error => console.error('Error fetching metier graph:', error));
+            });
+          });
     </script>
   {% endblock extra_scripts %}
