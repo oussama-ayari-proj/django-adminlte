@@ -45,12 +45,12 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Corrélation Absences - lits fermés</h1>
+            <h1 class="m-0">Impact Absences - lits fermés</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item" style="font-size: 1.5rem"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active" style="font-size: 1.5rem">Corrélation Absences - lits fermés</li>
+              <li class="breadcrumb-item active" style="font-size: 1.5rem">Impact Absences - lits fermés</li>
             </ol>
           </div>
         </div>
@@ -258,7 +258,7 @@
                         if (value !== 0 && !isNaN(value) && Math.abs(value) > 1e-8) {
                             const abs_coef = Number(value);
                             if (abs_coef > 0) {
-                                const inv = (1 / abs_coef).toFixed(2);
+                                const inv = (1 / abs_coef).toFixed(1);
                                 explanations.push(`<b>${inv} absence(s) prévue(s)</b> de <b>${key}</b> cause la fermeture d'un lit.`);
                             }
                         }

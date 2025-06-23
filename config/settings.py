@@ -55,7 +55,6 @@ INSTALLED_APPS = [
 
     # Serve UI pages
     "apps.pages",
-    "apps.dashboard",
 
     # Charts
     "apps.charts",

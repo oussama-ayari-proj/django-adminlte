@@ -22,7 +22,6 @@ urlpatterns = [
     path('plannifications/', include('apps.plannifications.urls')),
     path('charts/', include('apps.charts.urls')),
     path("admin/", admin.site.urls),
-    path('dashboard/', include('apps.dashboard.urls')),
     path('correlation-absences-lits/', include('apps.correlation.urls')),
     path('hospitalisation/', include('apps.hospitalisation.urls')),
     path('fileupload/', include('apps.fileupload.urls')),

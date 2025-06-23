@@ -86,5 +86,14 @@ class Hospitalisation(models.Model):
             'type_sejour_top5': type_sejour_top5
         }
 
+class Lits_occupes(models.Model):
+    code_uf = models.IntegerField(db_column='code_uf', null=True, blank=True, help_text="Code de l'unité fonctionnelle")
+    lits_occupes = models.IntegerField(null=True, blank=True, help_text="Nombre de lits occupés")
+    date = models.DateField(null=True, blank=True, help_text="Date")
 
-
+    class Meta:
+        db_table = 'lits_occupes'
+        managed = False  
+    
+    def __str__(self):
+        return f"UF {self.code_uf} - Lits occupés: {self.lits_occupes}, Date: {self.date}"

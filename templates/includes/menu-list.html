@@ -38,7 +38,18 @@
     </li>
     {% endif %}
     {% endfor %}
-    {% endif %}    <li class="nav-header">Dashboard</li>
+    {% endif %}    
+    <li class="nav-header">Dashboard</li>
+      
+      <li class="nav-item">
+        <a href="/hospitalisation" class="nav-link ">
+          <i class="nav-icon fas fa-tachometer-alt"></i>
+          <p>
+            Dashboard
+          </p>
+        </a>
+      </li>
+    
       <li class="nav-item">
         <a href="/" class="nav-link ">
           <i class="nav-icon fas fa-database"></i>
@@ -56,29 +67,15 @@
       </li>
 
       <li class="nav-item">
-        <a href="/dashboard" class="nav-link ">
-          <i class="nav-icon fas fa-tachometer-alt"></i>
-          <p>
-            Dashboard
-          </p>
-        </a>
-      </li>      <li class="nav-item">
         <a href="/correlation-absences-lits" class="nav-link ">
           <i class="nav-icon fas fa-table"></i>
           <p>
-            Corrélation Absences - Lits
+            Impact Absences - Lits
           </p>
         </a>
       </li>
 
-      <li class="nav-item">
-        <a href="/hospitalisation" class="nav-link ">
-          <i class="nav-icon fas fa-hospital"></i>
-          <p>
-            Données d'Hospitalisation
-          </p>
-        </a>
-      </li>
+      
 
     <li class="nav-header">Predictions</li>
     <li class="nav-item">

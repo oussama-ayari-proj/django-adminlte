@@ -3,9 +3,9 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.db.models import Min, Max, Avg, Count
 from django.core.paginator import Paginator
-from apps.hospitalisation.models import Hospitalisation 
+from apps.hospitalisation.models import Hospitalisation,Lits_occupes
 from apps.pages.models import UF, ETB, Pole
-from apps.dashboard.models import Lit, RH
+from apps.correlation.models import Lit, RH
 
 
 def index(request):
@@ -26,6 +26,9 @@ def get_hospitalisation_stats(request):
         try:
             # Get ETB info
             uf = UF.objects.get(code_uf=code_uf)
+            lits_occupes = Lits_occupes.objects.filter(code_uf=code_uf).order_by('date')
+            if lits_occupes.exists():
+                stats['lits_occupes'] = list(lits_occupes.values('date','lits_occupes'))
             try:
                 etb = ETB.objects.get(code_etb=uf.code_etb)
                 stats['etb'] = etb.libelle_standard.strip() if etb.libelle_standard else 'Non spécifié'

@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from apps.pages.models import Pole, UF
-from apps.dashboard.models import RH,Lit
+from apps.correlation.models import RH,Lit
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from collections import defaultdict
@@ -180,8 +180,8 @@ def regression_lineaire(df, metiers=None):
     y = df['lits_fermes_moyen'].values
     model = LinearRegression()
     model.fit(X, y)
-    coefs = {metier: float(model.coef_[i]) if model.coef_[i]>0 else 0 for i, metier in enumerate(metier_col_map.keys())}
-    coefs['const'] = round(float(model.intercept_))
+    coefs = {metier: round(float(model.coef_[i]),1) if model.coef_[i]>0 else 0 for i, metier in enumerate(metier_col_map.keys())}
+    coefs['const'] = round(float(model.intercept_),1)
     return coefs
 
 

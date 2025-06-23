@@ -200,7 +200,7 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <h5 class="card-title">Âge Moyen</h5>
+                    <h5 class="card-title">Âge Moyen Patients</h5>
                     <div class="stat-number" id="age-moyen">- ans</div>
                   </div>
                   <i class="fas fa-users fa-3x text-success"></i>
@@ -222,10 +222,30 @@
               </div>
             </div>
           </div>
-        </div>        
-        <!-- Charts and Tables Row -->
+        </div>        <!-- Charts and Tables Row -->
         <div class="row mt-5">
-
+          <!-- Gender Distribution -->
+          <div class="col-lg-4">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Répartition par Sexe</h3>
+              </div>
+              <div class="card-body">
+                <canvas id="gender-chart" width="400" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+          <!-- Type de séjour Top 5 -->
+          <div class="col-lg-4">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Répartition des Types de séjours</h3>
+              </div>
+              <div class="card-body">
+                <canvas id="type-sejour-chart" width="400" height="200"></canvas>
+              </div>
+            </div>
+          </div>
           <!-- Métiers Table -->
           <div class="col-lg-4">
             <div class="card">
@@ -251,31 +271,18 @@
               </div>
             </div>
           </div>
-          <!-- Gender Distribution -->
-          <div class="col-lg-4">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Répartition par Sexe</h3>
-              </div>
-              <div class="card-body">
-                <canvas id="gender-chart" width="400" height="200"></canvas>
-              </div>
-            </div>
-          </div>
-          <!-- Type de séjour -->
-          <div class="col-lg-4">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Répartition des Types de séjours</h3>
-              </div>
-              <div class="card-body">
-                <canvas id="type-sejour-chart" width="400" height="200"></canvas>
-              </div>
-            </div>
-          </div>
-          
         </div>
 
+        <div class="row mt-5">
+          <div class="col-lg-12">
+            <h3>Lits Occupés</h3>
+            <div class="card">
+              <div class="card-body">
+                <canvas id="lits-chart" width="100%" height="500"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -284,8 +291,13 @@
 
 {% block extra_scripts %}
   <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>    <script>
-    let genderChart, typeSejourChart;
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+  <script>
+    let genderChart, typeSejourChart,litsChart;
     let minDate = null;
     let maxDate = null;
     
@@ -457,6 +469,54 @@
           }
         }
       });
+      // Lits Chart
+      const litsCtx = document.getElementById('lits-chart').getContext('2d');
+      litsChart = new Chart(litsCtx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Lits Occupés',
+            data: [],
+            borderColor: '#227F79',
+            backgroundColor: 'rgba(34, 127, 121, 0.2)',
+            fill: true
+          }]
+        },
+        options: {
+          plugins: {
+            zoom: {
+              pan:{
+                enabled: true,
+                mode: 'xy',
+                speed: 10,
+                threshold: 10
+              },
+              limits: {
+                x: {min: 'original', max: 'original'},
+                y: {min: 0, max: 'original'}
+              },
+              zoom: {
+                wheel: {
+                  enabled: true,
+                },
+                pinch: {
+                  enabled: true
+                },
+                mode: 'x',
+              }
+            }
+          },
+          responsive: true,
+          maintainAspectRatio: false,          
+          scales: {
+            y: {
+              beginAtZero: true,
+              min: 0
+            }
+          }
+        }
+      });
     }
     
     function loadData() {
@@ -476,7 +536,8 @@
       
       // Load statistics
       fetch(`/hospitalisation/api/stats/?${params}`)
-        .then(response => response.json())        .then(data => {
+        .then(response => response.json())        
+        .then(data => {
             console.log('Stats data:', data);
             updateStatistics(data);
             updateCharts(data);
@@ -514,6 +575,24 @@
           typeSejourChart.data.labels = typeLabels;
         typeSejourChart.data.datasets[0].data = typeData;
         typeSejourChart.update();
+      }      if(data.lits_occupes) {
+        const litsLabels = data.lits_occupes.map(item => {
+          const dateStr=item.date || 'Non spécifié'
+          return dateStr.split('T')[0];
+        });
+        const litsData = data.lits_occupes.map(item => item.lits_occupes);
+        
+        // Calculate the maximum value from the data
+        const maxValue = Math.max(...litsData);
+        
+        // Update chart data
+        litsChart.data.labels = litsLabels;
+        litsChart.data.datasets[0].data = litsData;
+        
+        // Update Y-axis scale with dynamic max
+        litsChart.options.scales.y.max = maxValue + Math.ceil(maxValue * 0.05); // Add 10% padding
+        
+        litsChart.update();
       }
     }
     
