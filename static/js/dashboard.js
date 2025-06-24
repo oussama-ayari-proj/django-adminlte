@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
             link.addEventListener('click', function(e) {
               e.preventDefault();
               const page = this.getAttribute('data-page');
-              fetch("/ajax_uf_pagination/?page_uf=" + page+ "&field=" + encodeURIComponent(uf_cur_col) + "&value=" + encodeURIComponent(uf_field.value))
+              fetch("/table-data/ajax_uf_pagination/?page_uf=" + page+ "&field=" + encodeURIComponent(uf_cur_col) + "&value=" + encodeURIComponent(uf_field.value))
                 .then(response => response.json())
                 .then(data => {
                   document.getElementById('uf-table-body').innerHTML = data.table_body;
@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
             link.addEventListener('click', function(e) {
               e.preventDefault();
               const page = this.getAttribute('data-page');
-              fetch("/ajax_sejours_pagination/?page_sejour=" + page+ "&field=" + encodeURIComponent(sejour_cur_col) + "&value=" + encodeURIComponent(sejour_field.value))
+              fetch("/table-data/ajax_sejours_pagination/?page_sejour=" + page+ "&field=" + encodeURIComponent(sejour_cur_col) + "&value=" + encodeURIComponent(sejour_field.value))
                 .then(response => response.json())
                 .then(data => {
                   document.getElementById('sejour-table-body').innerHTML = data.table_body;
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
             link.addEventListener('click', function(e) {
               e.preventDefault();
               const page = this.getAttribute('data-page');
-              fetch("/ajax_em_pagination/"+"?page_em=" + page+ "&field=" + encodeURIComponent(em_cur_col) + "&value=" + encodeURIComponent(em_field.value))
+              fetch("/table-data/ajax_em_pagination/"+"?page_em=" + page+ "&field=" + encodeURIComponent(em_cur_col) + "&value=" + encodeURIComponent(em_field.value))
                 .then(response => response.json())
                 .then(data => {
                   document.getElementById('em-table-body').innerHTML = data.table_body;
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
             link.addEventListener('click', function(e) {
               e.preventDefault();
               const page = this.getAttribute('data-page');
-              fetch("/ajax_pole_pagination/?page_pole=" + page+ "&field=" + encodeURIComponent(pole_cur_col) + "&value=" + encodeURIComponent(pole_field.value))
+              fetch("/table-data/ajax_pole_pagination/?page_pole=" + page+ "&field=" + encodeURIComponent(pole_cur_col) + "&value=" + encodeURIComponent(pole_field.value))
                 .then(response => response.json())
                 .then(data => {
                   document.getElementById('pole-table-body').innerHTML = data.table_body;
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
             link.addEventListener('click', function(e) {
               e.preventDefault();
               const page = this.getAttribute('data-page');
-              fetch("/ajax_etb_pagination/?page_etb=" + page+ "&field=" + encodeURIComponent(etb_cur_col) + "&value=" + encodeURIComponent(etb_field.value))
+              fetch("/table-data/ajax_etb_pagination/?page_etb=" + page+ "&field=" + encodeURIComponent(etb_cur_col) + "&value=" + encodeURIComponent(etb_field.value))
                 .then(response => response.json())
                 .then(data => {
                   document.getElementById('etb-table-body').innerHTML = data.table_body;
@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Unique values for UF search
 
         function fetchUniqueValues_UF(colName) {
-          fetch('/ajax_uf_unique_values/?field=' + encodeURIComponent(colName))
+          fetch('/table-data/ajax_uf_unique_values/?field=' + encodeURIComponent(colName))
             .then(response => response.json())
             .then(data => {
               const dropdown = document.getElementById('uf-unique-values-dropdown');
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Unique values for Séjours search
         
         function fetchUniqueValues_sejour(colName) {
-          fetch('/ajax_sejour_unique_values/?field=' + encodeURIComponent(colName))
+          fetch('/table-data/ajax_sejour_unique_values/?field=' + encodeURIComponent(colName))
             .then(response => response.json())
             .then(data => {
               const dropdown = document.getElementById('sejour-unique-values-dropdown');
@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Unique values for EM search
         
         function fetchUniqueValues_em(colName) {
-          fetch('/ajax_em_unique_values/?field=' + encodeURIComponent(colName))
+          fetch('/table-data/ajax_em_unique_values/?field=' + encodeURIComponent(colName))
             .then(response => response.json())
             .then(data => {
               const dropdown = document.getElementById('em-unique-values-dropdown');
@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Unique values for Pole search
         function fetchUniqueValues_pole(colName) {
-          fetch('/ajax_pole_unique_values/?field=' + encodeURIComponent(colName))
+          fetch('/table-data/ajax_pole_unique_values/?field=' + encodeURIComponent(colName))
             .then(response => response.json())
             .then(data => {
               const dropdown = document.getElementById('pole-unique-values-dropdown');
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Unique values for ETB search
         function fetchUniqueValues_etb(colName) {
-          fetch('/ajax_etb_unique_values/?field=' + encodeURIComponent(colName))
+          fetch('/table-data/ajax_etb_unique_values/?field=' + encodeURIComponent(colName))
             .then(response => response.json())
             .then(data => {
               const dropdown = document.getElementById('etb-unique-values-dropdown');
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
         sejour_field.addEventListener('change', function() {
         const selectedValue = this.value;
         if (selectedValue) {
-          fetch('/ajax_sejour_filter/?value=' + encodeURIComponent(selectedValue)+ '&field=' + encodeURIComponent(sejour_cur_col))
+          fetch('/table-data/ajax_sejour_filter/?value=' + encodeURIComponent(selectedValue)+ '&field=' + encodeURIComponent(sejour_cur_col))
             .then(response => response.json())
             .then(data => {
               document.getElementById('sejour-table-body').innerHTML = data.table_body;
@@ -211,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
               attachSejourPaginationEvents();
             });
         } else {
-          fetch("/ajax_sejours_pagination/?page_sejour=1")
+          fetch("/table-data/ajax_sejours_pagination/?page_sejour=1")
             .then(response => response.json())
             .then(data => {
               document.getElementById('sejour-table-body').innerHTML = data.table_body;
@@ -225,7 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
         em_field.addEventListener('change', function() {
         const selectedValue = this.value;
         if (selectedValue) {
-          fetch('/ajax_em_filter/?value=' + encodeURIComponent(selectedValue)+ '&field=' + encodeURIComponent(em_cur_col))
+          fetch('/table-data/ajax_em_filter/?value=' + encodeURIComponent(selectedValue)+ '&field=' + encodeURIComponent(em_cur_col))
             .then(response => response.json())
             .then(data => {
               document.getElementById('em-table-body').innerHTML = data.table_body;
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
               attachEMPaginationEvents();
             });
         } else {
-          fetch("/ajax_em_pagination/?page_em=1")
+          fetch("/table-data/ajax_em_pagination/?page_em=1")
             .then(response => response.json())
             .then(data => {
               document.getElementById('em-table-body').innerHTML = data.table_body;
@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', function() {
         uf_field.addEventListener('change', function() {
         const selectedValue = this.value;
         if (selectedValue) {
-          fetch('/ajax_uf_filter/?value=' + encodeURIComponent(selectedValue)+ '&field=' + encodeURIComponent(uf_cur_col))
+          fetch('/table-data/ajax_uf_filter/?value=' + encodeURIComponent(selectedValue)+ '&field=' + encodeURIComponent(uf_cur_col))
             .then(response => response.json())
             .then(data => {
               document.getElementById('uf-table-body').innerHTML = data.table_body;
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
               attachUfPaginationEvents();
             });
         } else {
-          fetch("/ajax_uf_pagination/?page_uf=1")
+          fetch("/table-data/ajax_uf_pagination/?page_uf=1")
             .then(response => response.json())
             .then(data => {
               document.getElementById('uf-table-body').innerHTML = data.table_body;
@@ -269,7 +269,7 @@ document.addEventListener('DOMContentLoaded', function() {
         pole_field.addEventListener('change', function() {
         const selectedValue = this.value;
         if (selectedValue) {
-          fetch('/ajax_pole_filter/?value=' + encodeURIComponent(selectedValue)+ '&field=' + encodeURIComponent(pole_cur_col))
+          fetch('/table-data/ajax_pole_filter/?value=' + encodeURIComponent(selectedValue)+ '&field=' + encodeURIComponent(pole_cur_col))
             .then(response => response.json())
             .then(data => {
               document.getElementById('pole-table-body').innerHTML = data.table_body;
@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
               attachPolePaginationEvents();
             });
         } else {
-          fetch("/ajax_pole_pagination/?page_pole=1")
+          fetch("/table-data/ajax_pole_pagination/?page_pole=1")
             .then(response => response.json())
             .then(data => {
               document.getElementById('pole-table-body').innerHTML = data.table_body;
@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', function() {
         etb_field.addEventListener('change', function() {
         const selectedValue = this.value;
         if (selectedValue) {
-          fetch('/ajax_etb_filter/?value=' + encodeURIComponent(selectedValue)+ '&field=' + encodeURIComponent(etb_cur_col))
+          fetch('/table-data/ajax_etb_filter/?value=' + encodeURIComponent(selectedValue)+ '&field=' + encodeURIComponent(etb_cur_col))
             .then(response => response.json())
             .then(data => {
               document.getElementById('etb-table-body').innerHTML = data.table_body;
@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
               attachEtbPaginationEvents();
             });
         } else {
-          fetch("/ajax_etb_pagination/?page_etb=1")
+          fetch("/table-data/ajax_etb_pagination/?page_etb=1")
             .then(response => response.json())
             .then(data => {
               document.getElementById('etb-table-body').innerHTML = data.table_body;

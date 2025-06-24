@@ -6,7 +6,8 @@
 {% block bodyclass %} hold-transition sidebar-mini {% endblock bodyclass %}
 
 {% block content %}
-  <!-- Content Wrapper. Contains page content -->  <style>
+  <!-- Content Wrapper. Contains page content -->
+  <style>
   .content-wrapper, .container-fluid {
     font-size: 1.2rem;
   }
@@ -323,7 +324,7 @@
     });
     
     function loadDateRanges() {
-      return fetch('/hospitalisation/api/date-ranges/')
+      return fetch('/api/date-ranges/')
         .then(response => response.json())
         .then(data => {
           minDate = data.min_date;
@@ -535,7 +536,7 @@
       if (endDate) params.append('end_date', endDate);
       
       // Load statistics
-      fetch(`/hospitalisation/api/stats/?${params}`)
+      fetch(`/api/stats/?${params}`)
         .then(response => response.json())        
         .then(data => {
             console.log('Stats data:', data);

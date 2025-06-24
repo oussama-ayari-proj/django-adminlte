@@ -61,9 +61,11 @@ INSTALLED_APPS = [
     "apps.predictions",
     "apps.plannifications",
     "apps.correlation",
-    
-    # Hospitalisation data
+      # Hospitalisation data
     "apps.hospitalisation",
+    
+    # Hébergement hors UF
+    "apps.hebergement_hors_uf",
 
     # Tooling API-GEN
     'rest_framework',            # Include DRF           # <-- NEW 

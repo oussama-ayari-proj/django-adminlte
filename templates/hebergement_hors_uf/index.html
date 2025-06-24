@@ -1,0 +1,885 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} Hébergement hors UF {% endblock title %}
+
+{% block bodyclass %} hold-transition sidebar-mini {% endblock bodyclass %}
+
+{% block content %}
+  <style>
+  .content-wrapper, .container-fluid {
+    font-size: 1.2rem;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-size: 1.7rem !important;
+  }
+  label, select, .form-control, .select2-selection__rendered, .select2-results__option {
+    font-size: 1.2rem !important;
+  }
+  table {
+    font-size: 0.95rem !important;
+  }
+  .stats-card {
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  .stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+  }  .stat-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #007bff;
+  }
+  .breadcrumb {
+    font-size: 1rem !important;
+  }
+  .filter-btn {
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }  .filter-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  .clickable-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .clickable-row:hover {
+    background-color: #d1ecf1  !important;
+    transform: scale(1.01);
+  }  .clickable-row:active {
+    background-color: #d1ecf1  !important;
+  }  #uf-associe-table {
+    border: 3px solid #495057;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  #uf-associe-table thead th {
+    border-bottom: 3px solid #495057;
+    border-right: 2px solid #495057;
+    background-color: #e9ecef;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+    color: #212529;
+  }
+  #uf-associe-table thead th:last-child {
+    border-right: none;
+  }
+  #uf-associe-table tbody td {
+    border-bottom: 2px solid #adb5bd;
+    border-right: 2px solid #adb5bd;
+    vertical-align: middle;
+    padding: 12px 15px;
+  }
+  #uf-associe-table tbody td:last-child {
+    border-right: none;
+  }
+  #uf-associe-table tbody tr:last-child td {
+    border-bottom: 3px solid #495057;
+  }
+  #uf-associe-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }  #uf-associe-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+  }
+  #hebergement-table {
+    border: 3px solid #495057;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  #hebergement-table thead th {
+    border-bottom: 3px solid #495057;
+    border-right: 2px solid #495057;
+    background-color: #e9ecef;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+    color: #212529;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  #hebergement-table thead th:last-child {
+    border-right: none;
+  }
+  #hebergement-table tbody td {
+    border-bottom: 2px solid #adb5bd;
+    border-right: 2px solid #adb5bd;
+    vertical-align: middle;
+    padding: 12px 15px;
+  }
+  #hebergement-table tbody td:last-child {
+    border-right: none;
+  }
+  #hebergement-table tbody tr:last-child td {
+    border-bottom: 3px solid #495057;
+  }
+  #hebergement-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }  #hebergement-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+  }
+  #uf-non-associe-table {
+    border: 3px solid #495057;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  #uf-non-associe-table thead th {
+    border-bottom: 3px solid #495057;
+    border-right: 2px solid #495057;
+    background-color: #e9ecef;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: middle;
+    color: #212529;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  #uf-non-associe-table thead th:last-child {
+    border-right: none;
+  }
+  #uf-non-associe-table tbody td {
+    border-bottom: 2px solid #adb5bd;
+    border-right: 2px solid #adb5bd;
+    vertical-align: middle;
+    padding: 12px 15px;
+  }
+  #uf-non-associe-table tbody td:last-child {
+    border-right: none;
+  }
+  #uf-non-associe-table tbody tr:last-child td {
+    border-bottom: 3px solid #495057;
+  }
+  #uf-non-associe-table tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
+  }
+  #uf-non-associe-table tbody tr:nth-child(odd) {
+    background-color: #ffffff;
+  }
+  @media (max-width: 1200px) {
+    html, body, .content-wrapper, .container-fluid {
+      font-size: 1rem;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-size: 1.2rem !important;
+    }
+    table {
+      font-size: 0.85rem !important;
+    }
+    .stat-number {
+      font-size: 1.5rem;
+    }
+    .stat-text {
+      font-size: 1rem;
+    }
+  }
+  </style>
+  
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header" style="margin-left:1rem;">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Hébergement hors UF associé</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Hébergement hors UF associé</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="content" style="margin-left:1rem;">
+      <div class="container-fluid">
+        
+        <!-- Filters Row -->
+        <div class="row mt-4">
+          <div class="col-12">
+            <h4 class="mb-3 text-primary">📊 Statistiques Globales</h4>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-lg-4 col-6">
+            <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">                  <div>
+                    <h5 class="card-title">Total Équipes</h5>
+                    <div class="stat-number" id="total-equipes">{{ total_equipes }}</div>
+                  </div>
+                  <i class="fas fa-users-cog fa-3x text-info"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-lg-4 col-6">
+            <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">                  <div>
+                    <h5 class="card-title">Interventions Totales</h5>
+                    <div class="stat-number" id="total-interventions-globales">{{ total_interventions_globales }}</div>
+                  </div>
+                  <i class="fas fa-hospital fa-3x text-success"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-lg-4 col-6">
+            <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">                  
+                  <div>
+                    <h5 class="card-title">Hébergements Totaux</h5>
+                    <div class="stat-number" id="total-hebergements-globaux">{{ total_hebergements_globaux }}</div>
+                  </div>
+                  <i class="fas fa-home fa-3x text-warning"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>        
+        <div class="row mt-4">
+          <div class="col-lg-10">
+            <div class="form-group">
+              <label for="code-em">Équipe Médicale: <span id="count-EM-avec-hebergements"></span></label>
+              <select class="form-control" id="code-em">
+                {% for em in ems %}
+                  <option value="{{ em.code_em }}">{{ em.libelle_em }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-lg-2">
+            <div class="form-group">
+              <label>&nbsp;</label>          
+              <button type="button" class="btn btn-outline-primary btn-block filter-btn" id="filter-hebergements-btn">
+                <i class="fas fa-filter"></i> Filtrer EM avec hébergements
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        
+        
+
+        <!-- Statistiques par Équipe -->
+        <div class="row mt-5">
+          <div class="col-12">
+            <h4 class="mb-3 text-secondary">🏥 Statistiques par Équipe Médicale</h4>
+          </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mt-4">
+          <div class="col-lg-4 col-6">
+            <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="card-title">Total interventions</h5>
+                    <div class="stat-number" id="total-interventions">-</div>
+                  </div>
+                  <i class="fas fa-hospital fa-3x text-success"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-6">
+            <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="card-title">Total Hébergements</h5>
+                    <div class="stat-number" id="total-hebergements">-</div>
+                  </div>
+                  <i class="fas fa-home fa-3x text-primary"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>        <!-- Data Table -->
+        <div class="row mt-5">
+          <div class="col-4">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Les UFs associés</h3>
+              </div>              <div class="card-body">
+                <div class="table-responsive" style="height: 400px; overflow-y: scroll; border: 3px solid #495057; border-radius: 5px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                  <table class="table table-striped table-hover table-bordered" id="uf-associe-table" >
+                    <thead class="bg-light sticky-top">
+                      <tr>
+                        <th style="border: 3px solid #495057; text-align: center; background-color: #e9ecef; color: #212529;">Libellé UF</th>
+                      </tr>
+                    </thead>
+                    <tbody id="uf-associe-table-body">
+                      <tr>
+                        <td colspan="7" class="text-center">Chargement des données...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+            <div class="col-8">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">📊 Visualisation des Hébergements par Semaine</h3>
+              </div>
+              <div class="card-body">
+                <canvas id="hebergement-chart" style="height: 180px;"></canvas>
+              </div>
+            </div>
+            
+            <div class="card mt-3">
+              <div class="card-header">
+                <h3 class="card-title">🏥 Nombre d'hospitalisations par UF Hébergement</h3>
+              </div>
+              <div class="card-body">
+                <canvas id="uf-hebergement-chart" style="height: 180px;"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Second Row: UF Non Associées et Tableau de Données -->
+        <div class="row mt-4">
+          <div class="col-6">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">🏥 UFs non associées avec hébergements</h3>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive" style="height: 300px; overflow-y: auto; border: 3px solid #495057; border-radius: 5px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                  <table class="table table-striped table-hover table-bordered" id="uf-non-associe-table">
+                    <thead class="bg-light sticky-top">
+                      <tr>
+                        <th style="border: 2px solid #495057; text-align: center; background-color: #e9ecef; color: #212529; position: sticky; top: 0; z-index: 10;">UF Hébergement</th>
+                        <th style="border: 2px solid #495057; text-align: center; background-color: #e9ecef; color: #212529; position: sticky; top: 0; z-index: 10;">Total Hébergements</th>
+                      </tr>
+                    </thead>
+                    <tbody id="uf-non-associe-table-body">
+                      <tr>
+                        <td colspan="2" class="text-center">Chargement des données...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-6">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">📋 Données détaillées d'Hébergement</h3>
+              </div>              
+              <div class="card-body">
+                <div class="table-responsive" style="height: 300px; overflow-y: auto; border: 3px solid #495057; border-radius: 5px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                  <table class="table table-striped table-hover table-bordered" id="hebergement-table">
+                    <thead class="bg-light sticky-top">
+                      <tr>
+                        <th style="border: 2px solid #495057; text-align: center; background-color: #e9ecef; color: #212529; position: sticky; top: 0; z-index: 10;">Semaine</th>
+                        <th style="border: 2px solid #495057; text-align: center; background-color: #e9ecef; color: #212529; position: sticky; top: 0; z-index: 10;">Nb Hosp.</th>
+                        <th style="border: 2px solid #495057; text-align: center; background-color: #e9ecef; color: #212529; position: sticky; top: 0; z-index: 10;">GHS</th>
+                        <th style="border: 2px solid #495057; text-align: center; background-color: #e9ecef; color: #212529; position: sticky; top: 0; z-index: 10;">UF Hébergement</th>
+                        <th style="border: 2px solid #495057; text-align: center; background-color: #e9ecef; color: #212529; position: sticky; top: 0; z-index: 10;">Type séjour</th>
+                      </tr>
+                    </thead>
+                    <tbody id="hebergement-table-body">
+                      <tr>
+                        <td colspan="5" class="text-center">Chargement des données...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+{% block extra_scripts %}
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>  <script>    let histogramChart;
+    let hebergementChart; // Graphique pour les hébergements par semaine
+    let ufHebergementChart; // Nouveau graphique pour les UF d'hébergement
+    let allEms = [];  // Stocker toutes les équipes
+    let filteredEms = [];  // Stocker les équipes filtrées
+    let isFiltered = false;  // État du filtrage
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // Stocker toutes les équipes au chargement
+      const selectElement = document.getElementById('code-em');
+      allEms = Array.from(selectElement.options).map(option => ({
+        value: option.value,
+        text: option.text
+      }));
+      
+      // Initialiser les graphiques
+      initHebergementChart();
+      initUFHebergementChart();
+      
+      loadData();
+      
+      document.getElementById('code-em').addEventListener('change', loadData);
+      document.getElementById('filter-hebergements-btn').addEventListener('click', toggleFilter);
+    });
+    
+    function initHebergementChart() {
+      const ctx = document.getElementById('hebergement-chart').getContext('2d');
+      hebergementChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Nombre d\'hospitalisations',
+            data: [],
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 2,
+            borderRadius: 4,
+            borderSkipped: false,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: 'white',
+              bodyColor: 'white',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1
+            }
+          },
+          animation: {
+            duration: 800,
+            easing: 'easeInOutQuart'
+          }        }
+      });
+    }
+      function initUFHebergementChart() {
+      const ctx = document.getElementById('uf-hebergement-chart').getContext('2d');
+      ufHebergementChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Nombre d\'hospitalisations',
+            data: [],
+            backgroundColor: [
+              'rgba(255, 99, 132, 0.6)',
+              'rgba(54, 162, 235, 0.6)',
+              'rgba(255, 205, 86, 0.6)',
+              'rgba(75, 192, 192, 0.6)',
+              'rgba(153, 102, 255, 0.6)',
+              'rgba(255, 159, 64, 0.6)',
+              'rgba(199, 199, 199, 0.6)',
+              'rgba(83, 102, 255, 0.6)'
+            ],
+            borderColor: [
+              'rgba(255, 99, 132, 1)',
+              'rgba(54, 162, 235, 1)',
+              'rgba(255, 205, 86, 1)',
+              'rgba(75, 192, 192, 1)',
+              'rgba(153, 102, 255, 1)',
+              'rgba(255, 159, 64, 1)',
+              'rgba(199, 199, 199, 1)',
+              'rgba(83, 102, 255, 1)'
+            ],
+            borderWidth: 2,
+            borderRadius: 4,
+            borderSkipped: false,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            },
+            y: {
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: 'white',
+              bodyColor: 'white',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1,
+              callbacks: {
+                title: function(tooltipItems) {
+                  return tooltipItems[0].label;
+                },
+                label: function(context) {
+                  return `Hébergements: ${context.parsed.x}`;
+                }
+              }
+            }
+          },
+          animation: {
+            duration: 800,
+            easing: 'easeInOutQuart'
+          }
+        }
+      });
+    }
+    
+    function toggleFilter() {
+      const btn = document.getElementById('filter-hebergements-btn');
+      const selectElement = document.getElementById('code-em');
+      const countElement = document.getElementById('count-EM-avec-hebergements');
+      if (!isFiltered) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
+        btn.disabled = true;
+          fetch('/hebergement-hors-uf/api/ems-with-hebergements/')
+          .then(response => response.json())
+          .then(data => {
+            filteredEms = data.ems;
+            updateSelectOptions(filteredEms);
+            
+            btn.innerHTML = `<i class="fas fa-times"></i>Afficher toutes les EMs`;
+            countElement.textContent = `(${data.count}) EM avec hébergements`;
+            btn.className = 'btn btn-warning btn-block filter-btn';
+            btn.disabled = false;
+            isFiltered = true;
+          })
+          .catch(error => {
+            console.error('Erreur lors du filtrage:', error);
+            btn.innerHTML = '<i class="fas fa-filter"></i> Filtrer EM avec hébergements';
+            countElement.textContent = '';
+            btn.disabled = false;
+          });
+      } else {
+        updateSelectOptions(allEms);
+        btn.innerHTML = '<i class="fas fa-filter"></i> Filtrer EM avec hébergements';
+        btn.className = 'btn btn-outline-primary btn-block';
+        isFiltered = false;
+      }
+    }
+    
+    function updateSelectOptions(ems) {
+      const selectElement = document.getElementById('code-em');
+      const currentValue = selectElement.value;
+      
+      // Vider le select
+      selectElement.innerHTML = '';
+      
+      // Ajouter les nouvelles options
+      ems.forEach(em => {
+        const option = document.createElement('option');
+        option.value = em.value || em.code_em;
+        option.text = em.text || em.libelle_em;
+        selectElement.appendChild(option);
+      });
+      
+      // Restaurer la valeur sélectionnée si elle existe encore
+      if (currentValue && Array.from(selectElement.options).some(opt => opt.value === currentValue)) {
+        selectElement.value = currentValue;
+      }
+      
+      // Recharger les données
+      loadData();
+    }
+      function loadData() {
+      const codeEM = document.getElementById('code-em').value;
+
+      const params = new URLSearchParams();
+      if (codeEM) params.append('code_em', codeEM);
+
+      console.log('Chargement des données avec URL:', `/hebergement-hors-uf/api/stats/?${params}`);
+
+      // Charger les statistiques
+      fetch(`/hebergement-hors-uf/api/stats/?${params}`)
+        .then(response => {
+          return response.json();
+        })        .then(data => {
+            console.log('Statistiques reçues:', data);
+            updateStatistics(data);
+            updateTable(data.uf_associees);
+            update_hebergementTable(data.stats.hebergements);
+            updateHebergementChart(data.stats.hebergements);
+            updateUFHebergementChart(data.stats.hebergements);
+            updateUFNonAssocieTable(data.stats.hebergements);
+        })
+        .catch(error => {
+          console.error('Erreur lors du chargement des statistiques:', error);
+        });
+    }    function updateStatistics(data) {
+      document.getElementById('total-interventions').textContent = data.stats.total_interventions || 0;
+      document.getElementById('total-hebergements').textContent = data.stats.total_hebergement || 0;   
+    }
+      function updateHebergementChart(data) {
+      if (!data || data.length === 0) {
+        hebergementChart.data.labels = [];
+        hebergementChart.data.datasets[0].data = [];
+        hebergementChart.update();
+        return;
+      }
+      
+      // Grouper les données par semaine
+      const weeklyData = {};
+      data.forEach(row => {
+        const semaine = row.semaine_entree || 'Inconnue';
+        if (weeklyData[semaine]) {
+          weeklyData[semaine] += row.nombre_hospitalisations || 0;
+        } else {
+          weeklyData[semaine] = row.nombre_hospitalisations || 0;
+        }
+      });
+      
+      // Fonction pour convertir une semaine au format "YYYY-WW" en date
+      function weekToDate(weekStr) {
+        if (weekStr === 'Inconnue' || !weekStr.includes('-')) {
+          return new Date(0); // Mettre les semaines inconnues en premier
+        }
+        
+        try {
+          const [year, week] = weekStr.split('-').map(num => parseInt(num, 10));
+          if (isNaN(year) || isNaN(week)) {
+            return new Date(0);
+          }
+          
+          // Calculer la date du lundi de cette semaine ISO
+          const jan4 = new Date(year, 0, 4);
+          const monday = new Date(jan4);
+          monday.setDate(jan4.getDate() - jan4.getDay() + 1); // Lundi de la semaine contenant le 4 janvier
+          monday.setDate(monday.getDate() + (week - 1) * 7); // Ajouter les semaines
+          
+          return monday;
+        } catch (e) {
+          return new Date(0);
+        }
+      }
+      
+      // Trier les semaines par ordre chronologique
+      const sortedWeeks = Object.keys(weeklyData).sort((a, b) => {
+        const dateA = weekToDate(a);
+        const dateB = weekToDate(b);
+        return dateA.getTime() - dateB.getTime();
+      });
+      
+      const chartData = sortedWeeks.map(week => weeklyData[week]);
+      hebergementChart.data.labels = sortedWeeks;
+      hebergementChart.data.datasets[0].data = chartData;
+      hebergementChart.update();
+    }
+    
+    function updateUFHebergementChart(data) {
+      if (!data || data.length === 0) {
+        ufHebergementChart.data.labels = [];
+        ufHebergementChart.data.datasets[0].data = [];
+        ufHebergementChart.update();
+        return;
+      }
+      
+      // Grouper les données par UF d'hébergement
+      const ufData = {};
+      data.forEach(row => {
+        const ufLibelle = row.libelle_uf || row.code_uf || 'Inconnue';
+        if (ufData[ufLibelle]) {
+          ufData[ufLibelle] += row.nombre_hospitalisations || 0;
+        } else {
+          ufData[ufLibelle] = row.nombre_hospitalisations || 0;
+        }
+      });
+      
+      // Trier par nombre d'hébergements (décroissant) et prendre les 8 premiers
+      const sortedUFs = Object.entries(ufData)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 8);
+      
+      const labels = sortedUFs.map(([ufLibelle,]) => {
+        // Tronquer les libellés trop longs
+        return ufLibelle.length > 25 ? ufLibelle.substring(0, 25) + '...' : ufLibelle;
+      });
+      const chartData = sortedUFs.map(([, totalHebergements]) => totalHebergements);
+      
+      ufHebergementChart.data.labels = labels;
+      ufHebergementChart.data.datasets[0].data = chartData;
+      ufHebergementChart.update();
+    }
+    
+    function updateUFNonAssocieTable(data) {
+      const tbody = document.getElementById('uf-non-associe-table-body');
+      tbody.innerHTML = '';
+      
+      if (!data || data.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="2" class="text-center">Aucune donnée disponible</td>';
+        tbody.appendChild(tr);
+        return;
+      }
+      
+      // Grouper par UF et sommer les hébergements
+      const ufData = {};
+      data.forEach(row => {
+        const ufLibelle = row.libelle_uf || row.code_uf || 'Inconnue';
+        if (ufData[ufLibelle]) {
+          ufData[ufLibelle] += row.nombre_hospitalisations || 0;
+        } else {
+          ufData[ufLibelle] = row.nombre_hospitalisations || 0;
+        }
+      });
+      
+      // Trier par nombre d'hébergements (décroissant)
+      const sortedUFs = Object.entries(ufData)
+        .sort(([,a], [,b]) => b - a);
+      
+      sortedUFs.forEach(([ufLibelle, totalHebergements]) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-weight: 500;">${ufLibelle}</td>
+          <td style="text-align: center; font-weight: bold; color: #007bff;">${totalHebergements}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    function update_hebergementTable(data) {
+      const tbody = document.getElementById('hebergement-table-body');
+      tbody.innerHTML = '';
+      
+      if (!data || data.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="5" class="text-center">Aucune donnée disponible</td>';
+        tbody.appendChild(tr);
+        return;
+      }
+      
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.semaine_entree || '-'}</td>
+          <td>${row.nombre_hospitalisations || '-'}</td>
+          <td>${row.ghs || '-'}</td>
+          <td>${row.libelle_uf || '-'}</td>
+          <td>${row.type_sejour || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function updateTable(data) {
+      const tbody = document.getElementById('uf-associe-table-body');
+      tbody.innerHTML = '';
+      
+      if (!data || data.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="7" class="text-center">Aucune donnée disponible</td>';
+        tbody.appendChild(tr);
+        return;
+      }
+      
+      data.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.className = 'clickable-row';
+        tr.setAttribute('data-code-uf', row.code_uf || '');
+        tr.setAttribute('data-libelle', row.libelle_standard || '');
+        tr.setAttribute('data-index', index);
+        
+        tr.innerHTML = `
+          <td>${row.libelle_standard || '-'}</td>
+        `;
+        
+        // Ajouter l'événement click à chaque ligne
+        tr.addEventListener('click', function() {
+          handleRowClick(this, row);
+        });
+        
+        tbody.appendChild(tr);
+      });
+    }
+    
+    function handleRowClick(rowElement, rowData) {
+      // Retirer la sélection des autres lignes
+      const allRows = document.querySelectorAll('#uf-associe-table-body .clickable-row');
+      allRows.forEach(row => {
+        row.classList.remove('table-active');
+        row.style.backgroundColor = '';
+      });
+      
+      // Marquer la ligne sélectionnée
+      rowElement.classList.add('table-active');
+      rowElement.style.backgroundColor = '#8ec6ff';
+      
+      // Log des données pour debug
+      console.log('Ligne cliquée:', rowData);
+      console.log('Code UF:', rowData.code_uf);
+      console.log('Libellé:', rowData.libelle_standard);
+      
+      // Vous pouvez ajouter ici votre logique personnalisée
+      // Par exemple: charger des données détaillées, ouvrir un modal, etc.
+      
+      // Exemple d'actions possibles:
+      showUFDetails(rowData);
+    }
+    
+    function showUFDetails(ufData) {
+      // Exemple de fonction pour afficher les détails de l'UF
+      // Vous pouvez remplacer ceci par votre propre logique
+      
+      console.log('Affichage des détails pour UF:', ufData);
+      
+      
+    }
+  </script>
+{% endblock extra_scripts %}
