@@ -1,12 +1,13 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.db import connection
-from django.db.models import Count
+from django.db.models import Count, Avg
 from django.views.decorators.csrf import csrf_exempt
 import json
 from .models import EM,Matrice_EM_UF,export_UF
 from apps.hospitalisation.models import Hospitalisation
 from apps.pages.models import UF
+from apps.correlation.models import Lit
 
 def index(request):
 
@@ -30,6 +31,43 @@ def index(request):
         'total_hebergements_globaux': stats['total_hebergements_globaux'],
     })
 
+def calculer_lits_fermes(code_uf_associe):
+    lits_fermes_by_week = {}
+    lits_fermes_data = []
+    if isinstance(code_uf_associe, str):
+        code_uf_associe = [code_uf_associe]
+    if len(code_uf_associe)==1:
+        lits= Lit.objects.filter(code_uf=code_uf_associe[0])
+        if not lits.exists():
+            return []
+        for lit in lits:
+            semaine = lit.semaine
+            lits_fermes_moyen = lit.lits_fermes_moyen or 0
+            lits_fermes_data.append({
+                'semaine': semaine,
+                'lits_fermes_moyen': round(lits_fermes_moyen, 1)
+            })
+            
+        return lits_fermes_data
+    for code_uf in code_uf_associe:
+        lits = Lit.objects.filter(code_uf=code_uf)
+        for lit in lits:
+            semaine = lit.semaine
+            lits_fermes_moyen = lit.lits_fermes_moyen or 0
+
+            if semaine not in lits_fermes_by_week:
+                lits_fermes_by_week[semaine] = []
+                continue         
+            lits_fermes_by_week[semaine].append(lits_fermes_moyen)
+                
+    for semaine, lits_list in lits_fermes_by_week.items():
+        if len(lits_list) > 0:
+            moyenne_lits_fermes = sum(lits_list) / len(lits_list)
+            lits_fermes_data.append({
+                'semaine': semaine,
+                'lits_fermes_moyen': round(moyenne_lits_fermes, 1)
+            })
+    return lits_fermes_data
 
 def get_hebergement_stats(request):
     code_em = request.GET.get('code_em')
@@ -54,6 +92,13 @@ def get_hebergement_stats(request):
             
             stats['hebergements'] = hebergements_with_labels
             
+            # Ajouter les données de lits fermés pour les UFs associées
+            lits_fermes_data = []
+            if code_uf_associees:
+                lits_fermes_data = calculer_lits_fermes(code_uf_associees)
+
+            stats['lits_fermes'] = lits_fermes_data
+            
         except EM.DoesNotExist:
             return JsonResponse({
                 'error': 'EM not found',
@@ -63,6 +108,20 @@ def get_hebergement_stats(request):
         'stats': stats,
         'uf_associees': list(uf_associees)
     }, status=200)
+
+def get_lits_fermes_filtres(request):
+    code_uf_associe = request.GET.get('code_uf_associe')
+    if not code_uf_associe:
+        return JsonResponse({'error': 'Aucun code UF associé fourni'}, status=400)
+    try:
+        if ',' in code_uf_associe:
+            code_uf_associe = code_uf_associe.split(',')
+        lits_fermes_data = calculer_lits_fermes(code_uf_associe)
+        return JsonResponse({
+            'lits_fermes': lits_fermes_data
+        }, status=200)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 def get_ems_with_hebergements(request):
     try:

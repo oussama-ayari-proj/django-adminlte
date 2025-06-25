@@ -7,4 +7,5 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('api/stats/', views.get_hebergement_stats, name='hebergement_stats'),
     path('api/ems-with-hebergements/', views.get_ems_with_hebergements, name='ems_with_hebergements'),
+    path('api/get_lits_fermes_filtres/', views.get_lits_fermes_filtres, name='lits_fermes_filtres'),
 ]
