@@ -10,12 +10,12 @@
         <div class="container-fluid">
             <div class="row mb-2">
                 <div class="col-sm-6">
-                    <h1>Téléchargement de Fichier</h1>
+                    <h1>Téléchargement des Fichiers</h1>
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
                         <li class="breadcrumb-item"><a href="#">Accueil</a></li>
-                        <li class="breadcrumb-item active">Téléchargement de Fichier</li>
+                        <li class="breadcrumb-item active">Téléchargement des Fichiers</li>
                     </ol>
                 </div>
             </div>
@@ -26,7 +26,7 @@
         <div class="container-fluid">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Télécharger un Fichier pour Traitement</h3>
+                    <h3 class="card-title">Télécharger les fichiers à traiter</h3>
                 </div>
                 <div class="card-body">
                     {% if error %}
@@ -36,7 +36,12 @@
                     </div>
                     {% endif %}
                     
-                    <p>Téléchargez un fichier à traiter. Formats pris en charge:</p>
+                    <div class="alert alert-info">
+                        <h5><i class="icon fas fa-info"></i> Information!</h5>
+                        Vous pouvez télécharger un ou plusieurs fichiers selon vos besoins. Chaque fichier sera traité selon sa catégorie.
+                    </div>
+                    
+                    <p>Téléchargez les fichiers à traiter par catégorie. Formats pris en charge:</p>
                     <ul>
                         <li>Fichiers CSV (.csv)</li>
                         <li>Fichiers Excel (.xlsx, .xls)</li>
@@ -46,15 +51,99 @@
                     
                     <form method="post" enctype="multipart/form-data">
                         {% csrf_token %}
-                        <div class="form-group">
-                            <div class="custom-file">
-                                <input type="file" class="custom-file-input" id="customFile" name="file" required>
-                                <label class="custom-file-label" for="customFile">Choisir un fichier</label>
+                        
+                        <div class="row">
+                            <!-- RH File Upload -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header bg-primary">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-users"></i> Fichier RH
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" id="rh_file" name="rh_file">
+                                            <label class="custom-file-label" for="rh_file">Choisir le fichier RH</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RSA File Upload -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header bg-success">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-chart-line"></i> Fichier RSA
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" id="rsa_file" name="rsa_file">
+                                            <label class="custom-file-label" for="rsa_file">Choisir le fichier RSA</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lits File Upload -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header bg-warning">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-bed"></i> Fichier Lits
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" id="lits_file" name="lits_file">
+                                            <label class="custom-file-label" for="lits_file">Choisir le fichier Lits</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Matrice File Upload -->
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-header bg-danger">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-table"></i> Fichier Matrice
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" id="matrice_file" name="matrice_file">
+                                            <label class="custom-file-label" for="matrice_file">Choisir le fichier Matrice</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- UF File Upload -->
+                            <div class="col-md-12 mb-3">
+                                <div class="card">
+                                    <div class="card-header bg-info">
+                                        <h5 class="card-title mb-0">
+                                            <i class="fas fa-building"></i> Fichier UF
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" id="uf_file" name="uf_file">
+                                            <label class="custom-file-label" for="uf_file">Choisir le fichier UF</label>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <button type="submit" class="btn btn-primary mt-3">
-                            <i class="fas fa-upload"></i> Télécharger et Traiter
-                        </button>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-upload"></i> Télécharger et Traiter les Fichiers
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -65,7 +154,7 @@
 {% endblock %}
 
 {% block extra_scripts %}
-<link href="{% static 'plugins/select2/css/select2.min.css' %}" rel="stylesheet" />
+    <link href="{% static 'plugins/select2/css/select2.min.css' %}" rel="stylesheet" />
     <link href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}" rel="stylesheet" />
     <script src="{% static 'plugins/select2/js/select2.full.min.js' %}"></script>
     <script src="{% static 'plugins/chart.js/Chart.min.js' %}"></script>

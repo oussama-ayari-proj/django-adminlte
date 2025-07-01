@@ -40,31 +40,18 @@
     {% endfor %}
     {% endif %}    
     <li class="nav-header">Dashboard</li>
-      
+      <!-- Dashboard -->
       <li class="nav-item">
         <a href="/" class="nav-link ">
           <i class="nav-icon fas fa-tachometer-alt"></i>
           <p>
-            Dashboard
+            Infos générales
           </p>
         </a>
       </li>
-    
+           
+      
       <li class="nav-item">
-        <a href="/table-data" class="nav-link ">
-          <i class="nav-icon fas fa-database"></i>
-          <p>
-            Table des données
-          </p>
-        </a>
-      </li>      <li class="nav-item">
-        <a href="{% url 'fileupload:upload' %}" class="nav-link">
-          <i class="nav-icon fas fa-file-upload"></i>
-          <p>
-            Téléchargement de Fichier
-          </p>
-        </a>
-      </li>      <li class="nav-item">
         <a href="/correlation-absences-lits" class="nav-link ">
           <i class="nav-icon fas fa-table"></i>
           <p>
@@ -110,6 +97,26 @@
         </p>
       </a>
     </li>
+
+    <li class="nav-header">Données</li>
+    <!-- Table données -->
+    <li class="nav-item">
+      <a href="/table-data" class="nav-link ">
+        <i class="nav-icon fas fa-database"></i>
+        <p>
+          Table des données
+        </p>
+      </a>
+    </li>
+    <!-- Upload File -->
+    <li class="nav-item">
+      <a href="{% url 'fileupload:upload' %}" class="nav-link">
+        <i class="nav-icon fas fa-file-upload"></i>
+        <p>
+          Téléchargement de Fichier
+        </p>
+      </a>
+    </li> 
     <li class="nav-header">Authentification</li>
     {% if request.user.is_authenticated %}
     <li class="nav-item">

@@ -335,40 +335,17 @@
         </div>        
         <!-- Simple Chart Hospi par UF -->
         <div class="row mt-5">
-          <div class="col-6">
+          <div class="col-12">
             <div class="card mt-3">
               <div class="card-header">
-                <h3 class="card-title">🏥 Nombre d'hospitalisations par UF Hébergement</h3>
+                <h3 class="card-title">🏥 Nombre d'hébergements hors matrice par UF</h3>
               </div>
               <div class="card-body">
                 <canvas id="uf-hebergement-chart" style="height: 180px;"></canvas>
               </div>
             </div>
           </div>
-          <div class="col-6">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">🏥 UFs non associées avec hébergements</h3>
-              </div>
-              <div class="card-body">
-                <div class="table-responsive" style="height: 300px; overflow-y: auto; border: 3px solid #495057; border-radius: 5px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
-                  <table class="table table-striped table-hover table-bordered" id="uf-non-associe-table">
-                    <thead class="bg-light sticky-top">
-                      <tr>
-                        <th style="border: 2px solid #495057; text-align: center; background-color: #e9ecef; color: #212529; position: sticky; top: 0; z-index: 10;">UF Hébergement</th>
-                        <th style="border: 2px solid #495057; text-align: center; background-color: #e9ecef; color: #212529; position: sticky; top: 0; z-index: 10;">Total Hébergements</th>
-                      </tr>
-                    </thead>
-                    <tbody id="uf-non-associe-table-body">
-                      <tr>
-                        <td colspan="2" class="text-center">Chargement des données...</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
+          
         </div>
         
         <!-- Détails des UFs associés ( + Stacked Chart) -->
@@ -411,18 +388,9 @@
 
         <!-- Second Row: UF Non Associées et Tableau de Données -->
         <div class="row mt-4">
-          <div class="col-6">
-            <div class="card">
-                <div class="card-header">
-                  <h3 class="card-title">📊 Visualisation des Hébergements par Semaine (Total)</h3>
-                </div>
-                <div class="card-body">
-                  <canvas id="hebergement-simple-chart" style="height: 180px;"></canvas>
-                </div>
-              </div>
-          </div>
           
-          <div class="col-6">
+          
+          <div class="col-12">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">📋 Données détaillées d'Hébergement</h3>
@@ -504,9 +472,8 @@
           filterDataBySelectedUFs();
         });
       }
-      
       // Initialiser les graphiques
-      initHebergementSimpleChart();
+      //initHebergementSimpleChart();
       initHebergementStackedChart();
       initUFHebergementChart();
       
@@ -515,61 +482,7 @@
       document.getElementById('code-em').addEventListener('change', loadData);
       document.getElementById('filter-hebergements-btn').addEventListener('click', toggleFilter);
     });
-    function initHebergementSimpleChart() {
-      const ctx = document.getElementById('hebergement-simple-chart').getContext('2d');
-      hebergementSimpleChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: [],
-          datasets: [{
-            label: 'Nombre d\'hospitalisations',
-            data: [],
-            backgroundColor: 'rgba(54, 162, 235, 0.6)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 2,
-            borderRadius: 4,
-            borderSkipped: false,
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              },
-              grid: {
-                color: 'rgba(0, 0, 0, 0.1)'
-              }
-            },
-            x: {
-              grid: {
-                color: 'rgba(0, 0, 0, 0.1)'
-              }
-            }
-          },
-          plugins: {
-            legend: {
-              display: true,
-              position: 'top'
-            },
-            tooltip: {
-              backgroundColor: 'rgba(0, 0, 0, 0.8)',
-              titleColor: 'white',
-              bodyColor: 'white',
-              borderColor: 'rgba(54, 162, 235, 1)',
-              borderWidth: 1
-            }
-          },
-          animation: {
-            duration: 800,
-            easing: 'easeInOutQuart'
-          }
-        }
-      });
-    }    
+       
     function initHebergementStackedChart() {
       const ctx = document.getElementById('hebergement-stacked-chart').getContext('2d');
       hebergementStackedChart = new Chart(ctx, {
@@ -830,10 +743,10 @@
             updateStatistics(data);
             updateTable(data.uf_associees);
             update_hebergementTable(data.stats.hebergements);
-            updateHebergementSimpleChart(data.stats.hebergements);
+            //updateHebergementSimpleChart(data.stats.hebergements);
             updateHebergementStackedChart(data);
             updateUFHebergementChart(data.stats.hebergements);
-            updateUFNonAssocieTable(data.stats.hebergements);
+            //updateUFNonAssocieTable(data.stats.hebergements);
         })
         .catch(error => {
           console.error('Erreur lors du chargement des statistiques:', error);
@@ -843,7 +756,7 @@
       document.getElementById('total-interventions').textContent = data.stats.total_interventions || 0;
       document.getElementById('total-hebergements').textContent = data.stats.total_hebergement || 0;   
     }    
-    function updateHebergementSimpleChart(data) {
+    /*function updateHebergementSimpleChart(data) {
       if (!data || data.length === 0) {
         hebergementSimpleChart.data.labels = [];
         hebergementSimpleChart.data.datasets[0].data = [];
@@ -874,7 +787,7 @@
       hebergementSimpleChart.data.labels = semaines;
       hebergementSimpleChart.data.datasets[0].data = chartData;
       hebergementSimpleChart.update();
-    }    
+    }*/    
     function updateHebergementStackedChart(data) {
 
       if (!data.stats.hebergements || data.stats.hebergements.length === 0) {
