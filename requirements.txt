@@ -30,4 +30,5 @@ django-dbbackup==4.2.1
 matplotlib
 scipy
 scikit-learn
+openpyxl
 

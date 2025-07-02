@@ -12,7 +12,6 @@ file_storage = {}
 
 def upload_file(request):
     if request.method == 'POST':
-        # Define the file categories we expect
         file_categories = ['rh_file', 'rsa_file', 'lits_file', 'matrice_file', 'uf_file']
         uploaded_files = {}
         errors = []
@@ -38,12 +37,12 @@ def upload_file(request):
                         'type': uploaded_file.content_type,
                         'category': category.replace('_file', '').upper()
                     }
-                    
+                    # If we have csv file
                     if file_extension == '.csv':
                         df = pd.read_csv(io.StringIO(uploaded_file.read().decode('utf-8')))
                         file_data = df.head(10).to_dict('records')
                         
-                        # Update statistics
+                        # Update stats
                         file_stats.update({
                             'rows': len(df),
                             'columns': len(df.columns),
@@ -51,7 +50,8 @@ def upload_file(request):
                             'data_types': df.dtypes.astype(str).to_dict(),
                             'missing_values': df.isnull().sum().to_dict()
                         })
-                        
+
+                    # If we have Excel file  
                     elif file_extension == '.xlsx' or file_extension == '.xls':
                         df = pd.read_excel(uploaded_file)
                         file_data = df.head(10).to_dict('records') 
@@ -65,6 +65,7 @@ def upload_file(request):
                             'sheets': pd.ExcelFile(uploaded_file).sheet_names,
                             'type': 'Fichier Excel'
                         })                
+                    # If we have JSON file
                     elif file_extension == '.json':
                         json_data = json.loads(uploaded_file.read().decode('utf-8'))
                         
@@ -87,7 +88,8 @@ def upload_file(request):
                                 'top_level_keys': list(json_data.keys()),
                                 'type': 'Objet JSON imbriqué'
                             })
-                        
+                    
+                    # If we have Text file
                     else:
                         try:
                             file_content = uploaded_file.read().decode('utf-8')
@@ -104,7 +106,6 @@ def upload_file(request):
                                 'type': 'Fichier binaire'
                             })
                     
-                    # Store the processed file data
                     uploaded_files[category] = {
                         'file_data': file_data,
                         'file_stats': file_stats
@@ -113,13 +114,12 @@ def upload_file(request):
                 except Exception as e:
                     errors.append(f"Erreur lors du traitement du fichier {category.replace('_file', '').upper()}: {str(e)}")
         
-        # If there were errors, show them
         if errors:
             return render(request, 'fileupload/upload.html', {
                 'error': ' | '.join(errors)
             })
         
-        # Store all uploaded files in the global storage
+        # Store all uploaded files in global storage
         if not request.session.session_key:
             request.session.create()
         session_key = f"upload_session_{request.session.session_key}"
@@ -128,21 +128,6 @@ def upload_file(request):
         return redirect('fileupload:upload_success_multiple', session_key=session_key)
             
     return render(request, 'fileupload/upload.html')
-
-def upload_success(request, file_name):
-    file_data = {}
-    file_stats = {}
-    
-    if file_name in file_storage:
-        file_data = file_storage[file_name]['file_data']
-        file_stats = file_storage[file_name]['file_stats']
-        
-    context = {
-        'file_name': file_name,
-        'file_data': file_data,
-        'file_stats': file_stats
-    }
-    return render(request, 'fileupload/upload_success.html', context)
 
 def upload_success_multiple(request, session_key):
     """Handle the success page for multiple file uploads"""

@@ -34,7 +34,23 @@ DEBUG = str2bool(os.environ.get('DEBUG'))
 ALLOWED_HOSTS = ['*']
 
 # Add here your deployment HOSTS
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://localhost:5085', 'http://127.0.0.1:8000', 'http://127.0.0.1:5085']
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000', 
+    'http://localhost:5085', 
+    'http://127.0.0.1:8000', 
+    'http://127.0.0.1:5085',
+    'http://172.16.3.201:8000',  # Add your server IP
+    'https://172.16.3.201:8000',  # Also add HTTPS version if needed
+    'https://optisoin.mines-albi.fr',  # Fixed: removed trailing slash
+    'http://optisoin.mines-albi.fr',   # Also add HTTP version just in case
+]
+
+# Add additional trusted origins from environment variable if provided
+ADDITIONAL_TRUSTED_ORIGINS = os.environ.get('ADDITIONAL_TRUSTED_ORIGINS', '')
+if ADDITIONAL_TRUSTED_ORIGINS:
+    # Split by comma and add to the list
+    additional_origins = [origin.strip() for origin in ADDITIONAL_TRUSTED_ORIGINS.split(',') if origin.strip()]
+    CSRF_TRUSTED_ORIGINS.extend(additional_origins)
 
 #Render Context
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
@@ -209,3 +225,21 @@ REST_FRAMEWORK = {
     ],
 }
 ########################################
+
+# File Upload Settings
+# Maximum size (in bytes) for uploaded files - 100MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2097152000  # 100MB in memory
+DATA_UPLOAD_MAX_MEMORY_SIZE = 2097152000  # 100MB
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000    # Increase field limit
+
+# Maximum size for entire request body - 500MB
+DATA_UPLOAD_MAX_REQUEST_SIZE = 2097152000  # 1GB
+
+# Upload handlers
+FILE_UPLOAD_HANDLERS = [
+    'django.core.files.uploadhandler.MemoryFileUploadHandler',
+    'django.core.files.uploadhandler.TemporaryFileUploadHandler',
+]
+
+# File upload temporary directory
+FILE_UPLOAD_TEMP_DIR = None  # Use system default

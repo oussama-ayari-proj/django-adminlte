@@ -25,6 +25,9 @@ RUN echo 'server {\n\
     listen 8000;\n\
     server_name localhost;\n\
 \n\
+    # Set maximum file upload size\n\
+    client_max_body_size 900M;\n\
+\n\
     location /static/ {\n\
         alias /app/staticfiles/;\n\
     }\n\
