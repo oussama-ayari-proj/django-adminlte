@@ -97,7 +97,7 @@
         
         <div class="row mt-4">
           <div class="col-lg-6">
-            <h1>Corrélation</h1>
+            <h1>Impacts</h1>
             <div id="ccf-values" style="font-size:2.7rem; margin-top:2.5rem;padding-right: 2rem;">
               <div style="margin-bottom: 2.2rem; display: flex; align-items: center;justify-content: space-between;">
                 <div>
@@ -233,10 +233,10 @@
               const span = document.getElementById(spanId);
               if (val !== undefined && !isNaN(val)) {
                 if (Math.abs(val) > 0.5) {
-                  span.textContent = 'Corrélation significatif';
+                  span.textContent = 'Forte relation';
                   span.style.color = 'green';
                 } else {
-                  span.textContent = 'Corrélation non significatif';
+                  span.textContent = 'Faible relation';
                   span.style.color = 'red';
                 }
               } else {

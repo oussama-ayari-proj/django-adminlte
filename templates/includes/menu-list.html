@@ -9,14 +9,7 @@
     {% for app in app_list %}
     {% if app.has_perms and not app.pinned %}
     <li class="nav-item {% if 'dashboard' in parent %} menu-open {% endif %}">
-      <a class="nav-link {% if app_label != app.label and app.url not in request.path|urlencode  %} collapsed{% endif %}"
-        data-bs-toggle="collapse" data-bs-target="#submenu-{{ app.app_label }}" href="{{ app.url }}">
-        <i class="nav-icon {{ app.icon }}"></i>
-        <p>
-          {{ app.label|slice:10 }}{% if app.label|length > 10 %}..{% endif %}
-          <i class="right fas fa-angle-left"></i>
-        </p>
-      </a>
+
 
       {% if app.models %}
       <ul class="nav nav-treeview">
@@ -117,9 +110,24 @@
         </p>
       </a>
     </li> 
+    {% if request.user.is_authenticated and perms.auth.add_user %}
+    <li class="nav-header">Gestion Utilisateurs</li>
+    <li class="nav-item">
+      <a href="/admin/auth/user" class="nav-link">
+        <i class="fa fa-users nav-icon"></i>
+        <p>Utilisateurs</p>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a href="/admin/auth/group" class="nav-link">
+        <i class="fa fa-users nav-icon"></i>
+        <p>Groupes & Permissions</p>
+      </a>
+    </li>
+    {% endif %}
     <li class="nav-header">Authentification</li>
     {% if request.user.is_authenticated %}
-    <li class="nav-item">
+    <li class="nav-item" style="margin-bottom: 30px;">
       <a href="{% url 'logout' %}" class="nav-link">
         <i class="fa fa-sign-out-alt nav-icon"></i>
         <p>Logout</p>
@@ -132,7 +140,7 @@
         <p>Login</p>
       </a>
     </li>
-    <li class="nav-item">
+    <li class="nav-item" style="margin-bottom: 30px;">
       <a href="{% url 'register' %}" class="nav-link">
         <i class="fa fa-user-plus nav-icon"></i>
         <p>Register</p>
