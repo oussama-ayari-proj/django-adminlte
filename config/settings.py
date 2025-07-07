@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',  # Include DRF Auth      # <-- NEW   
 
     "apps.fileupload",  # File upload app
+    "apps.statistiques",
 ]
 
 MIDDLEWARE = [

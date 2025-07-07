@@ -1,0 +1,288 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} Statistiques Globales des Équipes Médicales {% endblock title %}
+
+{% block bodyclass %} hold-transition sidebar-mini {% endblock bodyclass %}
+
+{% block content %}
+<style>
+  .stats-card {
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    margin-bottom: 1.5rem;
+  }
+  .stat-number {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #007bff;
+  }
+  .stat-label {
+    font-size: 1.1rem;
+    color: #495057;
+  }
+  .select-em {
+    font-size: 1.1rem;
+    min-width: 250px;
+  }
+</style>
+<div class="content-wrapper">
+  <div class="content-header" style="margin-left:1rem;">
+    <div class="container-fluid">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0">📊 Analyse exploratoire des séjours par équipes Médicales</h1>
+        </div>
+        <div class="col-sm-6">
+          <ol class="breadcrumb float-sm-right">
+            <li class="breadcrumb-item"><a href="/">Accueil</a></li>
+            <li class="breadcrumb-item active">Analyse exploratoire des séjours par équipes Médicales</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="content" style="margin-left:1rem;">
+    <div class="container-fluid">
+      <div class="row mt-4">
+        <div class="col-lg-4 col-12">
+          <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="card-title">Nombre total des équipes</h5>
+                    <div class="stat-number" id="total-ems">-</div>
+                  </div>
+                  <i class="fas fa-users fa-3x" style="color: #17a2b8;"></i>
+                </div>
+              </div>
+          </div>
+        </div>
+        <div class="col-lg-4 col-12">
+          <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="card-title">Séjours Totaux</h5>
+                    <div class="stat-number" id="total-sejours">-</div>
+                  </div>
+                  <i class="fas fa-procedures fa-3x" style="color: #28a745;"></i>
+                </div>
+              </div>
+          </div>
+        </div>
+        <div class="col-lg-4 col-12">
+          <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="card-title">Hébergements Totaux</h5>
+                    <div class="stat-number" id="total-hebergements">-</div>
+                  </div>
+                  <i class="fas fa-bed fa-3x" style="color: #fd7e14;"></i>
+                </div>
+              </div>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-4">
+        <div class="col-lg-8 col-12 mx-auto">
+          <div class="card shadow border-primary" style="border-width:2px;">
+            <div class="card-body py-4">
+              <div class="d-flex flex-column flex-md-row align-items-center justify-content-center">
+                <i class="fas fa-search fa-2x text-primary mr-md-4 mb-3 mb-md-0"></i>
+                <div>
+                  <label for="em-select" class="font-weight-bold mb-2" style="font-size:1.3rem; color:#007bff;">Sélectionner une Équipe Médicale :</label>
+                  <select class="form-control select-em" id="em-select" style="font-size:1.2rem; min-width:320px; max-width:100%;">
+                    {% for em in ems %}
+                      <option value="{{ em.code_em }}">{{ em.libelle_em }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row mt-4">
+          <div class="col-lg-4 col-6">
+            <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="card-title">Total Séjours de l'équipe choisie</h5>
+                    <div class="stat-number" id="em-sejours">-</div>
+                  </div>
+                  <i class="fas fa-procedures fa-3x" style="color: #28a745;"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-6">
+            <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h5 class="card-title">Total Hébergements (hors matrice)</h5>
+                    <div class="stat-number" id="em-hebergements">-</div>
+                    <a id="hebergement-link" href="#" class="btn btn-sm btn-outline-primary mt-2" style="display:none;">
+                      Voir les hébergements hors UF
+                    </a>
+                  </div>
+                  <i class="fas fa-bed fa-3x" style="color: #fd7e14;"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+      </div>
+
+      <!-- Big Charge EM Graph at the bottom -->
+      <div class="row mt-5 mb-4">
+        <div class="col-12">
+          <div class="card stats-card">
+            <div class="card-body">
+              <h5 class="card-title">Charge EM (par jour)</h5>
+              <div style="height: 420px;">
+                <canvas id="charge-em-chart" style="width:100%;height:100%;max-height:400px;"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+        </div>  
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block extra_scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Charger les stats globales au chargement
+  fetch('/statistiques/api/global/')
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('total-ems').textContent = data.total_ems;
+      document.getElementById('total-sejours').textContent = data.total_sejours;
+      document.getElementById('total-hebergements').textContent = data.total_hebergements;
+    });
+
+  let chargeEmChart = null;
+
+  function updateChargeEM(code_em) {
+    const ctx = document.getElementById('charge-em-chart').getContext('2d');
+    if (!code_em) {
+      if (chargeEmChart) {
+        chargeEmChart.data.labels = [];
+        chargeEmChart.data.datasets[0].data = [];
+        chargeEmChart.update();
+      }
+      return;
+    }
+    fetch(`/statistiques/api/charge-em/?code_em=${code_em}`)
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);
+        const labels = data.map(row => row.date || row.label || '');
+        const values = data.map(row => row.charge_em || row.value || 0);
+        if (!chargeEmChart) {
+          chargeEmChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Nombre de patients',
+                data: values,
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0,123,255,0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 3,
+                pointBackgroundColor: '#007bff',
+                pointBorderColor: '#007bff',
+                borderWidth: 2
+              }]
+            },
+            options: {
+              plugins: {
+                zoom: {
+                  pan:{
+                    enabled: true,
+                    mode: 'xy',
+                    speed: 10,
+                    threshold: 10
+                  },
+                  limits: {
+                    x: {min: 'original', max: 'original'},
+                    y: {min: 0, max: 'original'}
+                  },
+                  zoom: {
+                    wheel: {
+                      enabled: true,
+                    },
+                    pinch: {
+                      enabled: true
+                    },
+                    mode: 'x',
+                  }
+                }
+              },
+              responsive: true,
+              maintainAspectRatio: false,          
+              scales: {
+              y: {
+                beginAtZero: true,
+                min: 0
+              }
+            }
+            }
+      
+          });
+        } else {
+          chargeEmChart.data.labels = labels;
+          chargeEmChart.data.datasets[0].data = values;
+          chargeEmChart.update();
+        }
+      });
+  }
+
+  function updateEMStats() {
+    const code_em = document.getElementById('em-select').value;
+    const hebergementLink = document.getElementById('hebergement-link');
+    if(!code_em) {
+      document.getElementById('em-sejours').textContent = '-';
+      document.getElementById('em-hebergements').textContent = '-';
+      hebergementLink.style.display = 'none';
+      hebergementLink.href = '#';
+      updateChargeEM(null);
+      return;
+    } else {
+      fetch(`/statistiques/api/em/?code_em=${code_em}`)
+        .then(response => response.json())
+        .then(data => {
+          document.getElementById('em-sejours').textContent = data.sejours;
+          document.getElementById('em-hebergements').textContent = data.hebergements;
+          if (data.hebergements > 0) {
+            hebergementLink.style.display = '';
+            hebergementLink.href = `/hebergement-hors-uf/?em=${encodeURIComponent(code_em)}`;
+          } else {
+            hebergementLink.style.display = 'none';
+            hebergementLink.href = '#';
+          }
+        });
+      updateChargeEM(code_em);
+    }
+  }
+  updateEMStats();
+  document.getElementById('em-select').addEventListener('change', function() {
+    updateEMStats();
+  });
+});
+</script>
+{% endblock extra_scripts %}

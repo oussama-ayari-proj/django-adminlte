@@ -11,24 +11,21 @@ from apps.correlation.models import Lit
 
 def index(request):
 
-    ems = EM.objects.order_by('libelle_em')
-    ems_list = list(ems.values('code_em', 'libelle_em'))
+    ems_with_hebergements = []
+        
+        # Parcourir toutes les équipes et vérifier lesquelles ont des hébergements
+    for em in EM.objects.all():
+        _, total_hebergements,__ = calculate_hebergement_stats(em.code_em)
+
+        if total_hebergements > 0:
+            ems_with_hebergements.append({
+                'code_em': em.code_em,
+                'libelle_em': em.libelle_em
+            })
     
-    stats = {}
-    stats['total_equipes'] = ems.count()
-    stats['total_interventions_globales'] = Hospitalisation.objects.count()
     
-    total_hebergements_globaux = 0
-    for em in ems:
-        _, hebergements_em, hebergements_data = calculate_hebergement_stats(em.code_em)
-        total_hebergements_globaux += hebergements_em
-    
-    stats['total_hebergements_globaux'] = total_hebergements_globaux
     return render(request, 'hebergement_hors_uf/index.html', {
-        'ems': ems_list,
-        'total_equipes': stats['total_equipes'],
-        'total_interventions_globales': stats['total_interventions_globales'],
-        'total_hebergements_globaux': stats['total_hebergements_globaux'],
+        'ems': ems_with_hebergements
     })
 
 def calculer_lits_fermes(code_uf_associe):

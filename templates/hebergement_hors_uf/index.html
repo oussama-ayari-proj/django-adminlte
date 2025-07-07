@@ -208,12 +208,12 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Hébergement hors UF associé</h1>
+            <h1 class="m-0">🏥 Analyse exploratoire des hébergements</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
               <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Hébergement hors UF associé</li>
+              <li class="breadcrumb-item active">Analyse exploratoire des hébergements</li>
             </ol>
           </div>
         </div>
@@ -222,61 +222,7 @@
 
     <!-- Main content -->
     <div class="content" style="margin-left:1rem;">
-      <div class="container-fluid">
-        
-        <!-- Filters Row -->
-        <div class="row mt-4">
-          <div class="col-12">
-            <h4 class="mb-3 text-primary">📊 Statistiques Globales</h4>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-lg-4 col-6">
-            <div class="card stats-card">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">                  <div>
-                    <h5 class="card-title">Total Équipes</h5>
-                    <div class="stat-number" id="total-equipes">{{ total_equipes }}</div>
-                  </div>
-                  <i class="fas fa-users-cog fa-3x text-info"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-lg-4 col-6">
-            <div class="card stats-card">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">                  
-                  <div>
-                    <h5 class="card-title">Séjours Totales</h5>
-                    <div class="stat-number" id="total-interventions-globales">{{ total_interventions_globales }}</div>
-                  </div>
-                  <i class="fas fa-hospital fa-3x text-success"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-lg-4 col-6">
-            <div class="card stats-card">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">                  
-                  <div>
-                    <h5 class="card-title">Hébergements Totaux</h5>
-                    <div class="stat-number" id="total-hebergements-globaux">{{ total_hebergements_globaux }}</div>
-                  </div>
-                  <i class="fas fa-home fa-3x text-warning"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row mt-5">
-          <div class="col-12">
-            <h4 class="mb-3 text-secondary">🏥 Statistiques par Équipe Médicale</h4>
-          </div>
-        </div>      
+      <div class="container-fluid">    
         <div class="row mt-4">
           <div class="col-lg-10">
             <div class="form-group">
@@ -288,14 +234,7 @@
               </select>
             </div>
           </div>
-          <div class="col-lg-2">
-            <div class="form-group">
-              <label>&nbsp;</label>          
-              <button type="button" class="btn btn-outline-primary btn-block filter-btn" id="filter-hebergements-btn">
-                <i class="fas fa-filter"></i> Filtrer EM avec hébergements
-              </button>
-            </div>
-          </div>
+          
         </div>
         
         
@@ -358,7 +297,13 @@
               </div>
               <div class="card-body">
                 <div class="form-group">
-                  <label for="uf-associe-select">Sélectionner les UFs associées:</label>
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label for="uf-associe-select">Sélectionner les UFs associées:</label>
+                    <div>
+                      <button type="button" class="btn btn-sm btn-outline-primary mr-2" id="select-all-ufs">Tout sélectionner</button>
+                      <button type="button" class="btn btn-sm btn-outline-secondary" id="deselect-all-ufs">Tout désélectionner</button>
+                    </div>
+                  </div>
                   <div class="select2-purple" style="min-width:100%;width:100%;">
                     <select class="select2" id="uf-associe-select" multiple="multiple" 
                             data-placeholder="-- Choisir les UFs associées --" 
@@ -453,6 +398,13 @@
         value: option.value,
         text: option.text
       }));
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const emParam = urlParams.get('em');
+      if (emParam) {
+        selectElement.value = emParam;
+        selectElement.dispatchEvent(new Event('change'));
+      }
       
       // Initialiser Select2 pour les UFs associées
       if (window.jQuery && $('#uf-associe-select').select2) {
@@ -469,19 +421,30 @@
           const selectedCount = $(this).val() ? $(this).val().length : 0;
           document.getElementById('uf-count-badge').textContent = `${selectedCount} UF sélectionnée(s)`;
           
-          // Filtrer les données en fonction des UFs sélectionnées
           filterDataBySelectedUFs();
         });
       }
-      // Initialiser les graphiques
-      //initHebergementSimpleChart();
+      // Select all/deselect all buttons for UFs associées
+      $('#select-all-ufs').on('click', function() {
+        const allValues = ufsAssociees.map(row => row.code_uf);
+        $('#uf-associe-select').val(allValues).trigger('change');
+        document.getElementById('uf-count-badge').textContent = `${allValues.length} UF sélectionnée(s)`;
+      });
+      $('#deselect-all-ufs').on('click', function() {
+        $('#uf-associe-select').val([]).trigger('change');
+      });
+
       initHebergementStackedChart();
       initUFHebergementChart();
+
       
+
       loadData();
-      
+      if (hebergementStackedChart) {
+        hebergementStackedChart.data.datasets[1].data = [];
+        hebergementStackedChart.update();
+      }
       document.getElementById('code-em').addEventListener('change', loadData);
-      document.getElementById('filter-hebergements-btn').addEventListener('click', toggleFilter);
     });
        
     function initHebergementStackedChart() {
@@ -671,62 +634,6 @@
       });
     }
     
-    function toggleFilter() {
-      const btn = document.getElementById('filter-hebergements-btn');
-      const selectElement = document.getElementById('code-em');
-      const countElement = document.getElementById('count-EM-avec-hebergements');
-      if (!isFiltered) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
-        btn.disabled = true;
-          fetch('/hebergement-hors-uf/api/ems-with-hebergements/')
-          .then(response => response.json())
-          .then(data => {
-            filteredEms = data.ems;
-            updateSelectOptions(filteredEms);
-            
-            btn.innerHTML = `<i class="fas fa-times"></i>Afficher toutes les EMs`;
-            countElement.textContent = `(${data.count}) EM avec hébergements`;
-            btn.className = 'btn btn-warning btn-block filter-btn';
-            btn.disabled = false;
-            isFiltered = true;
-          })
-          .catch(error => {
-            console.error('Erreur lors du filtrage:', error);
-            btn.innerHTML = '<i class="fas fa-filter"></i> Filtrer EM avec hébergements';
-            countElement.textContent = '';
-            btn.disabled = false;
-          });
-      } else {
-        updateSelectOptions(allEms);
-        btn.innerHTML = '<i class="fas fa-filter"></i> Filtrer EM avec hébergements';
-        btn.className = 'btn btn-outline-primary btn-block';
-        isFiltered = false;
-      }
-    }
-    
-    function updateSelectOptions(ems) {
-      const selectElement = document.getElementById('code-em');
-      const currentValue = selectElement.value;
-      
-      // Vider le select
-      selectElement.innerHTML = '';
-      
-      // Ajouter les nouvelles options
-      ems.forEach(em => {
-        const option = document.createElement('option');
-        option.value = em.value || em.code_em;
-        option.text = em.text || em.libelle_em;
-        selectElement.appendChild(option);
-      });
-      
-      // Restaurer la valeur sélectionnée si elle existe encore
-      if (currentValue && Array.from(selectElement.options).some(opt => opt.value === currentValue)) {
-        selectElement.value = currentValue;
-      }
-      
-      // Recharger les données
-      loadData();
-    }
     function loadData() {
       const codeEM = document.getElementById('code-em').value;
 
@@ -740,14 +647,12 @@
         .then(response => {
           return response.json();
         })        
-        .then(data => {
+        .then( data => {
             updateStatistics(data);
             updateTable(data.uf_associees);
             update_hebergementTable(data.stats.hebergements);
-            //updateHebergementSimpleChart(data.stats.hebergements);
             updateHebergementStackedChart(data);
             updateUFHebergementChart(data.stats.hebergements);
-            //updateUFNonAssocieTable(data.stats.hebergements);
         })
         .catch(error => {
           console.error('Erreur lors du chargement des statistiques:', error);
@@ -757,38 +662,6 @@
       document.getElementById('total-interventions').textContent = data.stats.total_interventions || 0;
       document.getElementById('total-hebergements').textContent = data.stats.total_hebergement || 0;   
     }    
-    /*function updateHebergementSimpleChart(data) {
-      if (!data || data.length === 0) {
-        hebergementSimpleChart.data.labels = [];
-        hebergementSimpleChart.data.datasets[0].data = [];
-        hebergementSimpleChart.update();
-        return;
-      }      // Grouper les données par semaine
-      const weeklyData = {};
-      data.forEach(row => {
-        const semaine = row.semaine_entree || 'Inconnue';
-        if (weeklyData[semaine]) {
-          weeklyData[semaine] += row.nombre_hospitalisations || 0;
-        } else {
-          weeklyData[semaine] = row.nombre_hospitalisations || 0;
-        }
-      });
-      // Ajouter les semaines manquantes
-      let semaines =[]
-      let semaineConnue = Object.keys(weeklyData);
-      for (let i=1;i<=52;i++) {
-        semaines.push(i);
-        if (!semaineConnue.includes(i.toString())) {
-          weeklyData[i] = 0;
-        }
-      }
-
-      
-      const chartData = semaines.map(week => weeklyData[week]);
-      hebergementSimpleChart.data.labels = semaines;
-      hebergementSimpleChart.data.datasets[0].data = chartData;
-      hebergementSimpleChart.update();
-    }*/    
     function updateHebergementStackedChart(data) {
 
       if (!data.stats.hebergements || data.stats.hebergements.length === 0) {
@@ -828,7 +701,7 @@
       }
       hebergementStackedChart.data.labels = semaines;
       hebergementStackedChart.data.datasets[0].data = semaines.map(week => weeklyHospData[week] || 0);
-      hebergementStackedChart.data.datasets[1].data = semaines.map(week => weeklyLitsData[week] || 0);
+      hebergementStackedChart.data.datasets[1].data = [];
       hebergementStackedChart.update();
     }
     
@@ -943,7 +816,8 @@
         const option = new Option(row.libelle_standard || row.code_uf, row.code_uf, false, false);
         ufSelect.append(option);
       });
-      
+      // Select all by default
+      //selectAllUFsAssociees();
       // Laisser la sélection vide initialement
       ufSelect.val([]);
       ufSelect.trigger('change');
@@ -951,45 +825,50 @@
       // Mettre à jour le badge de comptage
       document.getElementById('uf-count-badge').textContent = '0 UF sélectionnée(s)';
     }    
+    function selectAllUFsAssociees() {
+      const allValues = ufsAssociees.map(row => row.code_uf);
+      $('#uf-associe-select').val(allValues).trigger('change');
+      document.getElementById('uf-count-badge').textContent = `${allValues.length} UF sélectionnée(s)`;
+    }
     function filterDataBySelectedUFs() {
       const ufSelect = $('#uf-associe-select');
       const selectedUFs = ufSelect.val() || [];
-      
+
       // Préparer les paramètres pour l'API
       const params = new URLSearchParams();
       // Ajouter les codes UF sélectionnés
       params.append('code_uf_associe', selectedUFs);
-      
+
       console.log('Appel API avec UFs sélectionnées:', selectedUFs);
       console.log('URL API:', `/hebergement-hors-uf/api/get_lits_fermes_filtres/?${params}`);
-      
+
       // Appeler l'API backend
       if(selectedUFs.length === 0) {
         console.log('Aucune UF sélectionnée, pas d\'appel API');
         hebergementStackedChart.data.datasets[1].data = [];
         hebergementStackedChart.update();
         return;
-      }else{
+      } else {
         fetch(`/hebergement-hors-uf/api/get_lits_fermes_filtres/?${params}`)
         .then(response => {
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
           return response.json();
-        })        
+        })
         .then(data => {
           console.log('Données reçues de l\'API:', data);
-          
+
           if (!data.lits_fermes || data.lits_fermes.length === 0) {
             console.log('Aucune donnée de lits fermés trouvée pour les UFs sélectionnées');
             hebergementStackedChart.data.datasets[1].data = [];
             hebergementStackedChart.update();
-          }else{
-            let semaines=[]
+          } else {
+            let semaines=[];
             for (let i=1;i<=52;i++) {
               semaines.push(i);
             }
-            hebergementStackedChart.data.datasets[1].data=semaines.map(week => {
+            hebergementStackedChart.data.datasets[1].data = semaines.map(week => {
               const found = data.lits_fermes.find(row => row.semaine === week);
               return found ? found.lits_fermes_moyen : 0;
             });

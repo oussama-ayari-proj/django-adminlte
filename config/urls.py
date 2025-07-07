@@ -21,10 +21,11 @@ urlpatterns = [
     path('predictions/', include('apps.predictions.urls')),
     path('plannifications/', include('apps.plannifications.urls')),
     path('charts/', include('apps.charts.urls')),
-    path("admin/", admin.site.urls),
-    path('correlation-absences-lits/', include('apps.correlation.urls')),
-    path('', include('apps.hospitalisation.urls')),
     path('fileupload/', include('apps.fileupload.urls')),
     path('hebergement-hors-uf/', include('apps.hebergement_hors_uf.urls')),
-    path("", include('admin_adminlte.urls'))
+    path('statistiques/', include('apps.statistiques.urls')),
+    path('correlation-absences-lits/', include('apps.correlation.urls')),
+    path('admin/', admin.site.urls),
+    path('', include('apps.hospitalisation.urls')),
+    path("", include('admin_adminlte.urls')),
 ]
