@@ -16,7 +16,6 @@ def upload_file(request):
         uploaded_files = {}
         errors = []
         
-        # Check if at least one file was uploaded
         has_files = any(request.FILES.get(category) for category in file_categories)
         
         if not has_files:
@@ -24,7 +23,6 @@ def upload_file(request):
                 'error': 'Veuillez sélectionner au moins un fichier à télécharger.'
             })
         
-        # Process each file category
         for category in file_categories:
             uploaded_file = request.FILES.get(category)
             if uploaded_file:
@@ -37,12 +35,11 @@ def upload_file(request):
                         'type': uploaded_file.content_type,
                         'category': category.replace('_file', '').upper()
                     }
-                    # If we have csv file
+
                     if file_extension == '.csv':
                         df = pd.read_csv(io.StringIO(uploaded_file.read().decode('utf-8')))
                         file_data = df.head(10).to_dict('records')
                         
-                        # Update stats
                         file_stats.update({
                             'rows': len(df),
                             'columns': len(df.columns),
@@ -51,7 +48,6 @@ def upload_file(request):
                             'missing_values': df.isnull().sum().to_dict()
                         })
 
-                    # If we have Excel file  
                     elif file_extension == '.xlsx' or file_extension == '.xls':
                         df = pd.read_excel(uploaded_file)
                         file_data = df.head(10).to_dict('records') 
@@ -64,8 +60,8 @@ def upload_file(request):
                             'missing_values': df.isnull().sum().to_dict(),
                             'sheets': pd.ExcelFile(uploaded_file).sheet_names,
                             'type': 'Fichier Excel'
-                        })                
-                    # If we have JSON file
+                        })
+
                     elif file_extension == '.json':
                         json_data = json.loads(uploaded_file.read().decode('utf-8'))
                         
@@ -137,4 +133,5 @@ def upload_success_multiple(request, session_key):
         'uploaded_files': uploaded_files,
         'session_key': session_key
     }
+    
     return render(request, 'fileupload/upload_success_multiple.html', context)

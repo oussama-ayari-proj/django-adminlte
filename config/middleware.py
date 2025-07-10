@@ -29,7 +29,6 @@ class AuthenticationMiddleware:
         # Print permissions for authenticated users
         if request.user.is_authenticated:
             perms = list(request.user.get_all_permissions())
-            print(f"[AUTH] User: {request.user.username} | Permissions: {perms}")
             response = self.get_response(request)
             return response
         else:

@@ -97,3 +97,17 @@ class Lits_occupes(models.Model):
     
     def __str__(self):
         return f"UF {self.code_uf} - Lits occupés: {self.lits_occupes}, Date: {self.date}"
+    
+class Besoins(models.Model):
+    code_uf = models.BigIntegerField(db_column='code_UF',null=True, blank=True, help_text="Code de l'unité fonctionnelle")
+    date = models.DateTimeField(primary_key=True, help_text="Date de la mesure")
+    max = models.BigIntegerField(null=True, blank=True, help_text="Valeur maximale")
+    min = models.BigIntegerField(null=True, blank=True, help_text="Valeur minimale")
+    mediane = models.FloatField(null=True, blank=True, help_text="Médiane")
+    class Meta:
+        db_table = 'besoin_reel'
+        managed = False
+        unique_together = (('code_uf', 'date'),)
+        
+    def __str__(self):
+        return f"UF {self.code_uf} - {self.date} : max={self.max}, min={self.min}, mediane={self.mediane}"
