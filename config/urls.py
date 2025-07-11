@@ -18,7 +18,7 @@ from django.urls import include, path
 
 urlpatterns = [
     path('table-data/', include('apps.pages.urls')),
-    path('predictions/', include('apps.predictions.urls')),
+    path('predictions-lits/', include('apps.predictions.urls')),
     path('plannifications/', include('apps.plannifications.urls')),
     path('charts/', include('apps.charts.urls')),
     path('fileupload/', include('apps.fileupload.urls')),
