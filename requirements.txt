@@ -31,4 +31,9 @@ matplotlib
 scipy
 scikit-learn
 openpyxl
+mlflow
+holidays
+vacances_scolaires_france
+skforecast
+lightgbm
 

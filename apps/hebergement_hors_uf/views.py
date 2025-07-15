@@ -3,7 +3,6 @@ from django.http import JsonResponse
 from django.db import connection
 from django.db.models import Count, Avg
 from django.views.decorators.csrf import csrf_exempt
-import json
 from .models import EM,Matrice_EM_UF,export_UF
 from apps.hospitalisation.models import Hospitalisation
 from apps.pages.models import UF
