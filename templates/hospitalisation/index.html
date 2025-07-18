@@ -201,20 +201,6 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <h5 class="card-title">Âge Moyen Patients</h5>
-                    <div class="stat-number" id="age-moyen">- ans</div>
-                  </div>
-                  <i class="fas fa-users fa-3x text-success"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-lg-3 col-6">
-            <div class="card stats-card">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
                     <h5 class="card-title">Patients Uniques</h5>
                     <div class="stat-number" id="patients-uniques">-</div>
                   </div>
@@ -226,16 +212,7 @@
         </div>        <!-- Charts and Tables Row -->
         <div class="row mt-5">
           <!-- Gender Distribution -->
-          <div class="col-lg-4">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Répartition par Genre</h3>
-              </div>
-              <div class="card-body">
-                <canvas id="gender-chart" width="400" height="200"></canvas>
-              </div>
-            </div>
-          </div>
+          
           <!-- Type de séjour Top 5 -->
           <div class="col-lg-4">
             <div class="card">
@@ -309,7 +286,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 
   <script>
-    let genderChart, typeSejourChart,litsChart;
+    let typeSejourChart,litsChart;
     let minDate = null;
     let maxDate = null;
     
@@ -443,23 +420,7 @@
     }
     
     function initializeCharts() {
-      // Gender Chart
-      const genderCtx = document.getElementById('gender-chart').getContext('2d');
-      genderChart = new Chart(genderCtx, {
-        type: 'doughnut',
-        data: {
-          labels: [],
-          datasets: [{
-            data: [],
-            backgroundColor: ['#36A2EB','#FF6384',  '#FFCE56']
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false
-        }
-      });
-        // Type Séjour Chart
+      // TYPE SEJOUR Chart
       const typeSejourCtx = document.getElementById('type-sejour-chart').getContext('2d');
       typeSejourChart = new Chart(typeSejourCtx, {
         type: 'bar',
@@ -567,7 +528,6 @@
       document.getElementById('lits-installes').textContent = data.lits_installes || 0;
       document.getElementById('total-sejours').textContent = data.total_sejours || 0;
       document.getElementById('duree-moyenne').textContent = `${data.duree_moyenne || 0} jours`;
-      document.getElementById('age-moyen').textContent = `${Math.round(data.age_stats?.age_avg || 0)} ans`;
       document.getElementById('patients-uniques').textContent = data.patients_uniques || 0;
     }
     

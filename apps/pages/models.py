@@ -5,7 +5,6 @@ class UF(models.Model):
     libelle_standard = models.TextField(null=True, db_column='libelle_standard')
     code_etb = models.BigIntegerField(null=True, db_column='code_ETB')
     code_pole = models.BigIntegerField(null=True, db_column='code_Pole')
-    heb= models.BigIntegerField(null=True, db_column='heb')
     type_uf = models.TextField(null=True, db_column='type_UF')
     libelle_type_uf = models.TextField(null=True, db_column='Libelle_type_UF')
     type_activite = models.TextField(null=True, db_column='type_activite')

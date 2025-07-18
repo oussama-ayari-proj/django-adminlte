@@ -224,17 +224,33 @@
     <div class="content" style="margin-left:1rem;">
       <div class="container-fluid">    
         <div class="row mt-4">
-          <div class="col-lg-10">
+          <div class="col-lg-4">
             <div class="form-group">
-              <label for="code-em">Équipe Médicale: <span id="count-EM-avec-hebergements"></span></label>
-              <select class="form-control" id="code-em">
-                {% for em in ems %}
-                  <option value="{{ em.code_em }}">{{ em.libelle_em }}</option>
+              <label for="year-filter">Année: <span class="text-danger">*</span></label>
+              <select class="form-control" id="year-filter" required>
+                <option value="">Sélectionner une année</option>
+                {% for year in available_years %}
+                  <option value="{{ year }}">{{ year }}</option>
                 {% endfor %}
               </select>
             </div>
           </div>
-          
+          <div class="col-lg-6">
+            <div class="form-group">
+              <label for="code-em">Équipe Médicale: <span id="count-EM-avec-hebergements"></span></label>
+              <select class="form-control" id="code-em" disabled>
+                <option value="">Sélectionner d'abord une année</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-lg-2">
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <button type="button" class="btn btn-primary btn-block filter-btn" id="load-data-btn" disabled>
+                <i class="fas fa-search"></i> Charger les données
+              </button>
+            </div>
+          </div>
         </div>
         
         
@@ -290,42 +306,13 @@
         
         <!-- Détails des UFs associés ( + Stacked Chart) -->
         <div class="row mt-4">
-          <div class="col-4">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Les UFs associés</h3>
-              </div>
-              <div class="card-body">
-                <div class="form-group">
-                  <div class="d-flex justify-content-between align-items-center mb-2">
-                    <label for="uf-associe-select">Sélectionner les UFs associées:</label>
-                    <div>
-                      <button type="button" class="btn btn-sm btn-outline-primary mr-2" id="select-all-ufs">Tout sélectionner</button>
-                      <button type="button" class="btn btn-sm btn-outline-secondary" id="deselect-all-ufs">Tout désélectionner</button>
-                    </div>
-                  </div>
-                  <div class="select2-purple" style="min-width:100%;width:100%;">
-                    <select class="select2" id="uf-associe-select" multiple="multiple" 
-                            data-placeholder="-- Choisir les UFs associées --" 
-                            data-dropdown-css-class="select2-purple" 
-                            style="width: 100%;">
-                    </select>
-                  </div>
-                </div>
-                
-                <div class="mt-3">
-                  <span class="badge badge-info" id="uf-count-badge">0 UF sélectionnée(s)</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-8">
+          <div class="col-12">
             <div class="card mt-3">
                 <div class="card-header">
-                  <h3 class="card-title">📊 Hébergements et Lits Fermés par Semaine</h3>
+                  <h3 class="card-title">📊 Hébergements par UF et par Semaine</h3>
                 </div>
                 <div class="card-body">
-                  <canvas id="hebergement-stacked-chart" style="height: 200px;"></canvas>
+                  <canvas id="hebergement-stacked-chart" style="height: 650px;"></canvas>
                 </div>
             </div>
           </div>
@@ -383,15 +370,48 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
   <script>
-    let histogramChart;
-    let hebergementSimpleChart; // Graphique simple pour les hébergements par semaine (total)
     let hebergementStackedChart; // Graphique empilé pour les hébergements par semaine et UF
     let ufHebergementChart; // Graphique pour les UF d'hébergement
     let allEms = [];  // Stocker toutes les équipes
-    let ufsAssociees = [];  // Stocker les UFs associées
-    let filteredEms = [];  // Stocker les équipes filtrées
-    let isFiltered = false;  // État du filtrage
+    
     document.addEventListener('DOMContentLoaded', function() {
+      // Handle year selection
+      const yearFilter = document.getElementById('year-filter');
+      const emSelect = document.getElementById('code-em');
+      const loadDataBtn = document.getElementById('load-data-btn');
+      
+      // Check URL parameters for pre-population
+      const urlParams = new URLSearchParams(window.location.search);
+      const preselectedYear = urlParams.get('year');
+      const preselectedEM = urlParams.get('em');
+      
+      yearFilter.addEventListener('change', function() {
+        const selectedYear = this.value;
+        if (selectedYear) {
+          // Enable EM select and load button
+          emSelect.disabled = false;
+          loadDataBtn.disabled = false;
+          // Load EMs for selected year
+          loadEMsForYear(selectedYear);
+        } else {
+          // Disable EM select and load button
+          emSelect.disabled = true;
+          loadDataBtn.disabled = true;
+          emSelect.innerHTML = '<option value="">Sélectionner d\'abord une année</option>';
+        }
+      });
+      
+      // Load data button click handler
+      loadDataBtn.addEventListener('click', function() {
+        const selectedYear = yearFilter.value;
+        const selectedEM = emSelect.value;
+        if (selectedYear && selectedEM) {
+          loadHebergementData(selectedEM, selectedYear);
+        } else {
+          alert('Veuillez sélectionner une année et une équipe médicale');
+        }
+      });
+      
       // Stocker toutes les équipes au chargement
       const selectElement = document.getElementById('code-em');
       allEms = Array.from(selectElement.options).map(option => ({
@@ -399,52 +419,33 @@
         text: option.text
       }));
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const emParam = urlParams.get('em');
-      if (emParam) {
-        selectElement.value = emParam;
-        selectElement.dispatchEvent(new Event('change'));
+      // Pre-populate from URL parameters
+      if (preselectedYear) {
+        yearFilter.value = preselectedYear;
+        emSelect.disabled = false;
+        loadDataBtn.disabled = false;
+        loadEMsForYear(preselectedYear).then(() => {
+          if (preselectedEM) {
+            emSelect.value = preselectedEM;
+            // Auto-load data if both year and EM are provided
+            loadHebergementData(preselectedEM, preselectedYear);
+          }
+        });
       }
       
-      // Initialiser Select2 pour les UFs associées
-      if (window.jQuery && $('#uf-associe-select').select2) {
-        $('#uf-associe-select').select2({
-          theme: 'bootstrap4',
-          dropdownCssClass: 'select2-purple',
-          placeholder: '-- Choisir les UFs associées --',
-          width: 'resolve',
-          closeOnSelect: false
-        });
-        
-        // Événement de changement pour le multi-select des UFs
-        $('#uf-associe-select').on('change', function() {
-          const selectedCount = $(this).val() ? $(this).val().length : 0;
-          document.getElementById('uf-count-badge').textContent = `${selectedCount} UF sélectionnée(s)`;
-          
-          filterDataBySelectedUFs();
-        });
-      }
-      // Select all/deselect all buttons for UFs associées
-      $('#select-all-ufs').on('click', function() {
-        const allValues = ufsAssociees.map(row => row.code_uf);
-        $('#uf-associe-select').val(allValues).trigger('change');
-        document.getElementById('uf-count-badge').textContent = `${allValues.length} UF sélectionnée(s)`;
-      });
-      $('#deselect-all-ufs').on('click', function() {
-        $('#uf-associe-select').val([]).trigger('change');
-      });
-
+      // Initialiser Select2 pour les UFs associées (removed - no longer needed)
+      
       initHebergementStackedChart();
       initUFHebergementChart();
 
       
 
-      loadData();
+      //loadData();
       if (hebergementStackedChart) {
-        hebergementStackedChart.data.datasets[1].data = [];
+        hebergementStackedChart.data.datasets = [];
         hebergementStackedChart.update();
       }
-      document.getElementById('code-em').addEventListener('change', loadData);
+      //document.getElementById('code-em').addEventListener('change', loadData);
     });
      
     function initHebergementStackedChart() {
@@ -453,30 +454,7 @@
         type: 'bar',
         data: {
           labels: [],
-          datasets: [
-            {
-              type: 'bar',
-              label: 'Hébergements hors matrice',
-              data: [],
-              backgroundColor: 'rgba(54, 162, 235, 0.6)',
-              borderColor: 'rgba(54, 162, 235, 1)',
-              borderWidth: 2,
-              yAxisID: 'y',
-            },            {
-              type: 'bar',
-              label: 'Lits fermés moyens (UFs associées)',
-              data: [],
-              backgroundColor: 'rgba(255, 99, 132, 0.2)',
-              borderColor: 'rgba(255, 99, 132, 1)',
-              borderWidth: 3,
-              fill: false,
-              tension: 0.4,
-              pointBackgroundColor: 'rgba(255, 99, 132, 1)',
-              pointBorderColor: 'rgba(255, 99, 132, 1)',
-              pointRadius: 6,
-              yAxisID: 'y',
-            }
-          ]
+          datasets: []
         },
         options: {
           responsive: true,
@@ -484,10 +462,18 @@
           interaction: {
             mode: 'index',
             intersect: false,
-          },          scales: {
+          },
+          scales: {
             x: {
               grid: {
                 color: 'rgba(0, 0, 0, 0.1)'
+              },
+              title: {
+                display: true,
+                text: 'Semaines',
+                font: {
+                  weight: 'bold'
+                }
               }
             },
             y: {
@@ -495,9 +481,10 @@
               display: true,
               position: 'left',
               beginAtZero: true,
+              stacked: true,
               title: {
                 display: true,
-                text: 'Nombre (Hébergements / Lits fermés)',
+                text: 'Nombre d\'hébergements',
                 color: 'rgba(54, 162, 235, 1)',
                 font: {
                   weight: 'bold'
@@ -513,6 +500,27 @@
             }
           },
           plugins: {
+            zoom: {
+                  pan:{
+                    enabled: true,
+                    mode: 'xy',
+                    speed: 10,
+                    threshold: 10
+                  },
+                  limits: {
+                    x: {min: 'original', max: 'original'},
+                    y: {min: 0, max: 'original'}
+                  },
+                  zoom: {
+                    wheel: {
+                      enabled: true,
+                    },
+                    pinch: {
+                      enabled: true
+                    },
+                    mode: 'x',
+                  }
+              },
             legend: {
               display: true,
               position: 'top',
@@ -520,7 +528,7 @@
                 usePointStyle: true,
                 padding: 15,
                 font: {
-                  size: 15
+                  size: 12
                 }
               }
             },
@@ -535,12 +543,9 @@
               callbacks: {
                 title: function(tooltipItems) {
                   return `Semaine: ${tooltipItems[0].label}`;
-                },                label: function(context) {
-                  if (context.datasetIndex === 0) {
-                    return `${context.dataset.label}: ${context.parsed.y} hospitalisations`;
-                  } else {
-                    return `${context.dataset.label}: ${context.parsed.y} lits fermés`;
-                  }
+                },
+                label: function(context) {
+                  return context.parsed.y > 0 ? `${context.dataset.label}: ${context.parsed.y} hébergements` : '';
                 }
               }
             }
@@ -634,6 +639,59 @@
       });
     }
     
+    function loadEMsForYear(year) {
+      const emSelect = document.getElementById('code-em');
+      
+      return fetch(`/hebergement-hors-uf/api/ems-by-year/?year=${year}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Chargement des EMs pour l\'année:', year, data.ems);
+          emSelect.innerHTML = '<option value="">Sélectionner une équipe médicale</option>';
+          data.ems.forEach(em => {
+            const option = document.createElement('option');
+            option.value = em.code_em;
+            option.textContent = em.libelle_em;
+            emSelect.appendChild(option);
+          });
+          
+          document.getElementById('count-EM-avec-hebergements').textContent = 
+            `(${data.count} EM avec hébergements en ${year})`;
+          
+          return data; // Return data for chaining
+        })
+        .catch(error => {
+          console.error('Erreur lors du chargement des EMs:', error);
+          emSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+          throw error; // Re-throw for proper error handling
+        });
+    }
+    
+    function loadHebergementData(codeEM, year) {
+      const params = new URLSearchParams();
+      if (codeEM) params.append('code_em', codeEM);
+      if (year) params.append('year', year);
+
+
+      // Charger les statistiques
+      if(params.toString() === '') {
+        console.warn('Aucun paramètre fourni pour charger les données.');
+        return;
+      }
+      fetch(`/hebergement-hors-uf/api/stats/?${params}`)
+        .then(response => {
+          return response.json();
+        })        
+        .then( data => {
+            updateStatistics(data);
+            update_hebergementTable(data.stats.hebergements);
+            updateHebergementStackedChart(data);
+            updateUFHebergementChart(data.stats.hebergements);
+        })
+        .catch(error => {
+          console.error('Erreur lors du chargement des statistiques:', error);
+        });
+    }
+    
     function loadData() {
       const codeEM = document.getElementById('code-em').value;
 
@@ -649,7 +707,6 @@
         })        
         .then( data => {
             updateStatistics(data);
-            updateTable(data.uf_associees);
             update_hebergementTable(data.stats.hebergements);
             updateHebergementStackedChart(data);
             updateUFHebergementChart(data.stats.hebergements);
@@ -660,48 +717,79 @@
     }    
     function updateStatistics(data) {
       document.getElementById('total-interventions').textContent = data.stats.total_interventions || 0;
-      document.getElementById('total-hebergements').textContent = data.stats.total_hebergement || 0;   
+      document.getElementById('total-hebergements').textContent = data.stats.total_hebergement + ` (${((data.stats.total_hebergement/data.stats.total_interventions)*100).toFixed(2)}%)` || 0;   
     }    
     function updateHebergementStackedChart(data) {
 
       if (!data.stats.hebergements || data.stats.hebergements.length === 0) {
         hebergementStackedChart.data.labels = [];
-        hebergementStackedChart.data.datasets[0].data = [];
-        hebergementStackedChart.data.datasets[1].data = [];
+        hebergementStackedChart.data.datasets = [];
         hebergementStackedChart.update();
         return;
       }
       
-      // Grouper les hébergements par semaine (total)
-      const weeklyHospData = {};
-      data.stats.hebergements && data.stats.hebergements.forEach(row => {
+      // Grouper les hébergements par semaine et UF
+      const weeklyUFData = {};
+      const allUFs = new Set();
+      
+      data.stats.hebergements.forEach(row => {
         const semaine = row.semaine_entree || 'Inconnue';
-        if (weeklyHospData[semaine]) {
-          weeklyHospData[semaine] += row.nombre_hospitalisations || 0;
-        } else {
-          weeklyHospData[semaine] = row.nombre_hospitalisations || 0;
+        const uf = row.libelle_uf || row.code_uf || 'UF Inconnue';
+        const count = row.nombre_hospitalisations || 0;
+        
+        if (!weeklyUFData[semaine]) {
+          weeklyUFData[semaine] = {};
         }
+        if (!weeklyUFData[semaine][uf]) {
+          weeklyUFData[semaine][uf] = 0;
+        }
+        weeklyUFData[semaine][uf] += count;
+        allUFs.add(uf);
       });
       
-      // Grouper les lits fermés par semaine
-      const weeklyLitsData = {};
-      data.stats.lits_fermes && data.stats.lits_fermes.forEach(row => {
-        weeklyLitsData[row.semaine] = row.lits_fermes_moyen || 0;
-      });
-
-      let semaines=[]
-      for (let i=1;i<=52;i++) {
+      // Préparer les semaines (1-52)
+      const semaines = [];
+      for (let i = 1; i <= 52; i++) {
         semaines.push(i);
-        if (!weeklyHospData[i]) {
-          weeklyHospData[i] = 0;
-        }
-        if( !weeklyLitsData[i]) {
-          weeklyLitsData[i] = 0;
-        }
       }
+      
+      // Couleurs pour les UFs
+      const colors = [
+        'rgba(255, 99, 132, 0.8)',   // Rouge
+        'rgba(54, 162, 235, 0.8)',   // Bleu
+        'rgba(255, 205, 86, 0.8)',   // Jaune
+        'rgba(75, 192, 192, 0.8)',   // Vert menthe
+        'rgba(153, 102, 255, 0.8)',  // Violet
+        'rgba(255, 159, 64, 0.8)',   // Orange
+        'rgba(199, 199, 199, 0.8)',  // Gris
+        'rgba(83, 102, 255, 0.8)',   // Bleu indigo
+        'rgba(255, 99, 255, 0.8)',   // Magenta
+        'rgba(99, 255, 132, 0.8)',   // Vert clair
+        'rgba(255, 206, 84, 0.8)',   // Or
+        'rgba(54, 162, 235, 0.8)',   // Cyan
+      ];
+      
+      // Créer les datasets pour chaque UF
+      const datasets = [];
+      const ufsArray = Array.from(allUFs).sort();
+      
+      ufsArray.forEach((uf, index) => {
+        const data = semaines.map(week => {
+          return weeklyUFData[week] && weeklyUFData[week][uf] ? weeklyUFData[week][uf] : 0;
+        });
+        
+        datasets.push({
+          label: uf.length > 20 ? uf.substring(0, 20) + '...' : uf,
+          data: data,
+          backgroundColor: colors[index % colors.length],
+          borderColor: colors[index % colors.length].replace('0.8', '1'),
+          borderWidth: 1,
+          stack: 'hebergements'
+        });
+      });
+      
       hebergementStackedChart.data.labels = semaines;
-      hebergementStackedChart.data.datasets[0].data = semaines.map(week => weeklyHospData[week] || 0);
-      hebergementStackedChart.data.datasets[1].data = [];
+      hebergementStackedChart.data.datasets = datasets;
       hebergementStackedChart.update();
     }
     
@@ -797,88 +885,6 @@
         `;
         tbody.appendChild(tr);
       });
-    }    
-    function updateTable(data) {
-      const ufSelect = $('#uf-associe-select');
-      
-      // Vider les options existantes
-      ufSelect.empty();
-      
-      if (!data || data.length === 0) {
-        ufSelect.append('<option value="">Aucune UF associée disponible</option>');
-        ufSelect.trigger('change');
-        return;
-      }
-      
-      // Ajouter les nouvelles options
-      ufsAssociees = data;
-      data.forEach((row, index) => {
-        const option = new Option(row.libelle_standard || row.code_uf, row.code_uf, false, false);
-        ufSelect.append(option);
-      });
-      // Select all by default
-      //selectAllUFsAssociees();
-      // Laisser la sélection vide initialement
-      ufSelect.val([]);
-      ufSelect.trigger('change');
-      
-      // Mettre à jour le badge de comptage
-      document.getElementById('uf-count-badge').textContent = '0 UF sélectionnée(s)';
-    }    
-    function selectAllUFsAssociees() {
-      const allValues = ufsAssociees.map(row => row.code_uf);
-      $('#uf-associe-select').val(allValues).trigger('change');
-      document.getElementById('uf-count-badge').textContent = `${allValues.length} UF sélectionnée(s)`;
-    }
-    function filterDataBySelectedUFs() {
-      const ufSelect = $('#uf-associe-select');
-      const selectedUFs = ufSelect.val() || [];
-
-      // Préparer les paramètres pour l'API
-      const params = new URLSearchParams();
-      // Ajouter les codes UF sélectionnés
-      params.append('code_uf_associe', selectedUFs);
-
-      console.log('Appel API avec UFs sélectionnées:', selectedUFs);
-      console.log('URL API:', `/hebergement-hors-uf/api/get_lits_fermes_filtres/?${params}`);
-
-      // Appeler l'API backend
-      if(selectedUFs.length === 0) {
-        console.log('Aucune UF sélectionnée, pas d\'appel API');
-        hebergementStackedChart.data.datasets[1].data = [];
-        hebergementStackedChart.update();
-        return;
-      } else {
-        fetch(`/hebergement-hors-uf/api/get_lits_fermes_filtres/?${params}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log('Données reçues de l\'API:', data);
-
-          if (!data.lits_fermes || data.lits_fermes.length === 0) {
-            console.log('Aucune donnée de lits fermés trouvée pour les UFs sélectionnées');
-            hebergementStackedChart.data.datasets[1].data = [];
-            hebergementStackedChart.update();
-          } else {
-            let semaines=[];
-            for (let i=1;i<=52;i++) {
-              semaines.push(i);
-            }
-            hebergementStackedChart.data.datasets[1].data = semaines.map(week => {
-              const found = data.lits_fermes.find(row => row.semaine === week);
-              return found ? found.lits_fermes_moyen : 0;
-            });
-            hebergementStackedChart.update();
-          }
-        })
-        .catch(error => {
-            console.error('Erreur lors de l\'appel API:', error);
-        });
-      }
     }
     
   </script>

@@ -20,7 +20,7 @@ def get_hospitalisation_stats(request):
     end_date = request.GET.get('end_date')
     
     stats = Hospitalisation.get_stats(code_uf, start_date, end_date)
-    
+    stats['duree_moyenne']=round(stats['duree_moyenne'], 1) if stats['duree_moyenne'] else 0
     # Add ETB, Pôle, and Lits installés data
     if code_uf:
         try:
@@ -139,8 +139,6 @@ def get_hospitalisation_data(request):
                 'code_uf': item.code_uf,
                 'type_sejour': item.type_sejour,
                 'mode_sortie': item.ghs,  # Using GHS as mode_sortie placeholder
-                'age_patient': item.age_entree,
-                'sexe_patient': item.sexe_display
             })
         
         return JsonResponse({
@@ -175,4 +173,5 @@ def get_date_ranges(request):
             'max_sortie': str(date_ranges['max_date_sortie']) if date_ranges['max_date_sortie'] else None
         })
     except Exception as e:
+        print(f"Error in get_date_ranges: {e}")
         return JsonResponse({'error': str(e)}, status=500)

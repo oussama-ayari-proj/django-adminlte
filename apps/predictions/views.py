@@ -11,13 +11,13 @@ from vacances_scolaires_france import SchoolHolidayDates
 import pandas as pd
 import sys
 import os
+import pickle
 
 # Add the current app directory to Python path so MLflow can find custom_func
 current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
-from .custom_func import SkforecastWrapper 
 from django.http import HttpResponse,JsonResponse
 from .models import Prediction
 from apps.pages.models import UF
@@ -28,7 +28,6 @@ from datetime import datetime
 import holidays
 from vacances_scolaires_france import SchoolHolidayDates
 import pandas as pd
-from .custom_func import SkforecastWrapper
 # Create your views here.
 
 def index(request):
@@ -72,10 +71,19 @@ def get_predictions(request):
         return HttpResponse("Please provide the number of steps to predict.", status=400)
     
     mlflow.set_tracking_uri("http://172.16.3.201:5000")
-    model = mlflow.pyfunc.load_model(f"models:/SK_LGBMR_B/1")
-    forecaster = model._model_impl.python_model.forecaster
-    date_range = pd.date_range(start=latest_date, end=end_date, freq='D')
+    mlflow.set_experiment("Exogs_FS_HT")
+    artifact_path = "pickle_folder/best_1.pkl"
+    run_id = "19d7fa6a856c488eb84af5d8e99de8ef"
+    model_uri = f"runs:/{run_id}/{artifact_path}"
 
+    local_path = mlflow.artifacts.download_artifacts(model_uri)
+
+    # Load the model
+    with open(local_path, "rb") as f:
+        forecaster = pickle.load(f)
+
+
+    date_range = pd.date_range(start=latest_date, end=end_date, freq='D')
     df= pd.DataFrame(columns=forecaster.exog_names_in_,index=date_range).fillna(0)
     df['vacances'] = df.index.isin(dates_vacances).astype(int)
     df['feries'] = df.index.isin(feries).astype(int)

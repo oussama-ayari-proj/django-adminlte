@@ -9,22 +9,12 @@ from apps.pages.models import UF
 from apps.correlation.models import Lit
 
 def index(request):
-
-    ems_with_hebergements = []
-        
-        # Parcourir toutes les équipes et vérifier lesquelles ont des hébergements
-    for em in EM.objects.all():
-        _, total_hebergements,__ = calculate_hebergement_stats(em.code_em)
-
-        if total_hebergements > 0:
-            ems_with_hebergements.append({
-                'code_em': em.code_em,
-                'libelle_em': em.libelle_em
-            })
-    
+    # Get available years from hospitalisation data
+    years = Hospitalisation.objects.dates('date_entree', 'year', order='DESC')
+    available_years = [year.year for year in years]
     
     return render(request, 'hebergement_hors_uf/index.html', {
-        'ems': ems_with_hebergements
+        'available_years': available_years
     })
 
 def calculer_lits_fermes(code_uf_associe):
@@ -67,44 +57,65 @@ def calculer_lits_fermes(code_uf_associe):
 
 def get_hebergement_stats(request):
     code_em = request.GET.get('code_em')
-    stats = {}
-    if code_em:
-        try:
-            stats['total_interventions'], stats['total_hebergement'], hebergements_data = calculate_hebergement_stats(code_em)
-            code_uf_associees = Matrice_EM_UF.objects.filter(code_em=code_em).values_list('code_uf', flat=True)
-            uf_associees = export_UF.objects.filter(code_uf__in=code_uf_associees).values('code_uf', 'libelle_standard')
-            
-            hebergements_grouped = hebergements_data.values('semaine_entree', 'code_uf', 'ghs', 'type_sejour').annotate(
-                nombre_hospitalisations=Count('id')
-            ).order_by('semaine_entree', 'code_uf')
-            
-            hebergements_with_labels = []
-            
-            for hebergement in hebergements_grouped:
-                uf_hebergement = export_UF.objects.filter(code_uf=hebergement['code_uf']).first()
-                hebergement_dict = dict(hebergement)
-                hebergement_dict['libelle_uf'] = uf_hebergement.libelle_standard if uf_hebergement else hebergement['code_uf']
-                hebergements_with_labels.append(hebergement_dict)
-            
-            stats['hebergements'] = hebergements_with_labels
-            
-            # Ajouter les données de lits fermés pour les UFs associées
-            lits_fermes_data = []
-            if code_uf_associees:
-                lits_fermes_data = calculer_lits_fermes(code_uf_associees)
-
-            stats['lits_fermes'] = lits_fermes_data
-            
-        except EM.DoesNotExist:
-            return JsonResponse({
-                'error': 'EM not found',
-            }, status=404)
-
-    return JsonResponse({
-        'stats': stats,
-        'uf_associees': list(uf_associees)
-    }, status=200)
-
+    year = request.GET.get('year')
+    
+    if not code_em or not year:
+        return JsonResponse({'error': 'Code EM and Year are required'}, status=400)
+    
+    try:
+        # Single optimized query for all interventions
+        total_interventions = Hospitalisation.objects.filter(
+            code_em=code_em, 
+            date_entree__year=year
+        )
+        
+        stats = {}
+        stats['total_interventions'] = total_interventions.count()
+        
+        # Get UFs associées
+        code_uf_associees = list(Matrice_EM_UF.objects.filter(code_em=code_em).values_list('code_uf', flat=True))
+        
+        # Get hébergements (interventions outside UFs associées)
+        hebergements_data = total_interventions.exclude(code_uf__in=code_uf_associees)
+        stats['total_hebergement'] = hebergements_data.count()
+        
+        # Get UF associées details
+        uf_associees = export_UF.objects.filter(code_uf__in=code_uf_associees).values('code_uf', 'libelle_standard')
+        
+        # Group hébergements efficiently
+        hebergements_grouped = hebergements_data.values('semaine_entree', 'code_uf', 'ghs', 'type_sejour').annotate(
+            nombre_hospitalisations=Count('id')
+        ).order_by('semaine_entree', 'code_uf')
+        
+        # Get UF labels in one query
+        uf_codes = set(h['code_uf'] for h in hebergements_grouped)
+        uf_labels = {uf.code_uf: uf.libelle_standard for uf in export_UF.objects.filter(code_uf__in=uf_codes)}
+        
+        # Build hébergements with labels
+        hebergements_with_labels = []
+        for hebergement in hebergements_grouped:
+            hebergement_dict = dict(hebergement)
+            hebergement_dict['libelle_uf'] = uf_labels.get(hebergement['code_uf'], str(hebergement['code_uf']))
+            hebergements_with_labels.append(hebergement_dict)
+        
+        stats['hebergements'] = hebergements_with_labels
+        
+        # Get lits fermés data
+        lits_fermes_data = []
+        if code_uf_associees:
+            lits_fermes_data = calculer_lits_fermes(code_uf_associees)
+        
+        stats['lits_fermes'] = lits_fermes_data
+        
+        return JsonResponse({
+            'stats': stats,
+            'uf_associees': list(uf_associees)
+        }, status=200)
+        
+    except Exception as e:
+        print(f"Error in get_hebergement_stats: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
+    
 def get_lits_fermes_filtres(request):
     code_uf_associe = request.GET.get('code_uf_associe')
     if not code_uf_associe:
@@ -119,18 +130,56 @@ def get_lits_fermes_filtres(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
 
-def get_ems_with_hebergements(request):
+def get_ems_by_year(request):
+    year = request.GET.get('year')
+    print('Year:', year)
+    if not year:
+        return JsonResponse({'error': 'Year parameter is required'}, status=400)
+    
     try:
-        ems_with_hebergements = []
+        # Get all UFs associées for all EMs in one query
+        ufs_associees_by_em = {}
+        for matrice in Matrice_EM_UF.objects.all():
+            if matrice.code_em not in ufs_associees_by_em:
+                ufs_associees_by_em[matrice.code_em] = set()
+            ufs_associees_by_em[matrice.code_em].add(matrice.code_uf)
         
-        # Parcourir toutes les équipes et vérifier lesquelles ont des hébergements
-        for em in EM.objects.all():
-            _, total_hebergements,__ = calculate_hebergement_stats(em.code_em)
-            if total_hebergements > 0:
-                ems_with_hebergements.append({
-                    'code_em': em.code_em,
-                    'libelle_em': em.libelle_em
-                })
+        # Get EMs with interventions and their UFs in one optimized query
+        em_uf_data = (Hospitalisation.objects
+                     .filter(date_entree__year=year)
+                     .values('code_em', 'code_uf')
+                     .annotate(count=Count('id'))
+                     .filter(count__gt=0))
+        
+        # Group UFs by EM
+        ufs_by_em = {}
+        for item in em_uf_data:
+            code_em = item['code_em']
+            code_uf = item['code_uf']
+            if code_em not in ufs_by_em:
+                ufs_by_em[code_em] = set()
+            ufs_by_em[code_em].add(code_uf)
+        
+        # Find EMs with hébergements (UFs not in their associated UFs)
+        ems_with_hebergements_codes = []
+        for code_em, ufs in ufs_by_em.items():
+            ufs_associees = ufs_associees_by_em.get(code_em, set())
+            if ufs - ufs_associees:  # If there are UFs not in associated UFs
+                ems_with_hebergements_codes.append(code_em)
+        
+        # Get EM details in one query
+        ems_details = {em.code_em: em.libelle_em for em in EM.objects.filter(code_em__in=ems_with_hebergements_codes)}
+        
+        # Build final result
+        ems_with_hebergements = [
+            {
+                'code_em': code_em,
+                'libelle_em': ems_details.get(code_em, f'EM {code_em}')
+            }
+            for code_em in ems_with_hebergements_codes
+            if code_em in ems_details
+        ]
+        
         
         return JsonResponse({
             'ems': ems_with_hebergements,
@@ -138,16 +187,21 @@ def get_ems_with_hebergements(request):
         }, status=200)
         
     except Exception as e:
+        print(f"Error: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
 
-def calculate_hebergement_stats(code_em):
-    total_interventions = Hospitalisation.objects.filter(code_em=code_em)
-    total_interventions_count = total_interventions.count()
-    ufs_associees = Matrice_EM_UF.objects.filter(code_em=code_em).values_list('code_uf', flat=True)
-    hebergements= total_interventions.exclude(code_uf__in=ufs_associees)
-    total_hebergements_count = hebergements.count()
 
-    return total_interventions_count,total_hebergements_count,hebergements
+def calculate_hebergement_stats(code_em, year, data):
+    total_interventions = data.filter(code_em=code_em)
+    print("loaded interventions")
+    
+    ufs_associees = set(Matrice_EM_UF.objects.filter(code_em=code_em).values_list('code_uf', flat=True))
+    ufs = set(total_interventions.values_list('code_uf', flat=True))
+    
+    ufs_not_associees = ufs.difference(ufs_associees)
+    is_heb = 1 if len(ufs_not_associees)>0 else 0
+    
+    return is_heb
     
 
 

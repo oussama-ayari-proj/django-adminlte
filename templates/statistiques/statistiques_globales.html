@@ -86,21 +86,38 @@
         </div>
       </div>
       <div class="row mt-4">
-        <div class="col-lg-8 col-12 mx-auto">
+        <div class="col-lg-3 col-12">
+          <div class="form-group">
+            <label for="year-filter">Année: <span class="text-danger">*</span></label>
+            <select class="form-control" id="year-filter" required>
+              <option value="">Sélectionner une année</option>
+              {% for year in available_years %}
+                <option value="{{ year }}">{{ year }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="col-lg-6 col-12">
           <div class="card shadow border-primary" style="border-width:2px;">
             <div class="card-body py-4">
               <div class="d-flex flex-column flex-md-row align-items-center justify-content-center">
                 <i class="fas fa-search fa-2x text-primary mr-md-4 mb-3 mb-md-0"></i>
                 <div>
                   <label for="em-select" class="font-weight-bold mb-2" style="font-size:1.3rem; color:#007bff;">Sélectionner une Équipe Médicale :</label>
-                  <select class="form-control select-em" id="em-select" style="font-size:1.2rem; min-width:320px; max-width:100%;">
-                    {% for em in ems %}
-                      <option value="{{ em.code_em }}">{{ em.libelle_em }}</option>
-                    {% endfor %}
+                  <select class="form-control select-em" id="em-select" style="font-size:1.2rem; min-width:320px; max-width:100%;" disabled>
+                    <option value="">Sélectionner d'abord une année</option>
                   </select>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+        <div class="col-lg-3 col-12">
+          <div class="form-group">
+            <label>&nbsp;</label>
+            <button type="button" class="btn btn-primary btn-block" id="load-stats-btn" disabled>
+              <i class="fas fa-chart-bar"></i> Charger les statistiques
+            </button>
           </div>
         </div>
       </div>
@@ -142,7 +159,7 @@
         <div class="col-12">
           <div class="card stats-card">
             <div class="card-body">
-              <h5 class="card-title">Charge EM (par jour)</h5>
+              <h5 class="card-title">📊 Charge EM par UF et par jour</h5>
               <div style="height: 420px;">
                 <canvas id="charge-em-chart" style="width:100%;height:100%;max-height:400px;"></canvas>
               </div>
@@ -164,50 +181,155 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  // Charger les stats globales au chargement
-  fetch('/statistiques/api/global/')
-    .then(response => response.json())
-    .then(data => {
-      document.getElementById('total-ems').textContent = data.total_ems;
-      document.getElementById('total-sejours').textContent = data.total_sejours;
-      document.getElementById('total-hebergements').textContent = data.total_hebergements;
-    });
+  // Handle year selection
+  const yearFilter = document.getElementById('year-filter');
+  const emSelect = document.getElementById('em-select');
+  const loadStatsBtn = document.getElementById('load-stats-btn');
+  
+  yearFilter.addEventListener('change', function() {
+    const selectedYear = this.value;
+    if (selectedYear) {
+      // Enable EM select and load button
+      emSelect.disabled = false;
+      loadStatsBtn.disabled = false;
+      // Load EMs for selected year
+      loadEMsForYear(selectedYear);
+      // Load global stats for selected year
+      loadGlobalStats(selectedYear);
+    } else {
+      // Disable EM select and load button
+      emSelect.disabled = true;
+      loadStatsBtn.disabled = true;
+      emSelect.innerHTML = '<option value="">Sélectionner d\'abord une année</option>';
+      // Reset stats
+      document.getElementById('total-ems').textContent = '-';
+      document.getElementById('total-sejours').textContent = '-';
+      document.getElementById('total-hebergements').textContent = '-';
+    }
+  });
+  
+  // Load stats button click handler
+  loadStatsBtn.addEventListener('click', function() {
+    const selectedYear = yearFilter.value;
+    const selectedEM = emSelect.value;
+    if (selectedYear && selectedEM) {
+      updateEMStats(selectedEM, selectedYear);
+    } else {
+      alert('Veuillez sélectionner une année et une équipe médicale');
+    }
+  });
+
+  function loadEMsForYear(year) {
+    fetch(`/statistiques/api/ems-by-year/?year=${year}`)
+      .then(response => response.json())
+      .then(data => {
+        emSelect.innerHTML = '<option value="">Sélectionner une équipe médicale</option>';
+        data.ems.forEach(em => {
+          const option = document.createElement('option');
+          option.value = em.code_em;
+          option.textContent = em.libelle_em;
+          emSelect.appendChild(option);
+        });
+      })
+      .catch(error => {
+        console.error('Erreur lors du chargement des EMs:', error);
+        emSelect.innerHTML = '<option value="">Erreur de chargement</option>';
+      });
+  }
+
+  function loadGlobalStats(year) {
+    fetch(`/statistiques/api/global/?year=${year}`)
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('total-ems').textContent = data.total_ems;
+        document.getElementById('total-sejours').textContent = data.total_sejours;
+        document.getElementById('total-hebergements').textContent = data.total_hebergements;
+      })
+      .catch(error => {
+        console.error('Erreur lors du chargement des statistiques globales:', error);
+      });
+  }
 
   let chargeEmChart = null;
 
-  function updateChargeEM(code_em) {
+  function updateChargeEM(code_em, year) {
     const ctx = document.getElementById('charge-em-chart').getContext('2d');
-    if (!code_em) {
+    if (!code_em || !year) {
       if (chargeEmChart) {
         chargeEmChart.data.labels = [];
-        chargeEmChart.data.datasets[0].data = [];
+        chargeEmChart.data.datasets = [];
         chargeEmChart.update();
       }
       return;
     }
-    fetch(`/statistiques/api/charge-em/?code_em=${code_em}`)
+    fetch(`/statistiques/api/charge-em/?code_em=${code_em}&year=${year}`)
       .then(response => response.json())
       .then(data => {
         console.log(data);
-        const labels = data.map(row => row.date || row.label || '');
-        const values = data.map(row => row.charge_em || row.value || 0);
+        
+        // Group data by date and libelle_uf
+        const dateUFData = {};
+        const allUFs = new Set();
+        
+        data.forEach(row => {
+          const date = row.date || 'Date inconnue';
+          const uf = row.libelle_uf || row.code_uf || 'UF Inconnue';
+          const charge = row.charge_em || 0;
+          
+          if (!dateUFData[date]) {
+            dateUFData[date] = {};
+          }
+          if (!dateUFData[date][uf]) {
+            dateUFData[date][uf] = 0;
+          }
+          dateUFData[date][uf] += charge;
+          allUFs.add(uf);
+        });
+        
+        // Sort dates chronologically
+        const sortedDates = Object.keys(dateUFData).sort();
+        
+        // Colors for UFs
+        const colors = [
+          'rgba(255, 99, 132, 0.8)',   // Rouge
+          'rgba(54, 162, 235, 0.8)',   // Bleu
+          'rgba(255, 205, 86, 0.8)',   // Jaune
+          'rgba(75, 192, 192, 0.8)',   // Vert menthe
+          'rgba(153, 102, 255, 0.8)',  // Violet
+          'rgba(255, 159, 64, 0.8)',   // Orange
+          'rgba(199, 199, 199, 0.8)',  // Gris
+          'rgba(83, 102, 255, 0.8)',   // Bleu indigo
+          'rgba(255, 99, 255, 0.8)',   // Magenta
+          'rgba(99, 255, 132, 0.8)',   // Vert clair
+          'rgba(255, 206, 84, 0.8)',   // Or
+          'rgba(54, 162, 235, 0.8)',   // Cyan
+        ];
+        
+        // Create datasets for each UF
+        const datasets = [];
+        const ufsArray = Array.from(allUFs).sort();
+        
+        ufsArray.forEach((uf, index) => {
+          const ufData = sortedDates.map(date => {
+            return dateUFData[date] && dateUFData[date][uf] ? dateUFData[date][uf] : 0;
+          });
+          
+          datasets.push({
+            label: uf.length > 20 ? uf.substring(0, 20) + '...' : uf,
+            data: ufData,
+            backgroundColor: colors[index % colors.length],
+            borderColor: colors[index % colors.length].replace('0.8', '1'),
+            borderWidth: 1,
+            stack: 'charge'
+          });
+        });
+        
         if (!chargeEmChart) {
           chargeEmChart = new Chart(ctx, {
-            type: 'line',
+            type: 'bar',
             data: {
-              labels: labels,
-              datasets: [{
-                label: 'Nombre de patients',
-                data: values,
-                borderColor: '#007bff',
-                backgroundColor: 'rgba(0,123,255,0.1)',
-                fill: true,
-                tension: 0.3,
-                pointRadius: 3,
-                pointBackgroundColor: '#007bff',
-                pointBorderColor: '#007bff',
-                borderWidth: 2
-              }]
+              labels: sortedDates,
+              datasets: datasets
             },
             options: {
               plugins: {
@@ -231,58 +353,116 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     mode: 'x',
                   }
+                },
+                legend: {
+                  display: true,
+                  position: 'top',
+                  labels: {
+                    usePointStyle: true,
+                    padding: 10,
+                    font: {
+                      size: 11
+                    }
+                  }
+                },
+                tooltip: {
+                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  titleColor: 'white',
+                  bodyColor: 'white',
+                  borderColor: 'rgba(54, 162, 235, 1)',
+                  borderWidth: 1,
+                  mode: 'index',
+                  intersect: false,
+                  callbacks: {
+                    title: function(tooltipItems) {
+                      return `Date: ${tooltipItems[0].label}`;
+                    },
+                    label: function(context) {
+                      return context.parsed.y > 0 ? `${context.dataset.label}: ${context.parsed.y}` : '';
+                    }
+                  }
                 }
               },
               responsive: true,
-              maintainAspectRatio: false,          
+              maintainAspectRatio: false,
+              interaction: {
+                mode: 'index',
+                intersect: false,
+              },
               scales: {
-              y: {
-                beginAtZero: true,
-                min: 0
+                x: {
+                  stacked: true,
+                  grid: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                  },
+                  title: {
+                    display: true,
+                    text: 'Dates',
+                    font: {
+                      weight: 'bold'
+                    }
+                  }
+                },
+                y: {
+                  stacked: true,
+                  beginAtZero: true,
+                  min: 0,
+                  title: {
+                    display: true,
+                    text: 'Nombre de patients',
+                    font: {
+                      weight: 'bold'
+                    }
+                  },
+                  ticks: {
+                    precision: 0
+                  },
+                  grid: {
+                    color: 'rgba(0, 0, 0, 0.1)'
+                  }
+                }
               }
             }
-            }
-      
           });
         } else {
-          chargeEmChart.data.labels = labels;
-          chargeEmChart.data.datasets[0].data = values;
+          chargeEmChart.data.labels = sortedDates;
+          chargeEmChart.data.datasets = datasets;
           chargeEmChart.update();
         }
       });
   }
 
-  function updateEMStats() {
-    const code_em = document.getElementById('em-select').value;
+  function updateEMStats(code_em, year) {
     const hebergementLink = document.getElementById('hebergement-link');
-    if(!code_em) {
+    if(!code_em || !year) {
       document.getElementById('em-sejours').textContent = '-';
       document.getElementById('em-hebergements').textContent = '-';
       hebergementLink.style.display = 'none';
       hebergementLink.href = '#';
-      updateChargeEM(null);
+      updateChargeEM(null, null);
       return;
     } else {
-      fetch(`/statistiques/api/em/?code_em=${code_em}`)
+      fetch(`/statistiques/api/em/?code_em=${code_em}&year=${year}`)
         .then(response => response.json())
         .then(data => {
           document.getElementById('em-sejours').textContent = data.sejours;
           document.getElementById('em-hebergements').textContent = data.hebergements;
           if (data.hebergements > 0) {
             hebergementLink.style.display = '';
-            hebergementLink.href = `/hebergement-hors-uf/?em=${encodeURIComponent(code_em)}`;
+            hebergementLink.href = `/hebergement-hors-uf/?em=${encodeURIComponent(code_em)}&year=${encodeURIComponent(year)}`;
           } else {
             hebergementLink.style.display = 'none';
             hebergementLink.href = '#';
           }
         });
-      updateChargeEM(code_em);
+      updateChargeEM(code_em, year);
     }
   }
-  updateEMStats();
-  document.getElementById('em-select').addEventListener('change', function() {
-    updateEMStats();
-  });
+
+  // Initialize with empty state
+  document.getElementById('em-sejours').textContent = '-';
+  document.getElementById('em-hebergements').textContent = '-';
+  document.getElementById('hebergement-link').style.display = 'none';
 });
 </script>
 {% endblock extra_scripts %}

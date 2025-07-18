@@ -97,7 +97,7 @@
         
         <div class="row mt-4">
           <div class="col-lg-6">
-            <h1>Impacts</h1>
+            <h1>Corrélation</h1>
             <div id="ccf-values" style="font-size:2.7rem; margin-top:2.5rem;padding-right: 2rem;">
               <div style="margin-bottom: 2.2rem; display: flex; align-items: center;justify-content: space-between;">
                 <div>
@@ -252,14 +252,14 @@
                     const coefs = reg_data;
                     let explanations = [];
                     if (coefs['const']>=0)
-                      explanations.push(`On a déja <b>${coefs['const']} Lits fermé(s)</b> avec 0 absences prévues`);
+                      explanations.push(`<b>${coefs['const']} Lits fermé(s)</b> en moyenne pour les jours sans absences prévues.`);
                     for (const [key, value] of Object.entries(coefs)) {
                         if (key === 'const') continue;
                         if (value !== 0 && !isNaN(value) && Math.abs(value) > 1e-8) {
                             const abs_coef = Number(value);
                             if (abs_coef > 0) {
                                 const inv = (1 / abs_coef).toFixed(1);
-                                explanations.push(`<b>${inv} absence(s) prévue(s)</b> de <b>${key}</b> cause la fermeture d'un lit.`);
+                                explanations.push(`Chaque <b>${inv} absence(s) prévue(s)</b> de <b>${key}</b> cause(nt) la fermeture d'un lit de plus.`);
                             }
                         }
                     }

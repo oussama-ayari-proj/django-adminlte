@@ -36,4 +36,8 @@ holidays
 vacances_scolaires_france
 skforecast
 lightgbm
-
+numpy
+attrs
+cffi
+defusedxml
+psutil
