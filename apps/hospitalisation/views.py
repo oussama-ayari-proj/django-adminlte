@@ -6,6 +6,8 @@ from django.core.paginator import Paginator
 from apps.hospitalisation.models import Hospitalisation,Lits_occupes,Besoins
 from apps.pages.models import UF, ETB, Pole
 from apps.correlation.models import Lit, RH
+from apps.hebergement_hors_uf.models import Matrice_EM_UF,EM
+from django.db import models
 
 
 def index(request):
@@ -26,6 +28,12 @@ def get_hospitalisation_stats(request):
         try:
             # Get ETB info
             uf = UF.objects.get(code_uf=code_uf)
+            stats['type_activite'] = uf.libelle_type_activite.strip() if uf.libelle_type_activite else 'Non spécifié'
+            em_associes = Matrice_EM_UF.objects.filter(code_uf=code_uf).values_list('code_em', flat=True)
+            em_associes_libelle = EM.objects.filter(code_em__in=em_associes).values_list('libelle_em', flat=True)
+            stats['em_associes'] = [
+                em.strip() if em else 'Non spécifié' for em in em_associes_libelle
+            ]
             lits_occupes = Lits_occupes.objects.filter(code_uf=code_uf).order_by('date')
             besoins = Besoins.objects.filter(code_uf=code_uf).order_by('date')
             if besoins.exists():
@@ -174,4 +182,66 @@ def get_date_ranges(request):
         })
     except Exception as e:
         print(f"Error in get_date_ranges: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+def analyse_sejours(request):
+    """View for the Analyse des Séjours page"""
+    ufs = UF.objects.order_by('libelle_standard')
+    ufs_list = list(ufs.values('code_uf', 'libelle_standard'))
+    return render(request, 'hospitalisation/analyse_sejours.html', {'ufs': ufs_list})
+
+
+@require_GET
+def get_sejours_analysis(request):
+    """API endpoint for séjours analysis data"""
+    try:
+        code_uf = request.GET.get('code_uf')
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        
+        # Base queryset
+        queryset = Hospitalisation.objects.all()
+        
+        # Apply filters
+        if code_uf:
+            queryset = queryset.filter(code_uf=code_uf)
+        if start_date:
+            queryset = queryset.filter(date_entree__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(date_entree__lte=end_date)
+
+        # Get statistics
+        stats = queryset.aggregate(
+            total_sejours=Count('id'),
+            duree_moyenne=Avg('duree_sejour'),
+            patients_uniques=Count('num_sequence', filter=models.Q(num_sequence=1)),
+        )
+        
+        # Get type séjours distribution for histogram
+        type_sejours = list(queryset.values('type_sejour').annotate(
+            count=Count('id')
+        ).filter(type_sejour__isnull=False).order_by('-count'))
+        
+        
+        hebergement_count = queryset.filter(duree_sejour__gt=0).count()
+        total_count = queryset.count()
+        pourcentage_hebergement = (hebergement_count / total_count * 100) if total_count > 0 else 0
+        
+        # Round values for display
+        stats['duree_moyenne'] = round(stats['duree_moyenne'], 1) if stats['duree_moyenne'] else 0
+        stats['total_sejours'] = stats['total_sejours'] or 0
+        stats['patients_uniques'] = stats['patients_uniques'] or 0
+        
+        return JsonResponse({
+            'total_sejours': stats['total_sejours'],
+            'duree_moyenne': stats['duree_moyenne'],
+            'patients_uniques': stats['patients_uniques'],
+            'type_sejours': type_sejours,
+            'nombre_hebergement': hebergement_count,
+            'pourcentage_hebergement': round(pourcentage_hebergement, 1)
+        })
+        
+    except Exception as e:
+        print(f"Error in get_sejours_analysis: {e}")
         return JsonResponse({'error': str(e)}, status=500)

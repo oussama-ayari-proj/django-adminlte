@@ -1,0 +1,446 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} Analyse des Séjours {% endblock title %}
+
+{% block bodyclass %} hold-transition sidebar-mini {% endblock bodyclass %}
+
+{% block content %}
+  <!-- Content Wrapper. Contains page content -->
+  <style>
+  .content-wrapper, .container-fluid {
+    font-size: 1.2rem;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-size: 1.7rem !important;
+  }
+  label, select, .form-control, .select2-selection__rendered, .select2-results__option {
+    font-size: 1.2rem !important;
+  }
+  table {
+    font-size: 0.95rem !important;
+  }
+  .stats-card {
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  .stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #227F79;
+  }
+  .stat-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #227F79;
+  }
+  .breadcrumb {
+    font-size: 1rem !important;
+  }
+  @media (max-width: 1200px) {
+    html, body, .content-wrapper, .container-fluid {
+      font-size: 1rem;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-size: 1.2rem !important;
+    }
+    table {
+      font-size: 0.85rem !important;
+    }
+    .stat-number {
+      font-size: 1.5rem;
+    }
+    .stat-text {
+      font-size: 1rem;
+    }
+  }
+  </style>
+  
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header" style="margin-left:1rem;">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Analyse des Séjours</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="/">Home</a></li>
+              <li class="breadcrumb-item active">Analyse des Séjours</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="content" style="margin-left:1rem;">
+      <div class="container-fluid">
+        <!-- Filters Row -->
+        <div class="row mt-4">
+          <div class="col-lg-4">
+            <div class="form-group">
+              <label for="uf-filter">Séléctionner un UF:</label>
+              <select class="form-control" id="uf-filter">
+                <option value="">Toutes les UF</option>
+                {% for uf in ufs %}
+                  <option value="{{ uf.code_uf }}">{{ uf.libelle_standard }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="form-group">
+              <label for="start-date">Date de début:</label>
+              <input type="date" class="form-control" id="start-date">
+              <small class="form-text text-muted">Date minimum: <span id="min-date-display">-</span></small>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="form-group">
+              <label for="end-date">Date de fin:</label>
+              <input type="date" class="form-control" id="end-date">
+              <small class="form-text text-muted">Date maximum: <span id="max-date-display">-</span></small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date validation alert -->
+        <div class="row">
+          <div class="col-12">
+            <div class="alert alert-warning" id="date-validation-alert" style="display: none;">
+              <i class="fas fa-exclamation-triangle"></i>
+              <span id="date-validation-message"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mt-4">
+          <!-- Total Séjours -->
+          <div class="col-lg-3 col-6">
+            <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                  
+                  <i class="fas fa-procedures fa-3x text-primary"></i>
+                  <div>
+                    <h5 class="card-title">Total Séjours</h5>
+                    <div class="stat-number" id="total-sejours">-</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Durée Moyenne -->
+          <div class="col-lg-3 col-6">
+            <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <i class="fas fa-clock fa-3x text-info"></i>
+                    <div>
+                    <h5 class="card-title">Durée Moyenne</h5>
+                    <div class="stat-number" id="duree-moyenne">-</div>
+                    <small class="text-muted">jours</small>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Patients Uniques -->
+          <div class="col-lg-3 col-6">
+            <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <i class="fas fa-user-injured fa-3x text-success"></i>
+                    <div>
+                    <h5 class="card-title">Patients Uniques</h5>
+                    <div class="stat-number" id="patients-uniques">-</div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nombre d'Hébergement -->
+          <div class="col-lg-3 col-6">
+            <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <i class="fas fa-bed fa-3x text-warning"></i>
+                    <div>
+                    <h5 class="card-title">Hébergements</h5>
+                    <div class="stat-number" id="nombre-hebergement">-</div>
+                    <small class="text-muted">(<span id="pourcentage-hebergement">-</span>%)</small>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row mt-5">
+          <!-- Type de Séjours Histogram -->
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fas fa-chart-bar mr-2"></i>
+                  Répartition des Types de Séjours
+                </h3>
+              </div>
+              <div class="card-body">
+                <canvas id="type-sejours-chart" width="100%" height="400"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+{% block extra_scripts %}
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+  <script>
+    let typeSejoursChart;
+    let minDate = null;
+    let maxDate = null;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize charts
+      initializeCharts();
+      
+      // Load date ranges first, then load data
+      loadDateRanges().then(() => {
+        loadData();
+      });
+      
+      // Add event listeners for filters
+      document.getElementById('uf-filter').addEventListener('change', loadData);
+      document.getElementById('start-date').addEventListener('change', function() {
+        validateDates();
+        loadData();
+      });
+      document.getElementById('end-date').addEventListener('change', function() {
+        validateDates();
+        loadData();
+      });
+    });
+    
+    function loadDateRanges() {
+      return fetch('/api/date-ranges/')
+        .then(response => response.json())
+        .then(data => {
+          minDate = data.min_date;
+          maxDate = data.max_date;
+          
+          // Set min and max attributes on date inputs
+          const startDateInput = document.getElementById('start-date');
+          const endDateInput = document.getElementById('end-date');
+          
+          if (minDate) {
+            startDateInput.min = minDate;
+            endDateInput.min = minDate;
+            document.getElementById('min-date-display').textContent = minDate;
+          }
+          
+          if (maxDate) {
+            startDateInput.max = maxDate;
+            endDateInput.max = maxDate;
+            document.getElementById('max-date-display').textContent = maxDate;
+          }
+          
+          // Set default values if not set
+          if (!startDateInput.value && minDate) {
+            startDateInput.value = minDate;
+          }
+          
+          if (!endDateInput.value && maxDate) {
+            endDateInput.value = maxDate;
+          }
+          
+          validateDates();
+        })
+        .catch(error => {
+          console.error('Error loading date ranges:', error);
+          showDateValidationAlert('Erreur lors du chargement des plages de dates disponibles.');
+        });
+    }
+    
+    function validateDates() {
+      const startDateInput = document.getElementById('start-date');
+      const endDateInput = document.getElementById('end-date');
+      const startDate = startDateInput.value;
+      const endDate = endDateInput.value;
+      
+      let isValid = true;
+      let message = '';
+      
+      // Check if both dates are provided
+      if (!startDate || !endDate) {
+        if (!startDate && !endDate) {
+          message = 'Veuillez sélectionner les dates de début et de fin.';
+        } else if (!startDate) {
+          message = 'Veuillez sélectionner une date de début.';
+        } else {
+          message = 'Veuillez sélectionner une date de fin.';
+        }
+        isValid = false;
+      } else {
+        // Check if end date is after start date
+        if (new Date(endDate) <= new Date(startDate)) {
+          message = 'La date de fin doit être postérieure à la date de début.';
+          isValid = false;
+        }
+        
+        // Check if dates are within valid range
+        if (minDate && new Date(startDate) < new Date(minDate)) {
+          message = `La date de début ne peut pas être antérieure au ${minDate}.`;
+          isValid = false;
+        }
+        
+        if (maxDate && new Date(endDate) > new Date(maxDate)) {
+          message = `La date de fin ne peut pas être postérieure au ${maxDate}.`;
+          isValid = false;
+        }
+      }
+      
+      if (!isValid) {
+        showDateValidationAlert(message);
+        return false;
+      } else {
+        hideDateValidationAlert();
+        return true;
+      }
+    }
+    
+    function showDateValidationAlert(message) {
+      const alert = document.getElementById('date-validation-alert');
+      const messageSpan = document.getElementById('date-validation-message');
+      messageSpan.textContent = message;
+      alert.style.display = 'block';
+    }
+    
+    function hideDateValidationAlert() {
+      const alert = document.getElementById('date-validation-alert');
+      alert.style.display = 'none';
+    }
+    
+    function initializeCharts() {
+      // Type Séjours Chart
+      const typeSejoursCtx = document.getElementById('type-sejours-chart').getContext('2d');
+      typeSejoursChart = new Chart(typeSejoursCtx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Nombre de séjours',
+            data: [],
+            backgroundColor: '#227F79',
+            borderColor: '#1a5f5a',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top'
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Nombre de séjours'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Type de séjour'
+              },
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    function loadData() {
+      // Only load data if dates are valid
+      if (!validateDates()) {
+        return;
+      }
+      
+      const ufFilter = document.getElementById('uf-filter').value;
+      const startDate = document.getElementById('start-date').value;
+      const endDate = document.getElementById('end-date').value;
+      
+      const params = new URLSearchParams();
+      if (ufFilter) params.append('code_uf', ufFilter);
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      
+      // Load séjours analysis data
+      fetch(`/api/sejours-analysis/?${params}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Séjours analysis data:', data);
+          updateStatistics(data);
+          updateChart(data);
+        })
+        .catch(error => {
+          console.error('Error loading séjours analysis:', error);
+          showDateValidationAlert('Erreur lors du chargement des données d\'analyse des séjours.');
+        });
+    }
+    
+    function updateStatistics(data) {
+      document.getElementById('total-sejours').textContent = data.total_sejours || 0;
+      document.getElementById('duree-moyenne').textContent = data.duree_moyenne || 0;
+      document.getElementById('patients-uniques').textContent = data.patients_uniques || 0;
+      document.getElementById('nombre-hebergement').textContent = data.nombre_hebergement || 0;
+      document.getElementById('pourcentage-hebergement').textContent = data.pourcentage_hebergement || 0;
+    }
+    
+    function updateChart(data) {
+      // Update type séjours chart
+      if (data.type_sejours && data.type_sejours.length > 0) {
+        const labels = data.type_sejours.map(item => item.type_sejour || 'Non spécifié');
+        const counts = data.type_sejours.map(item => item.count);
+        
+        typeSejoursChart.data.labels = labels;
+        typeSejoursChart.data.datasets[0].data = counts;
+        typeSejoursChart.update();
+      } else {
+        // Clear chart if no data
+        typeSejoursChart.data.labels = [];
+        typeSejoursChart.data.datasets[0].data = [];
+        typeSejoursChart.update();
+      }
+    }
+  </script>
+{% endblock extra_scripts %}

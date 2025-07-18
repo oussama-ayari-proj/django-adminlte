@@ -37,6 +37,25 @@
   .breadcrumb {
     font-size: 1rem !important;
   }
+  .ems-list {
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  .em-item {
+    margin-bottom: 0.25rem;
+  }
+  .em-item .badge {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+  }
+  .badge-pill {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.8rem;
+  }
   @media (max-width: 1200px) {
     html, body, .content-wrapper, .container-fluid {
       font-size: 1rem;
@@ -122,110 +141,96 @@
         <div class="row mt-4">            
             
             <!-- ETB-->
-            <div class="col-lg-3 col-6">
+            <div class="col-lg-4">
             <div class="card stats-card">
               <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-around align-items-center">
+                  <i class="fas fa-building fa-3x text-warning"></i>
                   <div class="d-flex flex-column">
                     <h5 class="card-title">Etablissement</h5>
                     <div class="stat-text" id="etb">-</div>
                   </div>
-                  <i class="fas fa-building fa-3x text-warning"></i>
+                  
                 </div>
               </div>
             </div>
             </div>            
             
             <!-- Pôle -->
-            <div class="col-lg-3 col-6">
+            <div class="col-lg-4">
                 <div class="card stats-card">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex justify-content-around align-items-center">
+                            <i class="fas fa-sitemap fa-3x text-primary"></i>
                             <div class="d-flex flex-column">
                                 <h5 class="card-title">Pôle</h5>
                                 <div class="stat-text" id="pole">-</div>
                             </div>
-                            <i class="fas fa-sitemap fa-3x text-primary"></i>
+                            
                         </div>
                     </div>
                 </div>
             </div>            
-            
+        </div>
+        <div class="row mt-4">
             <!-- Lits installés -->
-            <div class="col-lg-3 col-6">
+            <div class="col-lg-4">
                 <div class="card stats-card">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex justify-content-around align-items-center">
+                            <i class="fas fa-bed fa-3x text-success"></i>
                             <div>
                                 <h5 class="card-title">Lits installés moyens</h5>
                                 <div class="stat-number" id="lits-installes">-</div>
                             </div>
-                            <i class="fas fa-bed fa-3x text-success"></i>
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Type d'activité -->
+            <div class="col-lg-8">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-around align-items-center">
+                            <i class="fas fa-stethoscope fa-3x text-info"></i>
+                            <div class="d-flex flex-column">
+                                <h5 class="card-title">Type d'activité</h5>
+                                <div class="stat-text" id="type-activite">-</div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        
+        
 
-        <div class="row mt-4">
-          <div class="col-lg-3 col-6">
-            <div class="card stats-card">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h5 class="card-title">Total Séjours</h5>
-                    <div class="stat-number" id="total-sejours">-</div>
-                  </div>
-                  <i class="fas fa-hospital fa-3x text-primary"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-lg-3 col-6">
-            <div class="card stats-card">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h5 class="card-title">Durée Moyenne</h5>
-                    <div class="stat-number" id="duree-moyenne">- jours</div>
-                  </div>
-                  <i class="fas fa-clock fa-3x text-warning"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="col-lg-3 col-6">
-            <div class="card stats-card">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h5 class="card-title">Patients Uniques</h5>
-                    <div class="stat-number" id="patients-uniques">-</div>
-                  </div>
-                  <i class="fas fa-user-friends fa-3x text-info"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>        <!-- Charts and Tables Row -->
+               
+        <!-- Charts and Tables Row -->
         <div class="row mt-5">
-          <!-- Gender Distribution -->
-          
-          <!-- Type de séjour Top 5 -->
-          <div class="col-lg-4">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Répartition des Types de séjours</h3>
-              </div>
-              <div class="card-body">
-                <canvas id="type-sejour-chart" width="400" height="200"></canvas>
-              </div>
-            </div>
+          <div class="col-lg-6">
+            <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex flex-column flex-grow-1">
+                                <h5 class="card-title">
+                                    <i class="fas fa-user-md text-primary mr-2"></i>
+                                    Équipes Médicales associées
+                                </h5>
+                                <div class="ems-list" id="ems-associes">-</div>
+                            </div>
+                            <div class="text-right">
+                                <span class="badge badge-primary badge-pill" id="ems-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
           </div>
           <!-- Métiers Table -->
-          <div class="col-lg-4">
+          <div class="col-lg-6">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">Métiers par UF</h3>
@@ -250,28 +255,6 @@
             </div>
           </div>
         </div>
-
-        <div class="row mt-5">
-          <div class="col-lg-12">
-            <h3>Lits Occupés</h3>
-            <div class="card">
-              <div class="card-body">
-                <canvas id="lits-chart" width="100%" height="500"></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="row mt-5">
-          <div class="col-lg-12">
-            <h3>Besoin réel en lits</h3>
-            <div class="card">
-              <div class="card-body">
-                <canvas id="besoins-uf-chart" width="100%" height="500"></canvas>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -286,13 +269,10 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 
   <script>
-    let typeSejourChart,litsChart;
     let minDate = null;
     let maxDate = null;
     
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialize charts
-      initializeCharts();
       
       // Load date ranges first, then load data
       loadDateRanges().then(() => {
@@ -419,79 +399,7 @@
       alert.style.display = 'none';
     }
     
-    function initializeCharts() {
-      // TYPE SEJOUR Chart
-      const typeSejourCtx = document.getElementById('type-sejour-chart').getContext('2d');
-      typeSejourChart = new Chart(typeSejourCtx, {
-        type: 'bar',
-        data: {
-          labels: [],
-          datasets: [{
-            label: 'Nombre de séjours',
-            data: [],
-            backgroundColor: '#227F79'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true
-            }
-          }
-        }
-      });
-      // Lits Chart
-      const litsCtx = document.getElementById('lits-chart').getContext('2d');
-      litsChart = new Chart(litsCtx, {
-        type: 'line',
-        data: {
-          labels: [],
-          datasets: [{
-            label: 'Lits Occupés',
-            data: [],
-            borderColor: '#227F79',
-            backgroundColor: 'rgba(34, 127, 121, 0.2)',
-            fill: false
-          }]
-        },
-        options: {
-          plugins: {
-            zoom: {
-              pan:{
-                enabled: true,
-                mode: 'xy',
-                speed: 10,
-                threshold: 10
-              },
-              limits: {
-                x: {min: 'original', max: 'original'},
-                y: {min: 0, max: 'original'}
-              },
-              zoom: {
-                wheel: {
-                  enabled: true,
-                },
-                pinch: {
-                  enabled: true
-                },
-                mode: 'x',
-              }
-            }
-          },
-          responsive: true,
-          maintainAspectRatio: false,          
-          scales: {
-            y: {
-              beginAtZero: true,
-              min: 0
-            }
-          }
-        }
-      });
-      initBesoinsUFChart();
-    }
+    
     
     function loadData() {
       // Only load data if dates are valid
@@ -514,7 +422,6 @@
         .then(data => {
             console.log('Stats data:', data);
             updateStatistics(data);
-            updateCharts(data);
             updateMetiersTable(data);
         })
         .catch(error => {
@@ -526,49 +433,25 @@
       document.getElementById('etb').textContent = data.etb || 'Non spécifié';
       document.getElementById('pole').textContent = data.pole || 'Non spécifié';
       document.getElementById('lits-installes').textContent = data.lits_installes || 0;
-      document.getElementById('total-sejours').textContent = data.total_sejours || 0;
-      document.getElementById('duree-moyenne').textContent = `${data.duree_moyenne || 0} jours`;
-      document.getElementById('patients-uniques').textContent = data.patients_uniques || 0;
+      document.getElementById('type-activite').textContent = data.type_activite || 'Non spécifié';
+      
+      // Update EMs associés
+      const emsContainer = document.getElementById('ems-associes');
+      if (data.em_associes && data.em_associes.length > 0) {
+        // Create HTML for each EM as a separate row
+        const emsHtml = data.em_associes.map(em => 
+          `<div class="em-item mb-1">
+            <span class="badge badge-light" style="font-size: 20px;">${em}</span>
+          </div>`
+        ).join('');
+        emsContainer.innerHTML = emsHtml;
+        document.getElementById('ems-count').textContent = data.em_associes.length;
+      } else {
+        emsContainer.innerHTML = '<div class="text-muted">Aucune équipe associée</div>';
+        document.getElementById('ems-count').textContent = '0';
+      }
     }
     
-    function updateCharts(data) {
-      // Update gender chart
-      if (data.gender_distribution) {
-        const genderLabels = data.gender_distribution.map(item => item.sexe || 'Non spécifié');
-        const genderData = data.gender_distribution.map(item => item.count);
-        
-        genderChart.data.labels = genderLabels;
-        genderChart.data.datasets[0].data = genderData;
-        genderChart.update();
-      }
-        // Update type séjour chart
-      if (data.type_sejour_top5) {
-        const typeLabels = data.type_sejour_top5.map(item => item.type_sejour || 'Non spécifié');
-        const typeData = data.type_sejour_top5.map(item => item.count);
-          typeSejourChart.data.labels = typeLabels;
-        typeSejourChart.data.datasets[0].data = typeData;
-        typeSejourChart.update();
-      }      if(data.lits_occupes) {
-        const litsLabels = data.lits_occupes.map(item => {
-          const dateStr=item.date || 'Non spécifié'
-          return dateStr.split('T')[0];
-        });
-        const litsData = data.lits_occupes.map(item => item.lits_occupes);
-        
-        // Calculate the maximum value from the data
-        const maxValue = Math.max(...litsData);
-        
-        // Update chart data
-        litsChart.data.labels = litsLabels;
-        litsChart.data.datasets[0].data = litsData;
-        
-        // Update Y-axis scale with dynamic max
-        litsChart.options.scales.y.max = maxValue + Math.ceil(maxValue * 0.05); // Add 10% padding
-        
-        litsChart.update();
-        updateBesoinsUFChart(data.besoins);
-      }
-    }
     
     function updateMetiersTable(data) {
       const tbody = document.getElementById('metiers-table-body');
@@ -627,89 +510,6 @@
         `;
         tbody.appendChild(tr);
       });
-    }
-    
-    function initBesoinsUFChart() {
-      const ctx = document.getElementById('besoins-uf-chart').getContext('2d');
-      besoinsUFChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: [],
-          datasets: [
-            {
-              label: 'Min',
-              data: [],
-              borderColor: '#dc3545',
-              backgroundColor: 'rgba(220,53,69,0.1)',
-              fill: false,
-              tension: 0.3
-            },
-            {
-              label: 'Max',
-              data: [],
-              borderColor: '#28a745',
-              backgroundColor: 'rgba(40,167,69,0.1)',
-              fill: false,
-              tension: 0.3
-            },
-            {
-              label: 'Médiane',
-              data: [],
-              borderColor: '#007bff',
-              backgroundColor: 'rgba(0,123,255,0.1)',
-              fill: false,
-              tension: 0.3
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            zoom: {
-              pan:{
-                enabled: true,
-                mode: 'xy',
-                speed: 10,
-                threshold: 10
-              },
-              limits: {
-                x: {min: 'original', max: 'original'},
-                y: {min: 0, max: 'original'}
-              },
-              zoom: {
-                wheel: {
-                  enabled: true,
-                },
-                pinch: {
-                  enabled: true
-                },
-                mode: 'x',
-              }
-            },
-            legend: { display: true },
-            tooltip: { mode: 'index', intersect: false }
-          },
-          scales: {
-            x: { title: { display: true, text: 'Date' } },
-            y: { title: { display: true, text: 'Valeur' }, beginAtZero: true }
-          }
-        }
-      });
-    }
-
-    function updateBesoinsUFChart(data) {
-      
-      const labels = data.map(row => row.date);
-      const minData = data.map(row => row.min);
-      const maxData = data.map(row => row.max);
-      const medianeData = data.map(row => row.mediane);
-      besoinsUFChart.data.labels = labels;
-      besoinsUFChart.data.datasets[0].data = minData;
-      besoinsUFChart.data.datasets[1].data = maxData;
-      besoinsUFChart.data.datasets[2].data = medianeData;
-      besoinsUFChart.update();
-        
     }
     
   </script>
