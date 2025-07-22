@@ -83,7 +83,6 @@
             <div class="form-group">
               <label for="uf-filter">Séléctionner un UF:</label>
               <select class="form-control" id="uf-filter">
-                <option value="">Toutes les UF</option>
                 {% for uf in ufs %}
                   <option value="{{ uf.code_uf }}">{{ uf.libelle_standard }}</option>
                 {% endfor %}
@@ -166,7 +165,6 @@
               </div>
             </div>
           </div>
-
           <!-- Nombre d'Hébergement -->
           <div class="col-lg-3 col-6">
             <div class="card stats-card">
@@ -175,7 +173,7 @@
                     <i class="fas fa-bed fa-3x text-warning"></i>
                     <div>
                     <h5 class="card-title">Hébergements</h5>
-                    <div class="stat-number" id="nombre-hebergement">-</div>
+                    <div class="stat-number" id="nombre-hebergement-2">-</div>
                     <small class="text-muted">(<span id="pourcentage-hebergement">-</span>%)</small>
                   </div>
                   
@@ -183,6 +181,7 @@
               </div>
             </div>
           </div>
+          
         </div>
 
         <!-- Charts Row -->
@@ -202,6 +201,69 @@
             </div>
           </div>
         </div>
+        <div class="row mt-5">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fas fa-chart-line mr-2"></i>
+                  Nombre de patients entrants par jour
+                </h3>
+              </div>
+              <div class="card-body">
+                <canvas id="charge-chart" width="100%" height="600px"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Separator -->
+        <div class="row mt-5">
+          <div class="col-12">
+            <hr style="border: 2px solid #227F79; margin: 2rem 0;">
+            <div class="text-center mb-4">
+              <h4 style="color: #227F79; font-weight: bold;">
+                <i class="fas fa-bed mr-2"></i>
+                Analyse des Hébergements Hors UF
+              </h4>
+              <p class="text-muted">Répartition des hébergements par équipe mobile et par date</p>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <!-- Nombre d'Hébergement -->
+          <div class="col-lg-3 col-6">
+            <div class="card stats-card">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <i class="fas fa-bed fa-3x text-warning"></i>
+                    <div>
+                    <h5 class="card-title">Hébergements</h5>
+                    <div class="stat-number" id="nombre-hebergement">-</div>
+                    <small class="text-muted">(<span id="pourcentage-hebergement">-</span>%)</small>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Hebergement Chart Row -->
+        <div class="row mt-3">
+          <div class="col-lg-12">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fas fa-chart-bar mr-2"></i>
+                  Hébergements Hors UF par Date
+                </h3>
+              </div>
+              <div class="card-body">
+                <canvas id="hebergement-chart" width="100%" height="600px"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -209,12 +271,15 @@
 {% endblock content %}
 
 {% block extra_scripts %}
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 
   <script>
     let typeSejoursChart;
+    let chargeChart;
+    let hebergementChart;
     let minDate = null;
     let maxDate = null;
     
@@ -387,6 +452,205 @@
           }
         }
       });
+      // Charge Chart
+      const chargeCtx = document.getElementById('charge-chart').getContext('2d');
+      chargeChart = new Chart(chargeCtx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Charge quotidienne',
+            data: [],
+            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            zoom: {
+                  pan:{
+                    enabled: true,
+                    mode: 'xy',
+                    speed: 10,
+                    threshold: 10
+                  },
+                  limits: {
+                    x: {min: 'original', max: 'original'},
+                    y: {min: 0, max: 'original'}
+                  },
+                  zoom: {
+                    wheel: {
+                      enabled: true,
+                    },
+                    pinch: {
+                      enabled: true
+                    },
+                    mode: 'x',
+                  }
+              },
+            legend: {
+              display: false
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: 'rgba(54, 162, 235, 0.8)',
+              borderWidth: 1,
+              callbacks: {
+                label: function(context) {
+                  return `Charge: ${context.parsed.y} patient${context.parsed.y > 1 ? 's' : ''}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Date',
+                font: {
+                  size: 14
+                }
+              },
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45
+              },
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            },
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Nombre de patients',
+                font: {
+                  size: 14
+                }
+              },
+              beginAtZero: true,
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.1)'
+              },
+              ticks: {
+                stepSize: 1,
+                callback: function(value) {
+                  return Number.isInteger(value) ? value : '';
+                }
+              }
+            }
+          }
+        }
+      });    
+      
+      // Hebergement Chart
+      const hebergementCtx = document.getElementById('hebergement-chart').getContext('2d');
+      hebergementChart = new Chart(hebergementCtx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            zoom: {
+                  pan:{
+                    enabled: true,
+                    mode: 'xy',
+                    speed: 10,
+                    threshold: 10
+                  },
+                  limits: {
+                    x: {min: 'original', max: 'original'},
+                    y: {min: 0, max: 'original'}
+                  },
+                  zoom: {
+                    wheel: {
+                      enabled: true,
+                    },
+                    pinch: {
+                      enabled: true
+                    },
+                    mode: 'x',
+                  }
+              },
+            
+            legend: {
+              display: true,
+              position: 'top'
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: 'white',
+              bodyColor: 'white',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1,
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                title: function(tooltipItems) {
+                  return `Semaine: ${tooltipItems[0].label}`;
+                },
+                label: function(context) {
+                  return context.parsed.y > 0 ? `${context.dataset.label}: ${context.parsed.y} hébergements` : '';
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              display: true,
+              stacked: true,
+              title: {
+                display: true,
+                text: 'Date',
+                font: {
+                  size: 14
+                }
+              },
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            },
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              beginAtZero: true,
+              stacked: true,
+              title: {
+                display: true,
+                text: 'Nombre d\'hébergements',
+                color: 'rgba(54, 162, 235, 1)',
+                font: {
+                  weight: 'bold'
+                }
+              },
+              ticks: {
+                precision: 0,
+                color: 'rgba(54, 162, 235, 1)'
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            }
+          }
+        }
+      });
+      
     }
     
     function loadData() {
@@ -423,6 +687,7 @@
       document.getElementById('duree-moyenne').textContent = data.duree_moyenne || 0;
       document.getElementById('patients-uniques').textContent = data.patients_uniques || 0;
       document.getElementById('nombre-hebergement').textContent = data.nombre_hebergement || 0;
+      document.getElementById('nombre-hebergement-2').textContent = data.nombre_hebergement || 0;
       document.getElementById('pourcentage-hebergement').textContent = data.pourcentage_hebergement || 0;
     }
     
@@ -440,6 +705,90 @@
         typeSejoursChart.data.labels = [];
         typeSejoursChart.data.datasets[0].data = [];
         typeSejoursChart.update();
+      }
+      
+      // Update charge chart
+      if (data.charge && data.charge.length > 0) {
+        const chargeLabels = data.charge.map(item => {
+          return item.date_entree
+        });
+        const chargeData = data.charge.map(item => item.count);
+        
+        chargeChart.data.labels = chargeLabels;
+        chargeChart.data.datasets[0].data = chargeData;
+        chargeChart.update();
+      } else {
+        // Clear chart if no data
+        chargeChart.data.labels = [];
+        chargeChart.data.datasets[0].data = [];
+        chargeChart.update();
+      }
+      
+      // Update hebergement chart
+      updateHebergementChart(data.hebergement_data || []);
+    }
+    
+    function updateHebergementChart(hebergementData) {
+      console.log('Updating hebergement chart with data:', hebergementData);
+      
+      if (hebergementData && hebergementData.length > 0) {
+        // Process data to group by date and EM
+        const dataByDate = {};
+        const emSet = new Set();
+        
+        hebergementData.forEach(item => {
+          const date = item[0]; // date_entree
+          const em = item[1]; // code_em
+          
+          if (!dataByDate[date]) {
+            dataByDate[date] = {};
+          }
+          
+          if (!dataByDate[date][em]) {
+            dataByDate[date][em] = 0;
+          }
+          
+          dataByDate[date][em]++;
+          emSet.add(em);
+        });
+        
+        // Sort dates and convert to readable format
+        const sortedDates = Object.keys(dataByDate).sort();
+        const formattedDates = sortedDates.map(date => {
+          return date
+        });
+        
+        // Generate colors for different EMs
+        const colors = [
+          'rgba(255, 99, 132, 0.8)',
+          'rgba(54, 162, 235, 0.8)',
+          'rgba(255, 205, 86, 0.8)',
+          'rgba(75, 192, 192, 0.8)',
+          'rgba(153, 102, 255, 0.8)',
+          'rgba(255, 159, 64, 0.8)',
+          'rgba(199, 199, 199, 0.8)',
+          'rgba(83, 102, 255, 0.8)',
+          'rgba(255, 99, 255, 0.8)',
+          'rgba(99, 255, 132, 0.8)'
+        ];
+        
+        // Create datasets for each EM
+        const datasets = Array.from(emSet).map((em, index) => ({
+          label: em,
+          data: sortedDates.map(date => dataByDate[date][em] || 0),
+          backgroundColor: colors[index % colors.length],
+          borderColor: colors[index % colors.length].replace('0.8', '1'),
+          borderWidth: 1
+        }));
+        
+        hebergementChart.data.labels = formattedDates;
+        hebergementChart.data.datasets = datasets;
+        hebergementChart.update();
+      } else {
+        // Clear chart if no data
+        hebergementChart.data.labels = [];
+        hebergementChart.data.datasets = [];
+        hebergementChart.update();
       }
     }
   </script>

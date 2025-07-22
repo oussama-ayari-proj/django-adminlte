@@ -2,15 +2,17 @@ from django.db import models
 
 # Create your models here.
 class Lit(models.Model):
-    code_uf = models.IntegerField(db_column='code_UF')
-    semaine = models.IntegerField(null=True, blank=True)
-    lits_installes = models.IntegerField(null=True, blank=True)
-    lits_fermes_moyen = models.FloatField(null=True, blank=True)
-    lits_fermes_max_prov = models.FloatField(null=True, blank=True)
-    journees_fermeture = models.FloatField(null=True, blank=True)
+    id = models.AutoField(primary_key=True, db_column='id')
+    code_uf = models.IntegerField(db_column='Code UF')
+    semaine = models.IntegerField(null=True, blank=True,db_column='Semaine')
+    lits_installes = models.IntegerField(null=True, blank=True,db_column='LITS INSTALLES')
+    lits_fermes_moyen = models.FloatField(null=True, blank=True,db_column='Lits fermés moyens')
+    journees_fermeture = models.FloatField(null=True, blank=True,db_column='Journées lits fermées 2024')
 
     class Meta:
-        db_table = 'Lits_2024'
+        db_table = 'Lits_total'
+        managed = False
+        unique_together = (('code_uf', 'semaine'),)
 
     def __str__(self):
         return f"Lit UF {self.code_uf} semaine {self.semaine}"

@@ -56,11 +56,11 @@ class Hospitalisation(models.Model):
 
 class Lits_occupes(models.Model):
     code_uf = models.IntegerField(db_column='code_uf', null=True, blank=True, help_text="Code de l'unité fonctionnelle")
-    lits_occupes = models.IntegerField(null=True, blank=True, help_text="Nombre de lits occupés")
+    value = models.IntegerField(null=True, blank=True, help_text="Nombre de lits occupés")
     date = models.DateField(null=True, blank=True, help_text="Date")
 
     class Meta:
-        db_table = 'lits_occupes'
+        db_table = 'lits_occupes_total'
         managed = False  
     
     def __str__(self):
@@ -71,9 +71,9 @@ class Besoins(models.Model):
     date = models.DateTimeField(primary_key=True, help_text="Date de la mesure")
     max = models.BigIntegerField(null=True, blank=True, help_text="Valeur maximale")
     min = models.BigIntegerField(null=True, blank=True, help_text="Valeur minimale")
-    mediane = models.FloatField(null=True, blank=True, help_text="Médiane")
+    median = models.FloatField(null=True, blank=True, help_text="Médiane")
     class Meta:
-        db_table = 'besoin_reel'
+        db_table = 'besoin_total'
         managed = False
         unique_together = (('code_uf', 'date'),)
         

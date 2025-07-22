@@ -1,0 +1,756 @@
+{% extends 'layouts/base.html' %}
+{% load static %}
+
+{% block title %} Données d'Hospitalisation {% endblock title %}
+
+{% block bodyclass %} hold-transition sidebar-mini {% endblock bodyclass %}
+
+{% block content %}
+  <!-- Content Wrapper. Contains page content -->
+  <style>
+  .content-wrapper, .container-fluid {
+    font-size: 1.2rem;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-size: 1.7rem !important;
+  }
+  label, select, .form-control, .select2-selection__rendered, .select2-results__option {
+    font-size: 1.2rem !important;
+  }
+  table {
+    font-size: 0.95rem !important;
+  }
+  .stats-card {
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  .stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #227F79;
+  }
+  .stat-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #227F79;
+  }
+  .breadcrumb {
+    font-size: 1rem !important;
+  }
+  .ems-list {
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  .em-item {
+    margin-bottom: 0.25rem;
+  }
+  .em-item .badge {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    border-radius: 4px;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+  }
+  .badge-pill {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.8rem;
+  }
+  .text-purple {
+    color: #6f42c1 !important;
+  }
+  @media (max-width: 1200px) {
+    html, body, .content-wrapper, .container-fluid {
+      font-size: 1rem;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-size: 1.2rem !important;
+    }
+    table {
+      font-size: 0.85rem !important;
+    }
+    .stat-number {
+      font-size: 1.5rem;
+    }
+    .stat-text {
+      font-size: 1rem;
+    }
+    .stat-text-truncate {
+      font-size: 0.9rem;
+    }
+  }
+  </style>
+  
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <div class="content-header" style="margin-left:1rem;">
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1 class="m-0">Données d'Hospitalisation</h1>
+          </div>
+          <div class="col-sm-6">
+            <ol class="breadcrumb float-sm-right">
+              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item active">Hospitalisation</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="content" style="margin-left:1rem;">
+      <div class="container-fluid">
+          <!-- Filters Row -->
+        <div class="row mt-4">
+          <div class="col-lg-4">
+            <div class="form-group">
+              <label for="uf-filter">Séléctionner un UF:</label>
+              <select class="form-control" id="uf-filter">
+                {% for uf in ufs %}
+                  <option value="{{ uf.code_uf }}">{{ uf.libelle_standard }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="form-group">
+              <label for="year-filter">Année: <span class="text-danger">*</span></label>
+              <select class="form-control" id="year-filter" required>
+                <option value="">Sélectionner une année</option>
+                {% for year in available_years %}
+                  <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          
+        </div>
+        <!-- Chart Section -->
+        <div class="row mt-5">
+          <div class="col-12">
+            <hr style="border: 2px solid #227F79; margin: 2rem 0;">
+            <div class="text-center mb-4">
+              <h4 style="color: #227F79; font-weight: bold;">
+                <i class="fas fa-chart-line mr-2"></i>
+                Évolution des Lits Fermés par Semaine
+              </h4>
+              <p class="text-muted">Graphique temporel des lits fermés sur l'année sélectionnée</p>
+            </div>
+          </div>
+        </div>
+
+
+        <div class="row mt-4">            
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-bed fa-3x text-warning"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Moyenne lits fermés</h5>
+                                <div class="stat-number text-warning" id="lits-fermes">-</div>
+                                <small class="text-muted">lits/semaine</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-hospital fa-3x text-success"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Lits installés moyens</h5>
+                                <div class="stat-number text-success" id="lits-installes">-</div>
+                                <small class="text-muted">lits disponibles</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-arrow-down fa-3x text-info"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Minimum lits fermés</h5>
+                                <div class="stat-number text-info" id="min-lits-fermes">-</div>
+                                <small class="text-muted">valeur minimale</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+      
+
+        <div class="row mt-4">
+          <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-arrow-up fa-3x text-danger"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Maximum lits fermés</h5>
+                                <div class="stat-number text-danger" id="max-lits-fermes">-</div>
+                                <small class="text-muted">valeur maximale</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-chart-bar fa-3x text-purple"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Variance lits fermés</h5>
+                                <div class="stat-number text-purple" id="var-lits-fermes">-</div>
+                                <small class="text-muted">mesure de dispersion</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-chart-line fa-3x text-secondary"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Écart-type lits fermés</h5>
+                                <div class="stat-number text-secondary" id="std-lits-fermes">-</div>
+                                <small class="text-muted">déviation standard</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fas fa-bed mr-2"></i>
+                  Lits Fermés par Semaine
+                </h3>
+              </div>
+              <div class="card-body">
+                <canvas id="lits-fermes-chart" width="100%" height="400px"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lits Occupés Bar Chart Section -->
+        <div class="row mt-5">
+          <div class="col-12">
+            <hr style="border: 2px solid #227F79; margin: 2rem 0;">
+            <div class="text-center mb-4">
+              <h4 style="color: #227F79; font-weight: bold;">
+                <i class="fas fa-chart-bar mr-2"></i>
+                Évolution des Lits Occupés
+              </h4>
+              <p class="text-muted">Graphique en barres de l'occupation des lits sur l'année sélectionnée</p>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-4">            
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-bed fa-3x text-warning"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Moyenne lits occupés</h5>
+                                <div class="stat-number text-warning" id="lits-occupes">-</div>
+                                <small class="text-muted">lits/semaine</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        
+            
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-arrow-down fa-3x text-info"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Minimum lits occupés</h5>
+                                <div class="stat-number text-info" id="min-lits-occupes">-</div>
+                                <small class="text-muted">valeur minimale</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+      
+
+        <div class="row mt-4">
+          <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-arrow-up fa-3x text-danger"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Maximum lits occupés</h5>
+                                <div class="stat-number text-danger" id="max-lits-occupes">-</div>
+                                <small class="text-muted">valeur maximale</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-chart-bar fa-3x text-purple"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Variance lits occupés</h5>
+                                <div class="stat-number text-purple" id="var-lits-occupes">-</div>
+                                <small class="text-muted">mesure de dispersion</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-chart-line fa-3x text-secondary"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Écart-type lits occupés</h5>
+                                <div class="stat-number text-secondary" id="std-lits-occupes">-</div>
+                                <small class="text-muted">déviation standard</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">
+                  <i class="fas fa-chart-bar mr-2"></i>
+                  Lits Occupés par Date
+                </h3>
+              </div>
+              <div class="card-body">
+                <canvas id="lits-occupes-chart" width="100%" height="400px"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+{% block extra_scripts %}
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
+  <script>
+    let minDate = null;
+    let maxDate = null;
+    let litsFermesChart;
+    let litsOccupesChart;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize charts
+      initializeLitsFermesChart();
+      initializeLitsOccupesChart();
+      
+      loadData();
+      
+      // Add event listeners for filters
+      document.getElementById('uf-filter').addEventListener('change', loadData);
+      document.getElementById('year-filter').addEventListener('change', function() {
+        loadData();
+      });
+      
+    });
+
+    function initializeLitsFermesChart() {
+      const ctx = document.getElementById('lits-fermes-chart').getContext('2d');
+      litsFermesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Lits Fermés',
+            data: [],
+            borderColor: 'rgb(255, 159, 64)',
+            backgroundColor: 'rgba(255, 159, 64, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.1,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: 'rgb(255, 159, 64)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
+          }, {
+            label: 'Lits Installés',
+            data: [],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.1,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            pointBackgroundColor: 'rgb(75, 192, 192)',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            zoom: {
+                  pan:{
+                    enabled: true,
+                    mode: 'xy',
+                    speed: 10,
+                    threshold: 10
+                  },
+                  limits: {
+                    x: {min: 'original', max: 'original'},
+                    y: {min: 0, max: 'original'}
+                  },
+                  zoom: {
+                    wheel: {
+                      enabled: true,
+                    },
+                    pinch: {
+                      enabled: true
+                    },
+                    mode: 'x',
+                  }
+              },
+            
+            title: {
+              display: true,
+              text: 'Évolution des Lits Fermés et Installés par Semaine',
+              font: {
+                size: 16
+              },
+              padding: 20
+            },
+            legend: {
+              display: true,
+              position: 'top'
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: 'rgba(255, 159, 64, 0.8)',
+              borderWidth: 1,
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${context.parsed.y} lits`;
+                }
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          },
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Semaine',
+                font: {
+                  size: 14
+                }
+              },
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45
+              },
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            },
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Nombre de lits',
+                font: {
+                  size: 14
+                }
+              },
+              beginAtZero: true,
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.1)'
+              },
+              ticks: {
+                stepSize: 1,
+                callback: function(value) {
+                  return Number.isInteger(value) ? value : '';
+                }
+              }
+            }
+          },
+          elements: {
+            line: {
+              borderCapStyle: 'round',
+              borderJoinStyle: 'round'
+            }
+          }
+        }
+      });
+    }
+
+    function initializeLitsOccupesChart() {
+      const ctx = document.getElementById('lits-occupes-chart').getContext('2d');
+      litsOccupesChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [{
+            label: 'Lits Occupés',
+            data: [],
+            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+            borderColor: 'rgb(54, 162, 235)',
+            borderWidth: 2,
+            borderRadius: 4,
+            borderSkipped: false,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            zoom: {
+              pan: {
+                enabled: true,
+                mode: 'xy',
+                speed: 10,
+                threshold: 10
+              },
+              limits: {
+                x: {min: 'original', max: 'original'},
+                y: {min: 0, max: 'original'}
+              },
+              zoom: {
+                wheel: {
+                  enabled: true,
+                },
+                pinch: {
+                  enabled: true
+                },
+                mode: 'x',
+              }
+            },
+            title: {
+              display: true,
+              text: 'Évolution des Lits Occupés par Date',
+              font: {
+                size: 16
+              },
+              padding: 20
+            },
+            legend: {
+              display: true,
+              position: 'top'
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: 'rgba(54, 162, 235, 0.8)',
+              borderWidth: 1,
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${context.parsed.y} lits`;
+                }
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          },
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Date',
+                font: {
+                  size: 14
+                }
+              },
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45
+              },
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            },
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Nombre de lits occupés',
+                font: {
+                  size: 14
+                }
+              },
+              beginAtZero: true,
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.1)'
+              },
+              ticks: {
+                stepSize: 1,
+                callback: function(value) {
+                  return Number.isInteger(value) ? value : '';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    
+    function loadData() {
+      
+      
+      const ufFilter = document.getElementById('uf-filter').value;
+      const year = document.getElementById('year-filter').value;
+      
+      const params = new URLSearchParams();
+      if (ufFilter && year) {
+        params.append('code_uf', ufFilter);
+        params.append('year', year);
+        fetch(`/api/stats/lits-fermes/?${params}`)
+          .then(response => response.json())
+          .then(data => {
+            console.log('Data fetched:', data);
+            updateStatistics(data);
+          })
+          .catch(error => console.error('Error fetching data:', error));
+      }
+      
+      
+    }
+    function updateStatistics(data) {
+      document.getElementById('lits-fermes').textContent = data.lits_fermes;
+      document.getElementById('lits-installes').textContent = data.lits_installes;
+      document.getElementById('min-lits-fermes').textContent = data.min_lits_fermes;
+      document.getElementById('max-lits-fermes').textContent = data.max_lits_fermes;
+      document.getElementById('std-lits-fermes').textContent = data.std_lits_fermes;
+      document.getElementById('var-lits-fermes').textContent = data.var_lits_fermes;
+      
+      document.getElementById('lits-occupes').textContent = data.lits_occupes;
+      document.getElementById('min-lits-occupes').textContent = data.min_lits_occupes;
+      document.getElementById('max-lits-occupes').textContent = data.max_lits_occupes;
+      document.getElementById('std-lits-occupes').textContent = data.std_lits_occupes;
+      document.getElementById('var-lits-occupes').textContent = data.var_lits_occupes;
+      // Update charts
+      updateLitsFermesChart(data.lits_data || []);
+      updateLitsOccupesChart(data.lits_occupes_data || []);
+    }
+    
+    function updateLitsFermesChart(litsData) {
+      console.log('Updating lits fermés chart with data:', litsData);
+      
+      if (litsData && litsData.length > 0) {
+        // Extract labels (semaines) and data
+        const labels = litsData.map(item => {
+          return item.semaine;
+        });
+        
+        const litsFermesData = litsData.map(item => item.lits_fermes || 0);
+        const litsInstallesData = litsData.map(item => item.lits_installes || 0);
+        
+        // Update chart data
+        litsFermesChart.data.labels = labels;
+        litsFermesChart.data.datasets[0].data = litsFermesData;
+        litsFermesChart.data.datasets[1].data = litsInstallesData;
+        litsFermesChart.update();
+      } else {
+        // Clear chart if no data
+        litsFermesChart.data.labels = [];
+        litsFermesChart.data.datasets[0].data = [];
+        litsFermesChart.data.datasets[1].data = [];
+        litsFermesChart.update();
+      }
+    }
+
+    function updateLitsOccupesChart(litsOccupesData) {
+      console.log('Updating lits occupés chart with data:', litsOccupesData);
+      
+      if (litsOccupesData && litsOccupesData.length > 0) {
+        // Process and sort the data by date
+        const processedData = litsOccupesData
+          .filter(item => item.date && item.value !== null && item.value !== undefined)
+          .map(item => ({
+            date: new Date(item.date),
+            value: Number(item.value) || 0,
+            dateStr: new Date(item.date).toLocaleDateString('fr-FR')
+          }))
+          .sort((a, b) => a.date - b.date);
+        
+        // Extract labels and data
+        const labels = processedData.map(item => item.dateStr);
+        const data = processedData.map(item => item.value);
+        
+        // Update chart data
+        litsOccupesChart.data.labels = labels;
+        litsOccupesChart.data.datasets[0].data = data;
+        litsOccupesChart.update();
+      } else {
+        // Clear chart if no data
+        litsOccupesChart.data.labels = [];
+        litsOccupesChart.data.datasets[0].data = [];
+        litsOccupesChart.update();
+      }
+    }
+  </script>
+{% endblock extra_scripts %}

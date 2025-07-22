@@ -731,7 +731,7 @@
       // Grouper les hébergements par semaine et UF
       const weeklyUFData = {};
       const allUFs = new Set();
-      
+      console.log('Données des hébergements:', data.stats.hebergements);
       data.stats.hebergements.forEach(row => {
         const semaine = row.semaine_entree || 'Inconnue';
         const uf = row.libelle_uf || row.code_uf || 'UF Inconnue';

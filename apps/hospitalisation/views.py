@@ -8,6 +8,8 @@ from apps.pages.models import UF, ETB, Pole
 from apps.correlation.models import Lit, RH
 from apps.hebergement_hors_uf.models import Matrice_EM_UF,EM
 from django.db import models
+from .models import Besoins
+import numpy as np
 
 
 def index(request):
@@ -34,20 +36,8 @@ def get_hospitalisation_stats(request):
             stats['em_associes'] = [
                 em.strip() if em else 'Non spécifié' for em in em_associes_libelle
             ]
-            lits_occupes = Lits_occupes.objects.filter(code_uf=code_uf).order_by('date')
-            besoins = Besoins.objects.filter(code_uf=code_uf).order_by('date')
-            if besoins.exists():
-                stats['besoins'] = [
-                    {
-                        'date': b.date.strftime('%Y-%m-%d') if b.date else None,
-                        'min': b.min,
-                        'max': b.max,
-                        'mediane': b.mediane
-                    }
-                    for b in besoins
-                ]
-            if lits_occupes.exists():
-                stats['lits_occupes'] = list(lits_occupes.values('date','lits_occupes'))
+            
+            
             try:
                 etb = ETB.objects.get(code_etb=uf.code_etb)
                 stats['etb'] = etb.libelle_standard.strip() if etb.libelle_standard else 'Non spécifié'
@@ -224,7 +214,7 @@ def get_sejours_analysis(request):
         ).filter(type_sejour__isnull=False).order_by('-count'))
         
         
-        hebergement_count = queryset.filter(duree_sejour__gt=0).count()
+        hebergement_count,heb_data = calculer_hebergements(code_uf, queryset)
         total_count = queryset.count()
         pourcentage_hebergement = (hebergement_count / total_count * 100) if total_count > 0 else 0
         
@@ -239,9 +229,141 @@ def get_sejours_analysis(request):
             'patients_uniques': stats['patients_uniques'],
             'type_sejours': type_sejours,
             'nombre_hebergement': hebergement_count,
-            'pourcentage_hebergement': round(pourcentage_hebergement, 1)
+            'pourcentage_hebergement': round(pourcentage_hebergement, 1),
+            'charge': list(queryset.values(
+                'date_entree'
+            ).annotate(
+                count=Count('id')
+            ).order_by('date_entree')),
+            'hebergement_data': list(heb_data),
         })
         
     except Exception as e:
         print(f"Error in get_sejours_analysis: {e}")
         return JsonResponse({'error': str(e)}, status=500)
+    
+def calculer_hebergements(code_uf,data):
+    try:
+        em_associes = Matrice_EM_UF.objects.filter(code_uf=code_uf).values_list('code_em', flat=True)
+        heb_data_raw = data.exclude(code_em__in=em_associes).values_list(
+            'date_entree', 'code_em'
+        )
+        
+        # Create a mapping of code_em to libelle_em
+        em_codes = set(item[1] for item in heb_data_raw if item[1])  # Get unique EM codes
+        em_mapping = {}
+        for em_code in em_codes:
+            try:
+                em = EM.objects.get(code_em=em_code)
+                em_mapping[em_code] = em.libelle_em.strip() if em.libelle_em else f"EM_{em_code}"
+            except EM.DoesNotExist:
+                em_mapping[em_code] = f"EM_{em_code}"
+        
+        # Replace code_em with libelle_em in the data
+        heb_data = []
+        for date_entree, code_em in heb_data_raw:
+            em_label = em_mapping.get(code_em, f"EM_{code_em}")
+            heb_data.append([
+                date_entree,
+                em_label
+            ])
+        heb_count = len(heb_data)
+        return heb_count, heb_data
+    except Exception as e:
+        print(f"Error in calculer_hebergements: {e}")
+        return 0, []
+
+
+def index_lits_fermes(request):
+    """View for the Lits Fermés page"""
+    ufs = UF.objects.order_by('libelle_standard')
+    ufs_list = list(ufs.values('code_uf', 'libelle_standard'))
+    available_years=[2023, 2024]
+    return render(request, 'hospitalisation/lits_fermes.html', {
+        'ufs': ufs_list, 
+        'available_years': available_years
+    })
+
+def get_lits_fermes_stats(request):
+    code_uf = request.GET.get('code_uf')
+    year = request.GET.get('year')
+    
+    if not code_uf or not year:
+        return JsonResponse({'error': 'Missing code_uf or year'}, status=400)
+    
+    try:
+
+        lits_data = Lit.objects.filter(
+            code_uf=code_uf,
+            semaine__endswith=f" - {year}"
+        )
+        
+        lits_occupes_total = Lits_occupes.objects.filter(
+            code_uf=code_uf,
+            date__year=year
+        ).values('date', 'value')
+
+        lits_list = []
+        for lit in lits_data:
+            try:
+                week_number = int(lit.semaine.split(' - ')[0])
+            except (ValueError, IndexError):
+                week_number = 0 
+            
+            lits_list.append({
+                'semaine': lit.semaine,
+                'week_number': week_number,
+                'lits_installes': lit.lits_installes,
+                'lits_fermes': lit.lits_fermes_moyen,
+                'code_uf': lit.code_uf
+            })
+        
+        lits_occupes_list= []
+        for item in lits_occupes_total:
+            lits_occupes_list.append({
+                'date': item['date'],
+                'lits_occupes': item['value']
+            })
+        lits_occupes_list.sort(key=lambda x: x['date'])
+        # Sort by week number
+        lits_list.sort(key=lambda x: x['week_number'])
+
+        stats_lits= get_lits_fermes_kpis(lits_list, 'lits_fermes', 'lits_installes')
+        stats_lits['lits_data'] = lits_list
+
+        stats_lits_occupes = get_lits_fermes_kpis(lits_occupes_list, 'lits_occupes')
+        stats_lits_occupes['lits_occupes_data'] = list(lits_occupes_total) if lits_occupes_total else []
+        # Calculate summary statistics
+        
+        stats_lits_occupes.update(stats_lits)
+        
+        return JsonResponse(stats_lits_occupes,safe=False)
+        
+    except Exception as e:
+        print(f"Error in get_lits_fermes_stats: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+
+def get_lits_fermes_kpis(data,col,col2=None):
+        
+    
+    target = [float(item[col]) if item[col] else 0 for item in data]
+
+    total_records = len(data)
+    if col2:
+        avg_lits_installes = sum(float(item[col2]) for item in data if item[col2]) / total_records if total_records > 0 else 0
+    avg_target = sum(target) / total_records if total_records > 0 else 0
+    min_target = min((target), default=0)
+    max_target = max((target), default=0)
+    var_target=np.var(target) if total_records > 0 else 0
+    std_target = np.std(target) if total_records > 0 else 0
+    stats = {
+        f'{col}': round(avg_target, 1),
+        f'min_{col}': round(min_target,1),
+        f'max_{col}': round(max_target,1),
+        f'std_{col}': round(std_target, 1) if std_target else 0,
+        f'var_{col}': round(var_target, 1) if var_target else 0,
+    }
+    if col2:
+        stats['lits_installes'] = round(avg_lits_installes, 1)
+    return stats
