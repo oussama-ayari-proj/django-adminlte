@@ -87,12 +87,12 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Données d'Hospitalisation</h1>
+            <h1 class="m-0">Lits & Absences</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Hospitalisation</li>
+              <li class="breadcrumb-item"><a href="#">Accueil</a></li>
+              <li class="breadcrumb-item active">Lits & Absences</li>
             </ol>
           </div>
         </div>
@@ -253,6 +253,93 @@
             </div>
           </div>
         </div>
+        
+        <!-- Lits Occupés Bar Chart Section -->
+        <div class="row mt-5">
+          <div class="col-12">
+            <hr style="border: 2px solid #227F79; margin: 2rem 0;">
+            <div class="text-center mb-4">
+              <h4 style="color: #227F79; font-weight: bold;">
+                <i class="fas fa-chart-bar mr-2"></i>
+                Impact de l'absence sur la fermeture des lits
+              </h4>
+            </div>
+          </div>
+        </div>
+        <!-- Corrélation / Impacts -->
+        <div class="row mt-5">
+          <div class="col-lg-12" style="display: flex; align-items: center;justify-content: center; flex-direction: column;">
+            <h1>Corrélation (relation statistiques)</h1>
+            <div id="ccf-values" style="font-size:1.7rem; margin-top:2.5rem;padding-right: 2rem;">
+              <div style="margin-bottom: 2.2rem; display: flex; align-items: center;justify-content: space-between;">
+                <div>
+                  Abs total et lits fermés: <span id="ccf-abs-total" style="margin-left:1.2rem; font-weight: bold;">-</span>
+                </div>
+                <span id="ccf-abs-total-signif" style="margin-left:2.5rem;"></span>
+              </div>
+              <div style="margin-bottom: 2.2rem; display: flex; align-items: center;justify-content: space-between;">
+                <div>
+                  Abs Prévue et lits fermés: <span id="ccf-prevu" style="margin-left:1.2rem; font-weight: bold;">-</span>
+                </div>
+                <span id="ccf-prevu-signif" style="margin-left:2.5rem;"></span>
+              </div>
+              <div style="margin-bottom: 2.2rem; display: flex; align-items: center;justify-content: space-between;">
+                <div>
+                  Abs Imprévue et lits fermés: <span id="ccf-imprevu" style="margin-left:1.2rem; font-weight: bold;">-</span>
+                </div>
+                <span id="ccf-imprevu-signif" style="margin-left:2.5rem;"></span>
+              </div>
+              <!-- <div id="regression-equation" style="margin-top:2.5rem; font-size:2.2rem; color:#227F79; font-weight:bold;"></div> -->
+              
+            </div>
+          </div>
+        </div>
+        <!-- Régression Famille métiers -->
+        <div class="row mt-8" id="graph-container-famille" style="display: none;margin-top: 100px;">
+          <div class="d-flex">
+            <div class="text-center col-6">
+              <div class="d-flex justify-content-center">
+                <img id="coefs-graph-famille" src="" alt="Graphique d'impact par famille de métier" class="img-fluid col-12">
+              </div>
+            </div>
+            <div class="text-center col-6 d-flex justify-content-center align-items-center">
+              <div id="regression-explanation-famille" style="margin-top:1rem;"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Régression sous-famille -->
+        <div class="row mt-8" id="graph-container-sous-famille" style="display: none;margin-top: 100px;">
+          <div class="d-flex">
+            <div class="text-center col-6">
+              <div class="d-flex justify-content-center">
+                <img id="coefs-graph-sous-famille" src="" alt="Graphique d'impact par sous-famille de métier" class="img-fluid col-12">
+              </div>
+            </div>
+            <div class="text-center col-6 d-flex justify-content-center align-items-center">
+              <div id="regression-explanation-sous-famille" style="margin-top:1rem;"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Régression métiers -->
+        <div class="row mt-8" id="graph-container-metier" style="display: none;margin-top: 100px;">
+          <div class="d-flex">
+            <div class="text-center col-6">
+              <div class="d-flex justify-content-center flex-column">
+                <form method="get" class="form-inline mb-3" id="metier-graph-form">
+                  <label for="metier-graph-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Légende du graph:</label>
+                  <select class="form-control mr-2" id="metier-graph-dropdown" name="metier_graph_libelle" style="font-size: 2rem;height: auto;">
+                    <option value="famille">Famille</option>
+                    <option value="sous_famille">Sous-famille</option>
+                  </select>
+                </form>
+                <img id="coefs-graph-metier" src="" alt="Graphique d'impact par métier" class="img-fluid col-12">
+              </div>
+            </div>
+            <div class="text-center col-6 d-flex justify-content-center align-items-center">
+              <div id="regression-explanation-metier" style="margin-top:1rem;"></div>
+            </div>
+          </div>
+        </div>
 
         <!-- Lits Occupés Bar Chart Section -->
         <div class="row mt-5">
@@ -267,6 +354,8 @@
             </div>
           </div>
         </div>
+
+        <!-- Lits Occupés Stats Line 1 -->
         <div class="row mt-4">            
             <div class="col-lg-4">
                 <div class="card stats-card">
@@ -300,8 +389,8 @@
             </div>
         </div>
 
-      
 
+        <!-- Lits Occupés Stats Line 2 -->
         <div class="row mt-4">
           <div class="col-lg-4">
                 <div class="card stats-card">
@@ -347,6 +436,7 @@
                 </div>
             </div>
         </div>
+        <!-- Lits Occupés Chart -->
         <div class="row mt-3">
           <div class="col-12">
             <div class="card">
@@ -659,8 +749,6 @@
     
     
     function loadData() {
-      
-      
       const ufFilter = document.getElementById('uf-filter').value;
       const year = document.getElementById('year-filter').value;
       
@@ -675,19 +763,20 @@
             updateStatistics(data);
           })
           .catch(error => console.error('Error fetching data:', error));
+        get_data()
       }
       
       
     }
     function updateStatistics(data) {
-      document.getElementById('lits-fermes').textContent = data.lits_fermes;
+      document.getElementById('lits-fermes').textContent = data.mean_lits_fermes;
       document.getElementById('lits-installes').textContent = data.lits_installes;
       document.getElementById('min-lits-fermes').textContent = data.min_lits_fermes;
       document.getElementById('max-lits-fermes').textContent = data.max_lits_fermes;
       document.getElementById('std-lits-fermes').textContent = data.std_lits_fermes;
       document.getElementById('var-lits-fermes').textContent = data.var_lits_fermes;
       
-      document.getElementById('lits-occupes').textContent = data.lits_occupes;
+      document.getElementById('lits-occupes').textContent = data.mean_lits_occupes;
       document.getElementById('min-lits-occupes').textContent = data.min_lits_occupes;
       document.getElementById('max-lits-occupes').textContent = data.max_lits_occupes;
       document.getElementById('std-lits-occupes').textContent = data.std_lits_occupes;
@@ -752,5 +841,107 @@
         litsOccupesChart.update();
       }
     }
+  
+    function setSignificance(val, spanId) {
+      const span = document.getElementById(spanId);
+      if (val !== undefined && !isNaN(val)) {
+        if (Math.abs(val) > 0.5) {
+          span.textContent = 'Forte relation';
+          span.style.color = 'green';
+        } else {
+          span.textContent = 'Faible relation';
+          span.style.color = 'red';
+        }
+      } else {
+          span.textContent = '';
+      }
+    }
+    function displayRegressionExplanationAndGraph(reg_data,graph_data, graphContainerId,graphId, explanationId) {
+      const graphContainer = document.getElementById(graphContainerId);
+      const explainDiv = document.getElementById(explanationId);
+      if (reg_data && Object.keys(reg_data).length > 0
+          && graph_data) {
+          const coefs = reg_data;
+          let explanations = [];
+          if (coefs['const']>=0)
+            explanations.push(`<b>${coefs['const']} Lits fermé(s)</b> en moyenne pour les jours sans absences prévues.`);
+          for (const [key, value] of Object.entries(coefs)) {
+            if (key === 'const') continue;
+            if (value !== 0 && !isNaN(value) && Math.abs(value) > 1e-8) {
+              const abs_coef = Number(value);
+               if (abs_coef > 0) {
+                const inv = (1 / abs_coef).toFixed(1);
+                explanations.push(`Chaque <b>${inv} (1/${abs_coef}) absence(s) prévue(s)</b> de <b>${key}</b> cause(nt) la fermeture d'un lit de plus.`);
+              }
+            }
+          }
+          explainDiv.innerHTML = explanations.map((e, index) => {
+            if (index === 0) {
+              return `<div style="color:red;font-size:1.3rem;margin-bottom:2rem;">${e}</div>`;
+            } else {
+                return `<div style="font-size:1.3rem;margin-top:0.5rem;">${e}</div>`;
+            }
+          }).join('');
+          document.getElementById(graphId).src = 'data:image/png;base64,' + graph_data;
+          graphContainer.style.display = 'block'; // Show the graph container
+        } else {
+          explainDiv.innerHTML = '';
+          graphContainer.style.display = 'none'; // Hide the graph container
+        }
+    }
+    
+    function get_data(){
+      const selectedUfh = document.getElementById('uf-filter').value;
+      fetch(`/correlation-absences-lits/get_data_metiers/?code_uf=${selectedUfh}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('After UFH select : ',data);
+          document.getElementById('ccf-abs-total').textContent = (data.ccf_value_abs_total !== undefined) ? data.ccf_value_abs_total.toFixed(3) : '-';
+          setSignificance(data.ccf_value_abs_total, 'ccf-abs-total-signif');
+          document.getElementById('ccf-prevu').textContent = (data.ccf_value_agents_abs_prevu !== undefined) ? data.ccf_value_agents_abs_prevu.toFixed(3) : '-';
+          setSignificance(data.ccf_value_agents_abs_prevu, 'ccf-prevu-signif');
+          document.getElementById('ccf-imprevu').textContent = (data.ccf_value_agents_abs_imprevu !== undefined) ? data.ccf_value_agents_abs_imprevu.toFixed(3) : '-';
+          setSignificance(data.ccf_value_agents_abs_imprevu, 'ccf-imprevu-signif');
+          displayRegressionExplanationAndGraph(data.regression_res_metier, data.graph_metier, 'graph-container-metier', 'coefs-graph-metier', 'regression-explanation-metier');
+          displayRegressionExplanationAndGraph(data.regression_res_famille, data.graph_famille, 'graph-container-famille', 'coefs-graph-famille', 'regression-explanation-famille');
+          displayRegressionExplanationAndGraph(data.regression_res_sous_famille, data.graph_sous_famille, 'graph-container-sous-famille', 'coefs-graph-sous-famille', 'regression-explanation-sous-famille');
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+          // Set correlation values to default
+          document.getElementById('ccf-abs-total').textContent = '-';
+          document.getElementById('ccf-prevu').textContent = '-';
+          document.getElementById('ccf-imprevu').textContent = '-';
+          document.getElementById('ccf-abs-total-signif').textContent = '';
+          document.getElementById('ccf-prevu-signif').textContent = '';
+          document.getElementById('ccf-imprevu-signif').textContent = '';
+          document.getElementById('graph-container-metier').style.display = 'none';
+          document.getElementById('graph-container-famille').style.display = 'none';
+          document.getElementById('graph-container-sous-famille').style.display = 'none';
+          document.getElementById('regression-explanation-metier').innerHTML = '';
+          document.getElementById('regression-explanation-famille').innerHTML = '';
+          document.getElementById('regression-explanation-sous-famille').innerHTML = '';
+          document.getElementById('coefs-graph-metier').src = '';
+          document.getElementById('coefs-graph-famille').src = '';
+          document.getElementById('coefs-graph-sous-famille').src = '';
+          document.getElementById('coefs-graph-metier').alt = 'Graphique indisponible';
+          document.getElementById('coefs-graph-famille').alt = 'Graphique indisponible';
+          document.getElementById('coefs-graph-sous-famille').alt = 'Graphique indisponible';
+
+        });
+    }
+
+    $('#metier-graph-dropdown').on('change', function() {
+        const legende = $(this).val();
+        const selectedUfh = document.getElementById('uf-filter').value;
+        console.log('Selected legende:', legende);
+        fetch(`/correlation-absences-lits/get_metier_graph/?code_uf=${selectedUfh}&metier_graph_option=${legende}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('After metier graph select : ',data);
+          document.getElementById("coefs-graph-metier").src = 'data:image/png;base64,' + data.graph_metier;
+        })
+        .catch(error => console.error('Error fetching metier graph:', error));
+    });
   </script>
 {% endblock extra_scripts %}

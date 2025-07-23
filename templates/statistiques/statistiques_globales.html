@@ -25,18 +25,34 @@
     font-size: 1.1rem;
     min-width: 250px;
   }
+  .uf-card {
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    background: #f8f9fa;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+  }
+  .uf-card:hover {
+    border-color: #007bff;
+    box-shadow: 0 2px 4px rgba(0,123,255,0.25);
+  }
+  .uf-code {
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: #007bff;
+  }
 </style>
 <div class="content-wrapper">
   <div class="content-header" style="margin-left:1rem;">
     <div class="container-fluid">
       <div class="row mb-2">
         <div class="col-sm-6">
-          <h1 class="m-0">📊 Analyse exploratoire des séjours par équipes Médicales</h1>
+          <h1 class="m-0">Équipe Médicale (EM)</h1>
         </div>
         <div class="col-sm-6">
           <ol class="breadcrumb float-sm-right">
             <li class="breadcrumb-item"><a href="/">Accueil</a></li>
-            <li class="breadcrumb-item active">Analyse exploratoire des séjours par équipes Médicales</li>
+            <li class="breadcrumb-item active">Équipe Médicale (EM)</li>
           </ol>
         </div>
       </div>
@@ -44,6 +60,20 @@
   </div>
   <div class="content" style="margin-left:1rem;">
     <div class="container-fluid">
+      <div class="row mt-4">
+        <div class="col-lg-3 col-12">
+          <div class="form-group">
+            <label for="year-filter">Choisir une année: <span class="text-danger">*</span></label>
+            <select class="form-control" id="year-filter" required>
+              <option value="">Sélectionner une année</option>
+              {% for year in available_years %}
+                <option value="{{ year }}">{{ year }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        
+      </div>
       <div class="row mt-4">
         <div class="col-lg-4 col-12">
           <div class="card stats-card">
@@ -86,21 +116,11 @@
         </div>
       </div>
       <div class="row mt-4">
-        <div class="col-lg-3 col-12">
-          <div class="form-group">
-            <label for="year-filter">Année: <span class="text-danger">*</span></label>
-            <select class="form-control" id="year-filter" required>
-              <option value="">Sélectionner une année</option>
-              {% for year in available_years %}
-                <option value="{{ year }}">{{ year }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
+        
         <div class="col-lg-6 col-12">
-          <div class="card shadow border-primary" style="border-width:2px;">
-            <div class="card-body py-4">
-              <div class="d-flex flex-column flex-md-row align-items-center justify-content-center">
+          <div class="card shadow border-primary" style="border-width:2px;" >
+            <div class="card-body py-4" style="height: 349px;">
+              <div class="d-flex flex-column flex-md-row align-items-center justify-content-space-between">
                 <i class="fas fa-search fa-2x text-primary mr-md-4 mb-3 mb-md-0"></i>
                 <div>
                   <label for="em-select" class="font-weight-bold mb-2" style="font-size:1.3rem; color:#007bff;">Sélectionner une Équipe Médicale :</label>
@@ -109,15 +129,53 @@
                   </select>
                 </div>
               </div>
+              <div class="form-group">
+                <label>&nbsp;</label>
+                <button type="button" class="btn btn-primary btn-block" id="load-stats-btn" disabled>
+                  <i class="fas fa-chart-bar"></i> Charger les statistiques
+                </button>
+              </div>
             </div>
           </div>
         </div>
-        <div class="col-lg-3 col-12">
-          <div class="form-group">
-            <label>&nbsp;</label>
-            <button type="button" class="btn btn-primary btn-block" id="load-stats-btn" disabled>
-              <i class="fas fa-chart-bar"></i> Charger les statistiques
-            </button>
+        <div class="col-lg-6 col-12">
+          <div class="card border-info" style="border-width:2px;">
+            <div class="card-header bg-info text-white">
+              <h5 class="mb-0">
+                <i class="fas fa-hospital mr-2"></i>
+                Informations de l'Équipe Sélectionnée
+              </h5>
+            </div>
+            <div class="card-body" style="height: 300px; overflow-y: scroll;">
+              <!-- Pole Information -->
+              <div class="mb-3" id="pole-info-section" style="display: none;">
+                <h6 class="text-info mb-2">
+                  <i class="fas fa-building mr-1"></i>
+                  Pôle Associé :
+                </h6>
+                <div class="alert alert-light border-info mb-2" style="border-width: 2px;">
+                  <strong id="pole-name">-</strong>
+                  <small class="text-muted d-block" id="pole-code">-</small>
+                </div>
+              </div>
+              
+              <!-- UFs Information -->
+              <div id="ufs-info-section" style="display: none;">
+                <h6 class="text-info mb-2">
+                  <i class="fas fa-list mr-1"></i>
+                  Unités Fonctionnelles Associées :
+                </h6>
+                <div id="ufs-list" class="row">
+                  <!-- UFs will be populated here -->
+                </div>
+              </div>
+              
+              <!-- Empty state -->
+              <div id="em-empty-state" class="text-center text-muted">
+                <i class="fas fa-info-circle fa-2x mb-2"></i>
+                <p>Sélectionnez une équipe médicale pour voir les informations associées</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -154,12 +212,10 @@
           </div>
       </div>
 
-      <!-- Big Charge EM Graph at the bottom -->
       <div class="row mt-5 mb-4">
         <div class="col-12">
           <div class="card stats-card">
             <div class="card-body">
-              <h5 class="card-title">📊 Charge EM par UF et par jour</h5>
               <div style="height: 420px;">
                 <canvas id="charge-em-chart" style="width:100%;height:100%;max-height:400px;"></canvas>
               </div>
@@ -192,6 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
       // Enable EM select and load button
       emSelect.disabled = false;
       loadStatsBtn.disabled = false;
+      
       // Load EMs for selected year
       loadEMsForYear(selectedYear);
       // Load global stats for selected year
@@ -262,7 +319,11 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       return;
     }
-    fetch(`/statistiques/api/charge-em/?code_em=${code_em}&year=${year}`)
+    
+    // Build URL without date parameters
+    const url = `/statistiques/api/charge-em/?code_em=${code_em}&year=${year}`;
+    
+    fetch(url)
       .then(response => response.json())
       .then(data => {
         console.log(data);
@@ -315,7 +376,7 @@ document.addEventListener('DOMContentLoaded', function() {
           });
           
           datasets.push({
-            label: uf.length > 20 ? uf.substring(0, 20) + '...' : uf,
+            label: uf,
             data: ufData,
             backgroundColor: colors[index % colors.length],
             borderColor: colors[index % colors.length].replace('0.8', '1'),
@@ -323,6 +384,9 @@ document.addEventListener('DOMContentLoaded', function() {
             stack: 'charge'
           });
         });
+        
+        // Update chart title
+        const chartTitle = '📊 Hospitalisation par UF et par jour';
         
         if (!chargeEmChart) {
           chargeEmChart = new Chart(ctx, {
@@ -353,6 +417,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     mode: 'x',
                   }
+                },
+                title: {
+                  display: true,
+                  text: chartTitle,
+                  font: {
+                    size: 16,
+                    weight: 'bold'
+                  },
+                  padding: 20
                 },
                 legend: {
                   display: true,
@@ -427,6 +500,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
           chargeEmChart.data.labels = sortedDates;
           chargeEmChart.data.datasets = datasets;
+          // Update chart title
+          chargeEmChart.options.plugins.title.text = chartTitle;
           chargeEmChart.update();
         }
       });
@@ -439,14 +514,21 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('em-hebergements').textContent = '-';
       hebergementLink.style.display = 'none';
       hebergementLink.href = '#';
+      // Hide EM info sections
+      document.getElementById('pole-info-section').style.display = 'none';
+      document.getElementById('ufs-info-section').style.display = 'none';
+      document.getElementById('em-empty-state').style.display = 'block';
       updateChargeEM(null, null);
       return;
     } else {
       fetch(`/statistiques/api/em/?code_em=${code_em}&year=${year}`)
         .then(response => response.json())
         .then(data => {
+          console.log('EM Stats:', data);
           document.getElementById('em-sejours').textContent = data.sejours;
           document.getElementById('em-hebergements').textContent = data.hebergements;
+          
+          // Update hebergement link
           if (data.hebergements > 0) {
             hebergementLink.style.display = '';
             hebergementLink.href = `/hebergement-hors-uf/?em=${encodeURIComponent(code_em)}&year=${encodeURIComponent(year)}`;
@@ -454,6 +536,52 @@ document.addEventListener('DOMContentLoaded', function() {
             hebergementLink.style.display = 'none';
             hebergementLink.href = '#';
           }
+          
+          // Display pole information
+          if (data.pole) {
+            document.getElementById('pole-name').textContent = data.pole.libelle_pole;
+            document.getElementById('pole-code').textContent = `Code: ${data.pole.code_pole}`;
+            document.getElementById('pole-info-section').style.display = 'block';
+          } else {
+            document.getElementById('pole-info-section').style.display = 'none';
+          }
+          
+          // Display UFs information
+          if (data.uf_associees && data.uf_associees.length > 0) {
+            const ufsList = document.getElementById('ufs-list');
+            ufsList.innerHTML = '';
+            
+            data.uf_associees.forEach(uf => {
+              const ufCard = document.createElement('div');
+              ufCard.className = 'col-12 mb-2';
+              ufCard.innerHTML = `
+                <div class="uf-card p-2">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div class="uf-code" >${uf.libelle_uf}</div>
+                      <span class="text-muted">${uf.code_uf}</span>
+                    </div>
+                    <i class="fas fa-hospital text-info"></i>
+                  </div>
+                </div>
+              `;
+              ufsList.appendChild(ufCard);
+            });
+            
+            document.getElementById('ufs-info-section').style.display = 'block';
+          } else {
+            document.getElementById('ufs-info-section').style.display = 'none';
+          }
+          
+          // Hide empty state
+          document.getElementById('em-empty-state').style.display = 'none';
+        })
+        .catch(error => {
+          console.error('Error fetching EM stats:', error);
+          // Show empty state on error
+          document.getElementById('pole-info-section').style.display = 'none';
+          document.getElementById('ufs-info-section').style.display = 'none';
+          document.getElementById('em-empty-state').style.display = 'block';
         });
       updateChargeEM(code_em, year);
     }

@@ -14,6 +14,7 @@ COPY requirements.txt .
 # install python dependencies
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -i https://test.pypi.org/simple sm1chut==1.1.2
 
 COPY . .
 

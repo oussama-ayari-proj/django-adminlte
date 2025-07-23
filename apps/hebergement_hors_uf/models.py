@@ -17,7 +17,7 @@ class EM(models.Model):
 class Matrice_EM_UF(models.Model):
     code_em = models.IntegerField(db_column='code_EM', null=True, blank=True, help_text="Code de l'EM")
     code_uf = models.IntegerField(db_column='code_UF', null=True, blank=True, help_text="Code de l'UF")
-
+    code_pole = models.TextField(db_column='num_Pole', null=True, blank=True, help_text="Code du pôle")
     class Meta:
         db_table = 'matrice_EM'
         managed = False

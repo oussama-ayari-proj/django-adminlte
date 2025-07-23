@@ -277,6 +277,7 @@
                     graphContainer.style.display = 'none'; // Hide the graph container
                 }
             }
+            
             function get_data(){
                 const selectedUfh = ufhDropdown.value;
                 fetch(`/correlation-absences-lits/get_data_metiers/?code_uf=${selectedUfh}&code_pole=${poleDropdown.value}`)

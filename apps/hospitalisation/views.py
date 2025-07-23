@@ -3,12 +3,11 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.db.models import Min, Max, Avg, Count
 from django.core.paginator import Paginator
-from apps.hospitalisation.models import Hospitalisation,Lits_occupes,Besoins
+from apps.hospitalisation.models import Hospitalisation,Lits_occupes
 from apps.pages.models import UF, ETB, Pole
 from apps.correlation.models import Lit, RH
 from apps.hebergement_hors_uf.models import Matrice_EM_UF,EM
 from django.db import models
-from .models import Besoins
 import numpy as np
 
 
@@ -20,11 +19,7 @@ def index(request):
     
 def get_hospitalisation_stats(request):
     code_uf = request.GET.get('code_uf')
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-    
-    stats = Hospitalisation.get_stats(code_uf, start_date, end_date)
-    stats['duree_moyenne']=round(stats['duree_moyenne'], 1) if stats['duree_moyenne'] else 0
+    stats={}
     # Add ETB, Pôle, and Lits installés data
     if code_uf:
         try:
@@ -273,7 +268,6 @@ def calculer_hebergements(code_uf,data):
         print(f"Error in calculer_hebergements: {e}")
         return 0, []
 
-
 def index_lits_fermes(request):
     """View for the Lits Fermés page"""
     ufs = UF.objects.order_by('libelle_standard')
@@ -345,20 +339,19 @@ def get_lits_fermes_stats(request):
 
 
 def get_lits_fermes_kpis(data,col,col2=None):
-        
-    
     target = [float(item[col]) if item[col] else 0 for item in data]
 
     total_records = len(data)
     if col2:
         avg_lits_installes = sum(float(item[col2]) for item in data if item[col2]) / total_records if total_records > 0 else 0
-    avg_target = sum(target) / total_records if total_records > 0 else 0
+    avg_target = np.mean(target)
     min_target = min((target), default=0)
     max_target = max((target), default=0)
     var_target=np.var(target) if total_records > 0 else 0
     std_target = np.std(target) if total_records > 0 else 0
+
     stats = {
-        f'{col}': round(avg_target, 1),
+        f'mean_{col}': round(avg_target, 1),
         f'min_{col}': round(min_target,1),
         f'max_{col}': round(max_target,1),
         f'std_{col}': round(std_target, 1) if std_target else 0,

@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 
 from apps.hebergement_hors_uf.models import EM,Matrice_EM_UF,export_UF
 from apps.hospitalisation.models import Hospitalisation
+from apps.pages.models import UF, Pole
 from .models import ChargeEM
 
 
@@ -122,23 +123,70 @@ def api_em_stats(request):
     for h in hebergements.values_list('code_uf', flat=True):
         if h not in valid_ufs:
             hebergement_count += 1
+    
+    # Get UF names for associated UFs
+    uf_names = []
+    if valid_ufs:
+        ufs = UF.objects.filter(code_uf__in=valid_ufs).values('code_uf', 'libelle_standard')
+        uf_names = [
+            {
+                'code_uf': uf['code_uf'],
+                'libelle_uf': uf['libelle_standard'].strip() if uf['libelle_standard'] else f"UF {uf['code_uf']}"
+            }
+            for uf in ufs
+        ]
+    
+    # Get pole information from Matrice_EM_UF
+    pole_info = None
+    try:
+        matrice_entry = Matrice_EM_UF.objects.filter(code_em=code_em).first()
+        if matrice_entry and matrice_entry.code_pole:
+            try:
+                pole = Pole.objects.get(code_pole=matrice_entry.code_pole)
+                pole_info = {
+                    'code_pole': pole.code_pole,
+                    'libelle_pole': pole.libelle_standard.strip() if pole.libelle_standard else f"Pole {pole.code_pole}"
+                }
+            except Pole.DoesNotExist:
+                pole_info = {
+                    'code_pole': matrice_entry.code_pole,
+                    'libelle_pole': f"Pole {matrice_entry.code_pole}"
+                }
+    except Exception:
+        pole_info = None
+    
     return JsonResponse({
         'sejours': sejours,
-        'hebergements': hebergement_count
+        'hebergements': hebergement_count,
+        'uf_associees': uf_names,
+        'pole': pole_info
     })
 
 @require_GET
 def get_charge_em(request):
     code_em = request.GET.get('code_em')
     year = request.GET.get('year')
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+    
     if not code_em:
         return JsonResponse({'error': 'Missing code_em'}, status=400)
 
-    # Filter by year if provided
+    # Start with base filter
+    queryset = ChargeEM.objects.filter(code_em=code_em)
+    
+    # Apply date filters
     if year:
-        data = ChargeEM.objects.filter(code_em=code_em, date__year=year).order_by('date').values('date', 'charge','code_uf')
-    else:
-        data = ChargeEM.objects.filter(code_em=code_em).order_by('date').values('date', 'charge','code_uf')
+        queryset = queryset.filter(date__year=year)
+    
+    if start_date:
+        queryset = queryset.filter(date__gte=start_date)
+        
+    if end_date:
+        queryset = queryset.filter(date__lte=end_date)
+    
+    # Order by date and get values
+    data = queryset.order_by('date').values('date', 'charge','code_uf')
     
     # Get all UF codes and their labels in one query for efficiency
     uf_codes = set(row['code_uf'] for row in data if row['code_uf'])

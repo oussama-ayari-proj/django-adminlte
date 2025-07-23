@@ -18,7 +18,7 @@
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item"><a href="#">Accueil</a></li>
               <li class="breadcrumb-item active">Besoin réel en lits </li>
             </ol>
           </div>
@@ -30,6 +30,7 @@
     <section class="content" style="margin-left:1rem;">
       <div class="container-fluid">
         <div class="row mt-5">
+          <!-- UF Filter -->
           <div class="col-lg-4">
             <div class="form-group">
               <label for="uf-filter">Séléctionner un UF:</label>
@@ -38,6 +39,132 @@
                   <option value="{{ uf.code_uf }}">{{ uf.libelle_standard }}</option>
                 {% endfor %}
               </select>
+            </div>
+          </div>
+          <!-- Year Filter -->
+          <div class="col-lg-4">
+            <div class="form-group">
+              <label for="year-filter">Séléctionner une année:</label>
+              <select class="form-control" id="year-filter">
+                {% for year in years %}
+                  <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-5">
+          <div class="col-lg-12">
+            <h3>Comparaison Besoin en lits vs Lits occupés</h3>
+            
+            <!-- Date Filter Controls -->
+            <div class="row mb-3">
+              <div class="col-lg-3">
+                <div class="form-group">
+                  <label for="start-date-filter">Date de début:</label>
+                  <input type="date" class="form-control" id="start-date-filter">
+                </div>
+              </div>
+              <div class="col-lg-3">
+                <div class="form-group">
+                  <label for="end-date-filter">Date de fin:</label>
+                  <input type="date" class="form-control" id="end-date-filter">
+                </div>
+              </div>
+              <div class="col-lg-3">
+                <div class="form-group">
+                  <label>&nbsp;</label>
+                  <button type="button" class="btn btn-outline-secondary btn-block" id="reset-date-filter-btn">
+                    <i class="fas fa-undo"></i> Réinitialiser
+                  </button>
+                </div>
+              </div>
+              <div class="col-lg-3">
+                <div class="form-group">
+                  <label>&nbsp;</label>
+                  <button type="button" class="btn btn-primary btn-block" id="apply-date-filter-btn">
+                    <i class="fas fa-filter"></i> Appliquer filtre
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="card">
+              <div class="card-body">
+                <canvas id="besoin-lits-occupes-chart" width="100%" height="500"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KPIs Comparison Table -->
+        <div class="row mt-5">
+          <div class="col-lg-12">
+            <h3>Comparaison des Indicateurs Clés</h3>
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="fas fa-chart-bar mr-2"></i>
+                  KPIs - Besoin en lits vs Lits occupés
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-striped table-bordered">
+                    <thead class="thead-dark">
+                      <tr>
+                        <th>Indicateur</th>
+                        <th class="text-center">
+                          <i class="fas fa-bed text-primary mr-1"></i>
+                          Besoin en lits
+                        </th>
+                        <th class="text-center">
+                          <i class="fas fa-procedures text-success mr-1"></i>
+                          Lits occupés
+                        </th>
+                        <th class="text-center">
+                          <i class="fas fa-calculator text-warning mr-1"></i>
+                          Différence
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody id="kpis-comparison-table">
+                      <tr>
+                        <td><strong>Moyenne</strong></td>
+                        <td class="text-center" id="besoin-moyenne">-</td>
+                        <td class="text-center" id="lits-moyenne">-</td>
+                        <td class="text-center" id="diff-moyenne">-</td>
+                      </tr>
+                      
+                      <tr>
+                        <td><strong>Maximum</strong></td>
+                        <td class="text-center" id="besoin-max">-</td>
+                        <td class="text-center" id="lits-max">-</td>
+                        <td class="text-center" id="diff-max">-</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Minimum</strong></td>
+                        <td class="text-center" id="besoin-min">-</td>
+                        <td class="text-center" id="lits-min">-</td>
+                        <td class="text-center" id="diff-min">-</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Écart-type</strong></td>
+                        <td class="text-center" id="besoin-ecart">-</td>
+                        <td class="text-center" id="lits-ecart">-</td>
+                        <td class="text-center" id="diff-ecart">-</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Variance</strong></td>
+                        <td class="text-center" id="besoin-variance">-</td>
+                        <td class="text-center" id="lits-variance">-</td>
+                        <td class="text-center" id="diff-variance">-</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -53,6 +180,16 @@
                   <div class="form-group">
                     <label for="end-date">Date de fin de prédiction:</label>
                     <input type="date" class="form-control" id="end-date" name="end_date" required>
+                  </div>
+                  <div class="form-group">
+                    <div class="form-check">
+                      <input type="checkbox" class="form-check-input" id="enable-intervals" name="enable_intervals">
+                      <label class="form-check-label" for="enable-intervals">
+                        <i class="fas fa-chart-area mr-1"></i>
+                        Afficher les intervalles de confiance
+                      </label>
+                    </div>
+                    <small class="form-text text-muted">Affiche les bornes supérieures et inférieures de prédiction</small>
                   </div>
                   <button type="submit" class="btn btn-primary">
                     <i class="fas fa-chart-line"></i> Générer prédiction
@@ -75,6 +212,8 @@
         </div>
 
         
+
+        
         
         <!-- /.row -->
       </div><!-- /.container-fluid -->
@@ -92,23 +231,35 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
  
   <script>
+    let besoinsUFChart;
+    let besoinLitsOccupesChart;
+    let originalChartData = null; // Store original data for filtering
+    
     document.addEventListener('DOMContentLoaded', function() {
       
       initBesoinsUFChart();
+      initBesoinLitsOccupesChart();
       loadData();
       document.getElementById('uf-filter').addEventListener('change', loadData);
+      document.getElementById('year-filter').addEventListener('change', loadData);
       document.getElementById('prediction-form').addEventListener('submit', handlePredictionForm);
+      
+      // Date filter event listeners
+      document.getElementById('apply-date-filter-btn').addEventListener('click', applyDateFilter);
+      document.getElementById('reset-date-filter-btn').addEventListener('click', resetDateFilter);
     });
 
     function loadData() {
       const ufFilter = document.getElementById('uf-filter').value;
+      const yearFilter = document.getElementById('year-filter').value;
       const params = new URLSearchParams();
       if (ufFilter) params.append('code_uf', ufFilter);
+      if (yearFilter) params.append('year', yearFilter);
       fetch(`/predictions-lits/api/stats/?${params}`)
         .then(response => response.json())
         .then(data => {
           console.log('Data fetched:', data);
-          updateBesoinsUFChart(data);
+          updateBesoinLitsOccupesChart(data);
         })
         .catch(error => console.error('Error fetching data:', error));
     }
@@ -125,7 +276,36 @@
               borderColor: '#28a745',
               backgroundColor: 'rgba(40,167,69,0.1)',
               fill: false,
-              tension: 0.3
+              tension: 0.3,
+              borderWidth: 3,
+              pointRadius: 3,
+              pointHoverRadius: 5
+            },
+            {
+              label: 'Borne supérieure',
+              data: [],
+              borderColor: '#ff6b35',
+              backgroundColor: 'rgba(255, 107, 53, 0.2)',
+              fill: '+1',
+              tension: 0.3,
+              borderWidth: 2,
+              borderDash: [8, 4],
+              pointRadius: 0,
+              pointHoverRadius: 0,
+              hidden: true
+            },
+            {
+              label: 'Borne inférieure',
+              data: [],
+              borderColor: '#ff6b35',
+              backgroundColor: 'rgba(255, 107, 53, 0.2)',
+              fill: false,
+              tension: 0.3,
+              borderWidth: 2,
+              borderDash: [8, 4],
+              pointRadius: 0,
+              pointHoverRadius: 0,
+              hidden: true
             }
           ]
         },
@@ -154,27 +334,166 @@
                 mode: 'x',
               }
             },
-            legend: { display: true },
-            tooltip: { mode: 'index', intersect: false }
+            legend: { 
+              display: true,
+              onClick: function(e, legendItem, legend) {
+                const index = legendItem.datasetIndex;
+                const chart = legend.chart;
+                
+                if (chart.isDatasetVisible(index)) {
+                  chart.hide(index);
+                  legendItem.hidden = true;
+                } else {
+                  chart.show(index);
+                  legendItem.hidden = false;
+                }
+              }
+            },
+            tooltip: { 
+              mode: 'index', 
+              intersect: false,
+              callbacks: {
+                label: function(context) {
+                  if (context.datasetIndex === 0) {
+                    return `${context.dataset.label}: ${context.parsed.y?.toFixed(2) || 'N/A'}`;
+                  } else {
+                    return `${context.dataset.label}: ${context.parsed.y?.toFixed(2) || 'N/A'}`;
+                  }
+                }
+              }
+            }
           },
           scales: {
-            x: { title: { display: true, text: 'Date' } },
-            y: { title: { display: true, text: 'Valeur' }, beginAtZero: true }
+            x: { 
+              title: { display: true, text: 'Date' }
+            },
+            y: { 
+              title: { display: true, text: 'Valeur' }, 
+              beginAtZero: true
+            }
           }
         }
       });
     }
 
     function updateBesoinsUFChart(data) {
-      besoinsUFChart.data.labels = data.date;
+      // Update main prediction data
+      besoinsUFChart.data.labels = data.date ;
       besoinsUFChart.data.datasets[0].data = data.pred;
+      
+      // Handle confidence intervals if available
+      if (data.upper_bound && data.lower_bound) {
+        // Show confidence interval datasets
+        besoinsUFChart.data.datasets[1].data = data.upper_bound;
+        besoinsUFChart.data.datasets[2].data = data.lower_bound;
+        besoinsUFChart.data.datasets[1].hidden = false;
+        besoinsUFChart.data.datasets[2].hidden = false;
+        
+        console.log('Confidence intervals loaded:', {
+          upper: data.upper_bound.length,
+          lower: data.lower_bound.length
+        });
+      } else {
+        // Hide confidence interval datasets if no data
+        besoinsUFChart.data.datasets[1].data = [];
+        besoinsUFChart.data.datasets[2].data = [];
+        besoinsUFChart.data.datasets[1].hidden = true;
+        besoinsUFChart.data.datasets[2].hidden = true;
+      }
+      
       besoinsUFChart.update();
+    }
+
+    function updateBesoinLitsOccupesChart(data) {
+      console.log('Updating besoin-lits-occupes chart with data:', data);
+      
+      if (!data.besoin_lits && !data.lits_occupes) {
+        // Clear chart if no data
+        besoinLitsOccupesChart.data.labels = [];
+        besoinLitsOccupesChart.data.datasets[0].data = [];
+        besoinLitsOccupesChart.data.datasets[1].data = [];
+        besoinLitsOccupesChart.data.datasets[2].data = [];
+        besoinLitsOccupesChart.update();
+        originalChartData = null;
+        // Clear KPIs table
+        clearKpisTable();
+        return;
+      }
+      
+      // Update KPIs table with the data
+      updateKpisTable(data);
+      
+      // Create a combined dataset with dates from both sources
+      const allDates = new Set();
+      const besoinsMap = new Map();
+      const litsOccupesMap = new Map();
+      
+      // Process besoin_lits data
+      if (data.besoin_lits && data.besoin_lits.length > 0) {
+        data.besoin_lits.forEach(item => {
+          if (item.date) {
+            const dateStr = new Date(item.date).toLocaleDateString('fr-FR');
+            allDates.add(dateStr);
+            besoinsMap.set(dateStr, item.median);
+          }
+        });
+      }
+      
+      // Process lits_occupes data
+      if (data.lits_occupes && data.lits_occupes.length > 0) {
+        data.lits_occupes.forEach(item => {
+          if (item.date) {
+            const dateStr = new Date(item.date).toLocaleDateString('fr-FR');
+            allDates.add(dateStr);
+            litsOccupesMap.set(dateStr, item.value);
+          }
+        });
+      }
+      
+      if (allDates.size > 0) {
+        // Sort dates chronologically
+        const sortedDates = Array.from(allDates).sort((a, b) => {
+          return new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-'));
+        });
+        
+        // Prepare data arrays
+        const besoinsChartData = sortedDates.map(date => besoinsMap.get(date));
+        const litsOccupesChartData = sortedDates.map(date => litsOccupesMap.get(date));
+        
+        // Prepare lits_installes data as a flat line
+        const litsInstallesValue = data.lits_installes || 0;
+        const litsInstallesChartData = sortedDates.map(() => litsInstallesValue);
+        
+        // Store original data for filtering
+        originalChartData = {
+          labels: sortedDates,
+          besoinsData: besoinsChartData,
+          litsOccupesData: litsOccupesChartData,
+          litsInstallesData: litsInstallesChartData
+        };
+        
+        // Update chart
+        besoinLitsOccupesChart.data.labels = sortedDates;
+        besoinLitsOccupesChart.data.datasets[0].data = besoinsChartData;
+        besoinLitsOccupesChart.data.datasets[1].data = litsOccupesChartData;
+        besoinLitsOccupesChart.data.datasets[2].data = litsInstallesChartData;
+        besoinLitsOccupesChart.update();
+        
+        // Set default date range in filter inputs
+        if (sortedDates.length > 0) {
+          const firstDate = new Date(sortedDates[0].split('/').reverse().join('-'));
+          const lastDate = new Date(sortedDates[sortedDates.length - 1].split('/').reverse().join('-'));
+          document.getElementById('start-date-filter').value = firstDate.toISOString().split('T')[0];
+          document.getElementById('end-date-filter').value = lastDate.toISOString().split('T')[0];
+        }
+      }
     }
 
     function handlePredictionForm(event) {
       event.preventDefault();
       const ufFilter = document.getElementById('uf-filter').value;
       const endDate = document.getElementById('end-date').value;
+      const enableIntervals = document.getElementById('enable-intervals').checked;
       
       if (!ufFilter) {
         alert('Veuillez sélectionner une UF');
@@ -189,21 +508,342 @@
       const params = new URLSearchParams();
       params.append('code_uf', ufFilter);
       params.append('end_date', endDate);
+      if (enableIntervals) {
+        params.append('interval', 'true');
+      }
+      
+      // Show loading state
+      const submitBtn = event.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération en cours...';
+      submitBtn.disabled = true;
       
       fetch(`/predictions-lits/api/predictions/?${params}`)
         .then(response => response.json())
         .then(data => {
           console.log('Prediction data:', data);
           updateBesoinsUFChart({
-            date: data.dates,
-            pred: data.predictions
+            date: data.date,
+            pred: data.value,
+            upper_bound: data.upper_bound,
+            lower_bound: data.lower_bound
           });
+          
+          // Show success message if intervals were generated
+          if (enableIntervals && data.upper_bound && data.lower_bound) {
+            console.log('Intervalles de confiance générés avec succès');
+          }
         })
         .catch(error => {
           console.error('Error fetching predictions:', error);
           alert('Erreur lors de la génération de la prédiction');
+        })
+        .finally(() => {
+          // Restore button state
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
         });
     }
     
+    function initBesoinLitsOccupesChart() {
+      const ctx = document.getElementById('besoin-lits-occupes-chart').getContext('2d');
+      besoinLitsOccupesChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Besoin en lits (Médiane)',
+              data: [],
+              borderColor: 'rgb(0,123,255)',
+              backgroundColor: 'rgba(0,123,255,0.1)',
+              borderWidth: 3,
+              fill: false,
+              pointRadius: 0,
+              pointHoverRadius: 0,
+              pointBackgroundColor: 'transparent',
+              pointBorderColor: 'transparent'
+            },
+            {
+              label: 'Lits occupés',
+              data: [],
+              borderColor: 'red',
+              backgroundColor: 'rgba(40,167,69,0.1)',
+              borderWidth: 3,
+              fill: false,
+              pointRadius: 0,
+              pointHoverRadius: 0,
+              pointBackgroundColor: 'transparent',
+              pointBorderColor: 'transparent'
+            },
+            {
+              label: 'Lits installés',
+              data: [],
+              borderColor: '#ffc107',
+              backgroundColor: 'rgba(255,193,7,0.1)',
+              borderWidth: 2,
+              fill: false,
+              pointRadius: 0,
+              pointHoverRadius: 0,
+              pointBackgroundColor: 'transparent',
+              pointBorderColor: 'transparent',
+              borderDash: [10, 5]
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            zoom: {
+              pan:{
+                enabled: true,
+                mode: 'xy',
+                speed: 10,
+                threshold: 10
+              },
+              limits: {
+                x: {min: 'original', max: 'original'},
+                y: {min: 0, max: 'original'}
+              },
+              zoom: {
+                wheel: {
+                  enabled: true,
+                },
+                pinch: {
+                  enabled: true
+                },
+                mode: 'x',
+              }
+            },
+            title: {
+              display: true,
+              text: 'Comparaison Besoin vs Occupation des lits',
+              font: {
+                size: 16,
+                weight: 'bold'
+              },
+              padding: 20
+            },
+            legend: { 
+              display: true,
+              position: 'top',
+              labels: {
+                usePointStyle: false,
+                padding: 20,
+                generateLabels: function(chart) {
+                  const original = Chart.defaults.plugins.legend.labels.generateLabels;
+                  const labels = original.call(this, chart);
+                  
+                  labels.forEach((label, index) => {
+                    label.fillStyle = chart.data.datasets[index].borderColor;
+                    label.strokeStyle = chart.data.datasets[index].borderColor;
+                    label.lineWidth = 3;
+                  });
+                  
+                  return labels;
+                }
+              }
+            },
+            tooltip: { 
+              mode: 'index', 
+              intersect: false,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: 'rgba(0, 123, 255, 0.8)',
+              borderWidth: 1,
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${context.parsed.y} lits`;
+                }
+              }
+            }
+          },
+          interaction: {
+            mode: 'nearest',
+            axis: 'x',
+            intersect: false
+          },
+          scales: {
+            x: { 
+              title: { 
+                display: true, 
+                text: 'Date',
+                font: {
+                  size: 14,
+                  weight: 'bold'
+                }
+              },
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            },
+            y: { 
+              title: { 
+                display: true, 
+                text: 'Nombre de lits',
+                font: {
+                  size: 14,
+                  weight: 'bold'
+                }
+              }, 
+              beginAtZero: true,
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.1)'
+              },
+              ticks: {
+                stepSize: 1,
+                callback: function(value) {
+                  return Number.isInteger(value) ? value : '';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Date filter functions
+    function applyDateFilter() {
+      if (!originalChartData) {
+        console.log('No original data available for filtering');
+        return;
+      }
+      
+      const startDate = document.getElementById('start-date-filter').value;
+      const endDate = document.getElementById('end-date-filter').value;
+      
+      if (!startDate || !endDate) {
+        alert('Veuillez sélectionner les dates de début et de fin');
+        return;
+      }
+      
+      const startDateObj = new Date(startDate);
+      const endDateObj = new Date(endDate);
+      
+      if (startDateObj > endDateObj) {
+        alert('La date de début doit être antérieure à la date de fin');
+        return;
+      }
+      
+      // Filter data based on date range
+      const filteredLabels = [];
+      const filteredBesoinsData = [];
+      const filteredLitsOccupesData = [];
+      const filteredLitsInstallesData = [];
+      
+      originalChartData.labels.forEach((label, index) => {
+        // Convert French date format (dd/mm/yyyy) to Date object
+        const dateParts = label.split('/');
+        const labelDate = new Date(dateParts[2], dateParts[1] - 1, dateParts[0]);
+        
+        if (labelDate >= startDateObj && labelDate <= endDateObj) {
+          filteredLabels.push(label);
+          filteredBesoinsData.push(originalChartData.besoinsData[index]);
+          filteredLitsOccupesData.push(originalChartData.litsOccupesData[index]);
+          filteredLitsInstallesData.push(originalChartData.litsInstallesData[index]);
+        }
+      });
+      
+      // Update chart with filtered data
+      besoinLitsOccupesChart.data.labels = filteredLabels;
+      besoinLitsOccupesChart.data.datasets[0].data = filteredBesoinsData;
+      besoinLitsOccupesChart.data.datasets[1].data = filteredLitsOccupesData;
+      besoinLitsOccupesChart.data.datasets[2].data = filteredLitsInstallesData;
+      besoinLitsOccupesChart.update();
+      
+      console.log(`Date filter applied: ${startDate} to ${endDate}. Showing ${filteredLabels.length} data points.`);
+    }
+    
+    function resetDateFilter() {
+      if (!originalChartData) {
+        console.log('No original data available for reset');
+        return;
+      }
+      
+      // Reset chart to original data
+      besoinLitsOccupesChart.data.labels = originalChartData.labels;
+      besoinLitsOccupesChart.data.datasets[0].data = originalChartData.besoinsData;
+      besoinLitsOccupesChart.data.datasets[1].data = originalChartData.litsOccupesData;
+      besoinLitsOccupesChart.data.datasets[2].data = originalChartData.litsInstallesData;
+      besoinLitsOccupesChart.update();
+      
+      // Reset date inputs to full range
+      if (originalChartData.labels.length > 0) {
+        const firstDate = new Date(originalChartData.labels[0].split('/').reverse().join('-'));
+        const lastDate = new Date(originalChartData.labels[originalChartData.labels.length - 1].split('/').reverse().join('-'));
+        document.getElementById('start-date-filter').value = firstDate.toISOString().split('T')[0];
+        document.getElementById('end-date-filter').value = lastDate.toISOString().split('T')[0];
+      }
+      
+      console.log('Date filter reset to show all data');
+    }
+    
+    // KPIs table functions
+    function updateKpisTable(data) {
+      const besoinKpis = data.besoin_lits_kpis || {};
+      const litsKpis = data.lits_occupes_kpis || {};
+      
+      // Helper function to format numbers
+      function formatNumber(value) {
+        return value !== undefined && value !== null ? parseFloat(value).toFixed(2) : '-';
+      }
+      
+      // Helper function to calculate and format difference
+      function calculateDifference(val1, val2) {
+        if (val1 !== undefined && val1 !== null && val2 !== undefined && val2 !== null) {
+          const diff = parseFloat(val1) - parseFloat(val2);
+          const formattedDiff = diff.toFixed(2);
+          const className = diff > 0 ? 'text-success' : diff < 0 ? 'text-danger' : 'text-muted';
+          const sign = diff > 0 ? '+' : '';
+          return `<span class="${className}">${sign}${formattedDiff}</span>`;
+        }
+        return '-';
+      }
+      
+      // Update table cells
+      document.getElementById('besoin-moyenne').textContent = formatNumber(besoinKpis.mean_median);
+      document.getElementById('lits-moyenne').textContent = formatNumber(litsKpis.mean_value);
+      document.getElementById('diff-moyenne').innerHTML = calculateDifference(besoinKpis.mean_median, litsKpis.mean_value);
+
+
+      document.getElementById('besoin-max').textContent = formatNumber(besoinKpis.max_median);
+      document.getElementById('lits-max').textContent = formatNumber(litsKpis.max_value);
+      document.getElementById('diff-max').innerHTML = calculateDifference(besoinKpis.max_median, litsKpis.max_value);
+      
+      document.getElementById('besoin-min').textContent = formatNumber(besoinKpis.min_median);
+      document.getElementById('lits-min').textContent = formatNumber(litsKpis.min_value);
+      document.getElementById('diff-min').innerHTML = calculateDifference(besoinKpis.min_median, litsKpis.min_value);
+      
+      document.getElementById('besoin-ecart').textContent = formatNumber(besoinKpis.std_median);
+      document.getElementById('lits-ecart').textContent = formatNumber(litsKpis.std_value);
+      document.getElementById('diff-ecart').innerHTML = calculateDifference(besoinKpis.std_median, litsKpis.std_value);
+      
+      document.getElementById('besoin-variance').textContent = formatNumber(besoinKpis.var_median);
+      document.getElementById('lits-variance').textContent = formatNumber(litsKpis.var_value);
+      document.getElementById('diff-variance').innerHTML = calculateDifference(besoinKpis.var_median, litsKpis.var_value);
+    }
+    
+    function clearKpisTable() {
+      const kpiElements = [
+        'besoin-moyenne', 'lits-moyenne', 'diff-moyenne',
+        'besoin-mediane', 'lits-mediane', 'diff-mediane',
+        'besoin-max', 'lits-max', 'diff-max',
+        'besoin-min', 'lits-min', 'diff-min',
+        'besoin-ecart', 'lits-ecart', 'diff-ecart',
+        'besoin-variance', 'lits-variance', 'diff-variance'
+      ];
+      
+      kpiElements.forEach(elementId => {
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.textContent = '-';
+          element.innerHTML = '-';
+        }
+      });
+    }
   </script>
 {% endblock extra_scripts %}

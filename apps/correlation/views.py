@@ -82,6 +82,13 @@ def get_data_metiers(request):
             rhs = rhs.filter(metier__in=metiers)
         df_rh = pd.DataFrame(list(rhs.values('semaine', 'metier', 'agents_abs_imprevu','abs_total', 'agents_abs_prevu')))
         df_lits = pd.DataFrame(list(lits.values('semaine', 'lits_fermes_moyen')))
+        
+        # Extract week number from semaine (format: "4 - 2023")
+        if not df_lits.empty:
+            df_lits['week_number'] = df_lits['semaine'].apply(lambda x: int(x.split(' - ')[0]) if x and ' - ' in str(x) else 0)
+            df_lits['semaine'] = df_lits['week_number']
+            df_lits.drop(columns=['week_number'], inplace=True)
+
         agg_dict = {'agents_abs_imprevu': 'sum', 'agents_abs_prevu': 'sum', 'abs_total': 'sum'}
         agg_df = df_rh.groupby('semaine', as_index=False).agg(agg_dict)
         df_res = pd.merge(agg_df, df_lits[['semaine', 'lits_fermes_moyen']], on='semaine', how='left')
@@ -95,6 +102,13 @@ def get_data_metiers(request):
     if code_uf:
         df_rh = pd.DataFrame(list(rhs.values('semaine', 'metier', 'agents_abs_imprevu','abs_total', 'agents_abs_prevu','famille_metier', 'sous_famille_metier')))
         df_lits = pd.DataFrame(list(lits.values('semaine', 'lits_fermes_moyen')))
+        
+        # Extract week number from semaine (format: "4 - 2023")
+        if not df_lits.empty:
+            df_lits['week_number'] = df_lits['semaine'].apply(lambda x: int(x.split(' - ')[0]) if x and ' - ' in str(x) else 0)
+            df_lits['semaine'] = df_lits['week_number']
+            df_lits.drop(columns=['week_number'], inplace=True)
+
         agg_dict = {'agents_abs_imprevu': 'sum', 'agents_abs_prevu': 'sum', 'abs_total': 'sum'}
         agg_df = df_rh.groupby('semaine', as_index=False).agg(agg_dict)
         df_res = pd.merge(agg_df, df_lits[['semaine', 'lits_fermes_moyen']], on='semaine', how='left')
@@ -134,6 +148,10 @@ def get_metier_graph(request):
     lits = Lit.objects.filter(code_uf=code_uf).order_by('semaine')
     df_rh = pd.DataFrame(list(rhs.values('semaine', 'metier', 'agents_abs_prevu', 'famille_metier', 'sous_famille_metier')))
     df_lits = pd.DataFrame(list(lits.values('semaine', 'lits_fermes_moyen')))
+    if not df_lits.empty:
+        df_lits['week_number'] = df_lits['semaine'].apply(lambda x: int(x.split(' - ')[0]) if x and ' - ' in str(x) else 0)
+        df_lits['semaine'] = df_lits['week_number']
+        df_lits.drop(columns=['week_number'], inplace=True)
     if code_uf and metier_graph_option:
 
         res_metier, graph_metier = regression_call(df_rh,df_lits,'metier',code_uf, metier_graph_option)
@@ -263,6 +281,7 @@ def pivot_df(df, index_col, filter,value_col,df_lits):
         pivot = df.pivot_table(index=index_col, columns=filter, values=value_col, aggfunc='sum', fill_value=0).reset_index()
         df_merged = pd.merge(pivot, df_lits, on='semaine', how='left')
         return df_merged
+
 def regression_call(df,df_lits,col,code_uf, metier_graph_option):
     df_merged= pivot_df(df, 'semaine', col, 'agents_abs_prevu',df_lits)
     cols= RH.objects.filter(code_uf=code_uf).values_list(col, flat=True).distinct()
@@ -290,7 +309,6 @@ def regression_call(df,df_lits,col,code_uf, metier_graph_option):
             for item in metier_to_f:
                 if item['metier'] and item['famille_metier']:
                     mapping[item['metier']] = item['famille_metier']
-
-    graph = figure_coeffs(res.copy(), col, mapping)
+    graph = figure_coeffs(res.copy(), col.replace('_', ' ').title(), mapping)
     return res, graph
         

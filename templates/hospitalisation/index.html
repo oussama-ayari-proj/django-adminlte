@@ -84,12 +84,12 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">Données d'Hospitalisation</h1>
+            <h1 class="m-0">Informations générales</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Hospitalisation</li>
+              <li class="breadcrumb-item"><a href="#">Accueil</a></li>
+              <li class="breadcrumb-item active">Informations générales</li>
             </ol>
           </div>
         </div>
@@ -109,30 +109,6 @@
                   <option value="{{ uf.code_uf }}">{{ uf.libelle_standard }}</option>
                 {% endfor %}
               </select>
-            </div>
-          </div>
-          <div class="col-lg-4">
-            <div class="form-group">
-              <label for="start-date">Date de début:</label>
-              <input type="date" class="form-control" id="start-date" required>
-              <small class="form-text text-muted">Date minimum: <span id="min-date-display">-</span></small>
-            </div>
-          </div>
-          <div class="col-lg-4">
-            <div class="form-group">
-              <label for="end-date">Date de fin:</label>
-              <input type="date" class="form-control" id="end-date" required>
-              <small class="form-text text-muted">Date maximum: <span id="max-date-display">-</span></small>
-            </div>
-          </div>
-        </div>
-
-        <!-- Date validation alert -->
-        <div class="row">
-          <div class="col-12">
-            <div class="alert alert-warning" id="date-validation-alert" style="display: none;">
-              <i class="fas fa-exclamation-triangle"></i>
-              <span id="date-validation-message"></span>
             </div>
           </div>
         </div>
@@ -269,152 +245,18 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 
   <script>
-    let minDate = null;
-    let maxDate = null;
-    
     document.addEventListener('DOMContentLoaded', function() {
+      loadData();
       
-      // Load date ranges first, then load data
-      loadDateRanges().then(() => {
-        loadData();
-      });
-      
-      // Add event listeners for filters
+      // Add event listener for UF filter
       document.getElementById('uf-filter').addEventListener('change', loadData);
-      document.getElementById('start-date').addEventListener('change', function() {
-        validateDates();
-        loadData();
-      });
-      document.getElementById('end-date').addEventListener('change', function() {
-        validateDates();
-        loadData();
-      });
     });
     
-    function loadDateRanges() {
-      return fetch('/api/date-ranges/')
-        .then(response => response.json())
-        .then(data => {
-          minDate = data.min_date;
-          maxDate = data.max_date;
-          
-          // Set min and max attributes on date inputs
-          const startDateInput = document.getElementById('start-date');
-          const endDateInput = document.getElementById('end-date');
-          
-          if (minDate) {
-            startDateInput.min = minDate;
-            endDateInput.min = minDate;
-            document.getElementById('min-date-display').textContent = minDate;
-          }
-          
-          if (maxDate) {
-            startDateInput.max = maxDate;
-            endDateInput.max = maxDate;
-            document.getElementById('max-date-display').textContent = maxDate;
-          }
-          
-          // Set default values if not set
-          if (!startDateInput.value && minDate) {
-            // Set start date to 30 days before max date or min date
-            const maxDateObj = new Date(maxDate);
-            const defaultStart = new Date(maxDateObj);
-            defaultStart.setDate(minDate);
-            
-            if (defaultStart >= new Date(minDate)) {
-              startDateInput.value = defaultStart.toISOString().split('T')[0];
-            } else {
-              startDateInput.value = minDate;
-            }
-          }
-          
-          if (!endDateInput.value && maxDate) {
-            endDateInput.value = maxDate;
-          }
-          
-          validateDates();
-        })
-        .catch(error => {
-          console.error('Error loading date ranges:', error);
-          showDateValidationAlert('Erreur lors du chargement des plages de dates disponibles.');
-        });
-    }
-    
-    function validateDates() {
-      const startDateInput = document.getElementById('start-date');
-      const endDateInput = document.getElementById('end-date');
-      const startDate = startDateInput.value;
-      const endDate = endDateInput.value;
-      
-      let isValid = true;
-      let message = '';
-      
-      // Check if both dates are provided
-      if (!startDate || !endDate) {
-        if (!startDate && !endDate) {
-          message = 'Veuillez sélectionner les dates de début et de fin.';
-        } else if (!startDate) {
-          message = 'Veuillez sélectionner une date de début.';
-        } else {
-          message = 'Veuillez sélectionner une date de fin.';
-        }
-        isValid = false;
-      } else {
-        // Check if end date is after start date
-        if (new Date(endDate) <= new Date(startDate)) {
-          message = 'La date de fin doit être postérieure à la date de début.';
-          isValid = false;
-        }
-        
-        // Check if dates are within valid range
-        if (minDate && new Date(startDate) < new Date(minDate)) {
-          message = `La date de début ne peut pas être antérieure au ${minDate}.`;
-          isValid = false;
-        }
-        
-        if (maxDate && new Date(endDate) > new Date(maxDate)) {
-          message = `La date de fin ne peut pas être postérieure au ${maxDate}.`;
-          isValid = false;
-        }
-      }
-      
-      if (!isValid) {
-        showDateValidationAlert(message);
-        return false;
-      } else {
-        hideDateValidationAlert();
-        return true;
-      }
-    }
-    
-    function showDateValidationAlert(message) {
-      const alert = document.getElementById('date-validation-alert');
-      const messageSpan = document.getElementById('date-validation-message');
-      messageSpan.textContent = message;
-      alert.style.display = 'block';
-    }
-    
-    function hideDateValidationAlert() {
-      const alert = document.getElementById('date-validation-alert');
-      alert.style.display = 'none';
-    }
-    
-    
-    
     function loadData() {
-      // Only load data if dates are valid
-      if (!validateDates()) {
-        return;
-      }
-      
       const ufFilter = document.getElementById('uf-filter').value;
-      const startDate = document.getElementById('start-date').value;
-      const endDate = document.getElementById('end-date').value;
       
       const params = new URLSearchParams();
       if (ufFilter) params.append('code_uf', ufFilter);
-      if (startDate) params.append('start_date', startDate);
-      if (endDate) params.append('end_date', endDate);
       
       // Load statistics
       fetch(`/api/stats/?${params}`)
@@ -426,7 +268,6 @@
         })
         .catch(error => {
           console.error('Error loading stats:', error);
-          showDateValidationAlert('Erreur lors du chargement des statistiques.');
         });
     }
     function updateStatistics(data) {
