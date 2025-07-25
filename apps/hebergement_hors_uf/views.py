@@ -17,28 +17,33 @@ def index(request):
         'available_years': available_years
     })
 
-def calculer_lits_fermes(code_uf_associe):
+def calculer_lits_fermes(code_uf_associe,year):
     lits_fermes_by_week = {}
     lits_fermes_data = []
     if isinstance(code_uf_associe, str):
         code_uf_associe = [code_uf_associe]
+    lits= Lit.objects.filter(
+            code_uf=code_uf_associe[0],
+            semaine__endswith=f" - {year}"
+        )
+    if not lits.exists():
+        return []
+    
     if len(code_uf_associe)==1:
-        lits= Lit.objects.filter(code_uf=code_uf_associe[0])
-        if not lits.exists():
-            return []
+        
         for lit in lits:
-            semaine = lit.semaine
+            semaine = lit.semaine.split(' - ')[0]
+            print(type(semaine))
             lits_fermes_moyen = lit.lits_fermes_moyen or 0
             lits_fermes_data.append({
                 'semaine': semaine,
-                'lits_fermes_moyen': round(lits_fermes_moyen, 1)
+                'lits_fermes_moyen': round(lits_fermes_moyen, 1),
             })
             
         return lits_fermes_data
     for code_uf in code_uf_associe:
-        lits = Lit.objects.filter(code_uf=code_uf)
         for lit in lits:
-            semaine = lit.semaine
+            semaine = lit.semaine.split(' - ')[0]
             lits_fermes_moyen = lit.lits_fermes_moyen or 0
 
             if semaine not in lits_fermes_by_week:
@@ -100,12 +105,7 @@ def get_hebergement_stats(request):
         
         stats['hebergements'] = hebergements_with_labels
         
-        # Get lits fermés data
-        lits_fermes_data = []
-        if code_uf_associees:
-            lits_fermes_data = calculer_lits_fermes(code_uf_associees)
         
-        stats['lits_fermes'] = lits_fermes_data
         
         return JsonResponse({
             'stats': stats,
@@ -118,12 +118,13 @@ def get_hebergement_stats(request):
     
 def get_lits_fermes_filtres(request):
     code_uf_associe = request.GET.get('code_uf_associe')
+    year = request.GET.get('year')
     if not code_uf_associe:
         return JsonResponse({'error': 'Aucun code UF associé fourni'}, status=400)
     try:
         if ',' in code_uf_associe:
             code_uf_associe = code_uf_associe.split(',')
-        lits_fermes_data = calculer_lits_fermes(code_uf_associe)
+        lits_fermes_data = calculer_lits_fermes(code_uf_associe,year)
         return JsonResponse({
             'lits_fermes': lits_fermes_data
         }, status=200)
@@ -191,17 +192,12 @@ def get_ems_by_year(request):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-def calculate_hebergement_stats(code_em, year, data):
-    total_interventions = data.filter(code_em=code_em)
-    print("loaded interventions")
-    
-    ufs_associees = set(Matrice_EM_UF.objects.filter(code_em=code_em).values_list('code_uf', flat=True))
-    ufs = set(total_interventions.values_list('code_uf', flat=True))
-    
-    ufs_not_associees = ufs.difference(ufs_associees)
-    is_heb = 1 if len(ufs_not_associees)>0 else 0
-    
-    return is_heb
-    
+def calculate_hebergement_stats(code_em):
+    total_interventions = Hospitalisation.objects.filter(code_em=code_em)
+    total_interventions_count = total_interventions.count()
+    ufs_associees = Matrice_EM_UF.objects.filter(code_em=code_em).values_list('code_uf', flat=True)
+    hebergements= total_interventions.exclude(code_uf__in=ufs_associees)
+    total_hebergements_count = hebergements.count()
 
+    return total_interventions_count,total_hebergements_count,hebergements
 

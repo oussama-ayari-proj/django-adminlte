@@ -7,6 +7,63 @@
 
 {% block content %}
 
+<style>
+  /* Custom Select2 Styling */
+  .select2-container--default .select2-selection--single {
+    height: 38px !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 0.375rem !important;
+    padding: 0.375rem 0.75rem !important;
+  }
+  
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #495057 !important;
+    line-height: 26px !important;
+    padding-left: 0 !important;
+    padding-right: 20px !important;
+  }
+  
+  .select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #6c757d !important;
+  }
+  
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px !important;
+    right: 10px !important;
+  }
+  
+  .select2-dropdown {
+    border: 1px solid #ced4da !important;
+    border-radius: 0.375rem !important;
+  }
+  
+  .select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #007bff !important;
+    color: white !important;
+  }
+  
+  .select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 1px solid #ced4da !important;
+    border-radius: 0.375rem !important;
+    padding: 0.375rem 0.75rem !important;
+  }
+  
+  .select2-container--default .select2-results__option[aria-selected=true] {
+    background-color: #e9ecef !important;
+    color: #495057 !important;
+  }
+  
+  /* Custom styling for UF filter */
+  #uf-filter + .select2-container {
+    font-size: 1rem;
+  }
+  
+  .select2-results__option {
+    padding: 8px 12px !important;
+    font-size: 1rem !important;
+  }
+</style>
+
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
@@ -35,6 +92,7 @@
             <div class="form-group">
               <label for="uf-filter">Séléctionner un UF:</label>
               <select class="form-control" id="uf-filter">
+                <option value="">-- Rechercher et sélectionner une UF --</option>
                 {% for uf in ufs %}
                   <option value="{{ uf.code_uf }}">{{ uf.libelle_standard }}</option>
                 {% endfor %}
@@ -51,6 +109,19 @@
                 {% endfor %}
               </select>
             </div>
+          </div>
+          <div class="col-lg-4">
+                <div class="form-group">
+                  <label>&nbsp;</label>
+                  <div class="btn-group w-100" role="group">
+                    <button type="button" class="btn btn-primary" id="apply-uf-mae-filter" style="flex: 1;">
+                      <i class="fas fa-filter"></i> UFs avec différences
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="reset-uf-filter" style="flex: 0 0 auto;">
+                      <i class="fas fa-undo"></i> Reset
+                    </button>
+                  </div>
+                </div>
           </div>
         </div>
 
@@ -101,12 +172,12 @@
         <!-- KPIs Comparison Table -->
         <div class="row mt-5">
           <div class="col-lg-12">
-            <h3>Comparaison des Indicateurs Clés</h3>
+            <h3>Comparaison des Proprietes statistiques</h3>
             <div class="card">
               <div class="card-header">
                 <h5 class="mb-0">
                   <i class="fas fa-chart-bar mr-2"></i>
-                  KPIs - Besoin en lits vs Lits occupés
+                  Besoin en lits vs Lits occupés
                 </h5>
               </div>
               <div class="card-body">
@@ -198,6 +269,57 @@
               </div>
             </div>
           </div>
+          <div class="col-lg-6">
+            <div class="card">
+              <div class="card-header">
+                <h5>
+                  <i class="fas fa-chart-bar mr-2"></i>
+                  Performance du Modèle sur les données de test pour differents horizons
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-striped table-bordered">
+                    <thead class="thead-dark">
+                      <tr>
+                        <th class="text-center">Période de Prédiction</th>
+                        <th class="text-center">
+                          <i class="fas fa-calculator mr-1"></i>
+                          MAE (Erreur Absolue Moyenne)
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody id="mae-evaluation-table">
+                      <tr>
+                        <td class="text-center"><strong>1 mois (Oct / 2024)</strong></td>
+                        <td class="text-center" id="mae-1-month">
+                          <i class="fas fa-spinner fa-spin text-muted"></i> Chargement...
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="text-center"><strong>2 mois (Oct - Nov / 2024)</strong></td>
+                        <td class="text-center" id="mae-2-months">
+                          <i class="fas fa-spinner fa-spin text-muted"></i> Chargement...
+                        </td>
+                      </tr>
+                      <tr>
+                        <td class="text-center"><strong>3 mois (Oct - Nov - Déc/ 2024)</strong></td>
+                        <td class="text-center" id="mae-3-months">
+                          <i class="fas fa-spinner fa-spin text-muted"></i> Chargement...
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="mt-3">
+                  <div style="font-size: 20px;">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    <strong>MAE:</strong> Plus la valeur est faible, meilleure est la précision du modèle.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="row mt-5">
@@ -224,6 +346,13 @@
   {% endblock content %}
 
   {% block extra_scripts %}
+  <!-- jQuery (required for Select2) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
+  <!-- Select2 CSS and JS -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  
   <!-- ChartJS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
@@ -237,17 +366,114 @@
     
     document.addEventListener('DOMContentLoaded', function() {
       
+      // Initialize Select2 for UF filter
+      $('#uf-filter').select2({
+        placeholder: '-- Rechercher et sélectionner une UF --',
+        allowClear: true,
+        width: '100%',
+        language: {
+          noResults: function() {
+            return "Aucun résultat trouvé";
+          },
+          searching: function() {
+            return "Recherche en cours...";
+          },
+          inputTooShort: function() {
+            return "Veuillez saisir au moins un caractère";
+          }
+        }
+      });
+      
       initBesoinsUFChart();
       initBesoinLitsOccupesChart();
       loadData();
-      document.getElementById('uf-filter').addEventListener('change', loadData);
+      
+      // Use Select2 event for UF filter change
+      $('#uf-filter').on('change', function() {
+        loadData();
+      });
+      
+      $('#apply-uf-mae-filter').on('click', function() {
+        filterUFsWithMAE();
+      });
+      
+      $('#reset-uf-filter').on('click', function() {
+        resetUFFilter();
+      });
       document.getElementById('year-filter').addEventListener('change', loadData);
       document.getElementById('prediction-form').addEventListener('submit', handlePredictionForm);
       
       // Date filter event listeners
       document.getElementById('apply-date-filter-btn').addEventListener('click', applyDateFilter);
       document.getElementById('reset-date-filter-btn').addEventListener('click', resetDateFilter);
+      //document.getElementById('apply-uf-mae-filter').addEventListener('click', filterUFsWithMAE);
+      
     });
+    
+    function filterUFsWithMAE(){
+      const yearFilter = document.getElementById('year-filter').value;
+      const params = new URLSearchParams();
+      if (yearFilter) params.append('year', yearFilter);
+      console.log('Fetching UFs with MAE for year:', yearFilter);
+      fetch(`/predictions-lits/api/filter-ufs-mae/?${params}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Filtered UFs with MAE:', data);
+          // Update the UF filter options based on the response
+          const ufSelect = document.getElementById('uf-filter');
+          ufSelect.innerHTML = '<option value="">-- Rechercher et sélectionner une UF --</option>';
+          data.ufs_with_mae.forEach(uf => {
+            const option = document.createElement('option');
+            option.value = uf.code_uf;
+            option.textContent = uf.libelle_standard;
+            ufSelect.appendChild(option);
+          });
+          $('#uf-filter').select2();
+        })
+        .catch(error => console.error('Error fetching filtered UFs:', error));
+    }
+
+    function resetUFFilter(){
+      console.log('Resetting UF filter to show all UFs');
+      // Restore all original UF options
+      const ufSelect = document.getElementById('uf-filter');
+      ufSelect.innerHTML = '<option value="">-- Rechercher et sélectionner une UF --</option>';
+      
+      // Add all original UFs back
+      const originalUFs = [
+        {% for uf in ufs %}
+        {
+          'code_uf': '{{ uf.code_uf|escapejs }}',
+          'libelle_standard': '{{ uf.libelle_standard|escapejs }}'
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+      ];
+      
+      originalUFs.forEach(uf => {
+        const option = document.createElement('option');
+        option.value = uf.code_uf;
+        option.textContent = uf.libelle_standard;
+        ufSelect.appendChild(option);
+      });
+      
+      // Reinitialize Select2
+      $('#uf-filter').select2({
+        placeholder: '-- Rechercher et sélectionner une UF --',
+        allowClear: true,
+        width: '100%',
+        language: {
+          noResults: function() {
+            return "Aucun résultat trouvé";
+          },
+          searching: function() {
+            return "Recherche en cours...";
+          },
+          inputTooShort: function() {
+            return "Veuillez saisir au moins un caractère";
+          }
+        }
+      });
+    }
 
     function loadData() {
       const ufFilter = document.getElementById('uf-filter').value;
@@ -404,6 +630,35 @@
       besoinsUFChart.update();
     }
 
+    function updateMAEValue(elementId, value, isError = false) {
+      const element = document.getElementById(elementId);
+      if (element) {
+        if (isError) {
+          element.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle mr-1"></i>Erreur</span>';
+        } else if (value === 'N/A') {
+          element.innerHTML = '<span class="text-muted">N/A</span>';
+        } else {
+          // Color code the MAE values (green for low, yellow for medium, red for high)
+          const numericValue = parseFloat(value);
+          let colorClass = 'text-success'; // Green for low MAE
+          if (numericValue > 1) colorClass = 'text-warning'; // Yellow for medium MAE
+          if (numericValue > 2) colorClass = 'text-danger'; // Red for high MAE
+          
+          element.innerHTML = `<span class="${colorClass}"><strong>${value}</strong></span>`;
+        }
+      }
+    }
+    
+    function clearMAETable() {
+      const elements = ['mae-1-month', 'mae-2-months', 'mae-3-months'];
+      elements.forEach(elementId => {
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.innerHTML = '<span class="text-muted">Sélectionnez une UF</span>';
+        }
+      });
+    }
+
     function updateBesoinLitsOccupesChart(data) {
       console.log('Updating besoin-lits-occupes chart with data:', data);
       
@@ -474,8 +729,8 @@
         
         // Update chart
         besoinLitsOccupesChart.data.labels = sortedDates;
-        besoinLitsOccupesChart.data.datasets[0].data = besoinsChartData;
-        besoinLitsOccupesChart.data.datasets[1].data = litsOccupesChartData;
+        besoinLitsOccupesChart.data.datasets[0].data = litsOccupesChartData;
+        besoinLitsOccupesChart.data.datasets[1].data = besoinsChartData;
         besoinLitsOccupesChart.data.datasets[2].data = litsInstallesChartData;
         besoinLitsOccupesChart.update();
         
@@ -528,6 +783,10 @@
             upper_bound: data.upper_bound,
             lower_bound: data.lower_bound
           });
+
+          updateMAEValue('mae-1-month', data.mae_values[0]);
+          updateMAEValue('mae-2-months', data.mae_values[1]);
+          updateMAEValue('mae-3-months', data.mae_values[2]);
           
           // Show success message if intervals were generated
           if (enableIntervals && data.upper_bound && data.lower_bound) {
@@ -553,21 +812,9 @@
           labels: [],
           datasets: [
             {
-              label: 'Besoin en lits (Médiane)',
-              data: [],
-              borderColor: 'rgb(0,123,255)',
-              backgroundColor: 'rgba(0,123,255,0.1)',
-              borderWidth: 3,
-              fill: false,
-              pointRadius: 0,
-              pointHoverRadius: 0,
-              pointBackgroundColor: 'transparent',
-              pointBorderColor: 'transparent'
-            },
-            {
               label: 'Lits occupés',
               data: [],
-              borderColor: 'red',
+              borderColor: 'rgb(0,123,255)',
               backgroundColor: 'rgba(40,167,69,0.1)',
               borderWidth: 3,
               fill: false,
@@ -576,6 +823,19 @@
               pointBackgroundColor: 'transparent',
               pointBorderColor: 'transparent'
             },
+            {
+              label: 'Besoin en lits (Médiane)',
+              data: [],
+              borderColor: 'red',
+              backgroundColor: 'rgba(0,123,255,0.1)',
+              borderWidth: 3,
+              fill: false,
+              pointRadius: 0,
+              pointHoverRadius: 0,
+              pointBackgroundColor: 'transparent',
+              pointBorderColor: 'transparent'
+            },
+            
             {
               label: 'Lits installés',
               data: [],

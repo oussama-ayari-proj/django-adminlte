@@ -239,7 +239,7 @@
             <div class="form-group">
               <label for="code-em">Équipe Médicale: <span id="count-EM-avec-hebergements"></span></label>
               <select class="form-control" id="code-em" disabled>
-                <option value="">Sélectionner d'abord une année</option>
+                <option value="">-- Rechercher et sélectionner une équipe médicale --</option>
               </select>
             </div>
           </div>
@@ -266,7 +266,7 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <h5 class="card-title">Total Séjours de l'équipe choisie</h5>
+                    <h5 class="card-title">Total Hospitalisations de l'équipe choisie</h5>
                     <div class="stat-number" id="total-interventions">-</div>
                   </div>
                   <i class="fas fa-hospital fa-3x text-success"></i>
@@ -312,18 +312,58 @@
                   <h3 class="card-title">📊 Hébergements par UF et par Semaine</h3>
                 </div>
                 <div class="card-body">
-                  <canvas id="hebergement-stacked-chart" style="height: 650px;"></canvas>
+                  <canvas id="hebergement-stacked-chart-2" style="height: 650px;"></canvas>
+                </div>
+            </div>
+          </div>
+        </div>
+
+                
+      </div>
+
+        <!-- Second Row: UF Non Associées et Tableau de Données -->
+        <div class="row mt-4">
+          <div class="col-4">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Les UFs associés</h3>
+              </div>
+              <div class="card-body">
+                <div class="form-group">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label for="uf-associe-select">Sélectionner les UFs associées:</label>
+                    <div>
+                      <button type="button" class="btn btn-sm btn-outline-primary mr-2" id="select-all-ufs">Tout sélectionner</button>
+                      <button type="button" class="btn btn-sm btn-outline-secondary" id="deselect-all-ufs">Tout désélectionner</button>
+                    </div>
+                  </div>
+                  <div class="select2-purple" style="min-width:100%;width:100%;">
+                    <select class="select2" id="uf-associe-select" multiple="multiple" 
+                            data-placeholder="-- Choisir les UFs associées --" 
+                            data-dropdown-css-class="select2-purple" 
+                            style="width: 100%;">
+                    </select>
+                  </div>
+                </div>
+                
+                <div class="mt-3">
+                  <span class="badge badge-info" id="uf-count-badge">0 UF sélectionnée(s)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-8">
+            <div class="card mt-3">
+                <div class="card-header">
+                  <h3 class="card-title">📊 Hébergements et Lits Fermés par Semaine</h3>
+                </div>
+                <div class="card-body">
+                  <canvas id="hebergement-stacked-chart" style="height: 200px;"></canvas>
                 </div>
             </div>
           </div>
         </div>        
-        </div>
-
-        <!-- Second Row: UF Non Associées et Tableau de Données -->
-        <div class="row mt-4">
-          
-          
-          <div class="col-12">
+        <div class="col-12">
             <div class="card">
               <div class="card-header">
                 <h3 class="card-title">📋 Données détaillées d'Hébergement</h3>
@@ -349,9 +389,7 @@
                 </div>
               </div>
             </div>
-          </div>
         </div>
-
       </div>
     </div>
   </div>
@@ -359,6 +397,9 @@
 {% endblock content %}
 
 {% block extra_scripts %}
+  <!-- jQuery (required for Select2) -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  
   <!-- Select2 CSS et JS -->
   <link href="{% static 'plugins/select2/css/select2.min.css' %}" rel="stylesheet" />
   <link href="{% static 'plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css' %}" rel="stylesheet" />
@@ -369,11 +410,65 @@
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+  
+  <style>
+    /* Custom Select2 Styling for EM */
+    .select2-container--default .select2-selection--single {
+      height: 38px !important;
+      border: 1px solid #ced4da !important;
+      border-radius: 0.375rem !important;
+      padding: 0.375rem 0.75rem !important;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+      color: #495057 !important;
+      line-height: 26px !important;
+      padding-left: 0 !important;
+      padding-right: 20px !important;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__placeholder {
+      color: #6c757d !important;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+      height: 36px !important;
+      right: 10px !important;
+    }
+    
+    .select2-dropdown {
+      border: 1px solid #ced4da !important;
+      border-radius: 0.375rem !important;
+    }
+    
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+      background-color: #007bff !important;
+      color: white !important;
+    }
+    
+    .select2-container--default .select2-search--dropdown .select2-search__field {
+      border: 1px solid #ced4da !important;
+      border-radius: 0.375rem !important;
+      padding: 0.375rem 0.75rem !important;
+    }
+    
+    .select2-container--default .select2-results__option[aria-selected=true] {
+      background-color: #e9ecef !important;
+      color: #495057 !important;
+    }
+    
+    .select2-results__option {
+      padding: 8px 12px !important;
+      font-size: 1rem !important;
+    }
+  </style>
+
   <script>
     let hebergementStackedChart; // Graphique empilé pour les hébergements par semaine et UF
+    let hebergementStackedChart_2;
     let ufHebergementChart; // Graphique pour les UF d'hébergement
     let allEms = [];  // Stocker toutes les équipes
-    
+    let ufsAssociees = [];
     document.addEventListener('DOMContentLoaded', function() {
       // Handle year selection
       const yearFilter = document.getElementById('year-filter');
@@ -434,23 +529,50 @@
       }
       
       // Initialiser Select2 pour les UFs associées (removed - no longer needed)
+      // Initialiser Select2 pour les UFs associées
+      if (window.jQuery && $('#uf-associe-select').select2) {
+        $('#uf-associe-select').select2({
+          theme: 'bootstrap4',
+          dropdownCssClass: 'select2-purple',
+          placeholder: '-- Choisir les UFs associées --',
+          width: 'resolve',
+          closeOnSelect: false
+        });
+        
+        // Événement de changement pour le multi-select des UFs
+        $('#uf-associe-select').on('change', function() {
+          const selectedCount = $(this).val() ? $(this).val().length : 0;
+          document.getElementById('uf-count-badge').textContent = `${selectedCount} UF sélectionnée(s)`;
+          
+          // Filtrer les données en fonction des UFs sélectionnées
+          filterDataBySelectedUFs();
+        });
+      }
       
+      $('#select-all-ufs').on('click', function() {
+        const allValues = ufsAssociees.map(row => row.code_uf);
+        $('#uf-associe-select').val(allValues).trigger('change');
+        document.getElementById('uf-count-badge').textContent = `${allValues.length} UF sélectionnée(s)`;
+      });
+      $('#deselect-all-ufs').on('click', function() {
+        $('#uf-associe-select').val([]).trigger('change');
+      });
+      // Initialiser les graphiques
+      //initHebergementSimpleChart();
       initHebergementStackedChart();
       initUFHebergementChart();
+      initHebergementStackedChart_2();
+      
 
       
 
       //loadData();
-      if (hebergementStackedChart) {
-        hebergementStackedChart.data.datasets = [];
-        hebergementStackedChart.update();
-      }
       //document.getElementById('code-em').addEventListener('change', loadData);
     });
      
-    function initHebergementStackedChart() {
-      const ctx = document.getElementById('hebergement-stacked-chart').getContext('2d');
-      hebergementStackedChart = new Chart(ctx, {
+    function initHebergementStackedChart_2() {
+      const ctx = document.getElementById('hebergement-stacked-chart-2').getContext('2d');
+      hebergementStackedChart_2 = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: [],
@@ -626,7 +748,7 @@
                   return tooltipItems[0].label;
                 },
                 label: function(context) {
-                  return `Hébergements: ${context.parsed.x}`;
+                  return `${context.dataset.label}: ${context.parsed.x}`;
                 }
               }
             }
@@ -639,6 +761,112 @@
       });
     }
     
+    function initHebergementStackedChart() {
+      const ctx = document.getElementById('hebergement-stacked-chart').getContext('2d');
+      hebergementStackedChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Hébergements hors matrice',
+              data: [],
+              backgroundColor: 'rgba(54, 162, 235, 0.6)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 2,
+              yAxisID: 'y',
+            },            {
+              type: 'bar',
+              label: 'Lits fermés moyens (UFs associées)',
+              data: [],
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              borderWidth: 3,
+              fill: false,
+              tension: 0.4,
+              pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+              pointBorderColor: 'rgba(255, 99, 132, 1)',
+              pointRadius: 6,
+              yAxisID: 'y',
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },          scales: {
+            x: {
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            },
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Nombre (Hébergements / Lits fermés)',
+                color: 'rgba(54, 162, 235, 1)',
+                font: {
+                  weight: 'bold'
+                }
+              },
+              ticks: {
+                precision: 0,
+                color: 'rgba(54, 162, 235, 1)'
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 15,
+                font: {
+                  size: 15
+                }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: 'white',
+              bodyColor: 'white',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1,
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                title: function(tooltipItems) {
+                  return `Semaine: ${tooltipItems[0].label}`;
+                },                label: function(context) {
+                  if (context.datasetIndex === 0) {
+                    return `${context.dataset.label}: ${context.parsed.y} hospitalisations`;
+                  } else {
+                    return `${context.dataset.label}: ${context.parsed.y} lits fermés`;
+                  }
+                }
+              }
+            }
+          },
+          animation: {
+            duration: 800,
+            easing: 'easeInOutQuart'
+          }
+        }
+      });
+    }
+
     function loadEMsForYear(year) {
       const emSelect = document.getElementById('code-em');
       
@@ -646,12 +874,36 @@
         .then(response => response.json())
         .then(data => {
           console.log('Chargement des EMs pour l\'année:', year, data.ems);
-          emSelect.innerHTML = '<option value="">Sélectionner une équipe médicale</option>';
+          
+          // Destroy existing Select2 if it exists
+          if ($(emSelect).hasClass("select2-hidden-accessible")) {
+            $(emSelect).select2('destroy');
+          }
+          
+          emSelect.innerHTML = '<option value="">-- Rechercher et sélectionner une équipe médicale --</option>';
           data.ems.forEach(em => {
             const option = document.createElement('option');
             option.value = em.code_em;
             option.textContent = em.libelle_em;
             emSelect.appendChild(option);
+          });
+          
+          // Initialize Select2 for EM filter
+          $(emSelect).select2({
+            placeholder: '-- Rechercher et sélectionner une équipe médicale --',
+            allowClear: true,
+            width: '100%',
+            language: {
+              noResults: function() {
+                return "Aucun résultat trouvé";
+              },
+              searching: function() {
+                return "Recherche en cours...";
+              },
+              inputTooShort: function() {
+                return "Veuillez saisir au moins un caractère";
+              }
+            }
           });
           
           document.getElementById('count-EM-avec-hebergements').textContent = 
@@ -682,49 +934,31 @@
           return response.json();
         })        
         .then( data => {
+          console.log('Données des statistiques:', data);
             updateStatistics(data);
+            updateTable(data.uf_associees);
             update_hebergementTable(data.stats.hebergements);
             updateHebergementStackedChart(data);
             updateUFHebergementChart(data.stats.hebergements);
+            updateHebergementStackedChart_2(data);
         })
         .catch(error => {
           console.error('Erreur lors du chargement des statistiques:', error);
         });
     }
     
-    function loadData() {
-      const codeEM = document.getElementById('code-em').value;
 
-      const params = new URLSearchParams();
-      if (codeEM) params.append('code_em', codeEM);
-
-      console.log('Chargement des données avec URL:', `/hebergement-hors-uf/api/stats/?${params}`);
-
-      // Charger les statistiques
-      fetch(`/hebergement-hors-uf/api/stats/?${params}`)
-        .then(response => {
-          return response.json();
-        })        
-        .then( data => {
-            updateStatistics(data);
-            update_hebergementTable(data.stats.hebergements);
-            updateHebergementStackedChart(data);
-            updateUFHebergementChart(data.stats.hebergements);
-        })
-        .catch(error => {
-          console.error('Erreur lors du chargement des statistiques:', error);
-        });
-    }    
     function updateStatistics(data) {
       document.getElementById('total-interventions').textContent = data.stats.total_interventions || 0;
       document.getElementById('total-hebergements').textContent = data.stats.total_hebergement + ` (${((data.stats.total_hebergement/data.stats.total_interventions)*100).toFixed(2)}%)` || 0;   
     }    
-    function updateHebergementStackedChart(data) {
+    
+    function updateHebergementStackedChart_2(data) {
 
       if (!data.stats.hebergements || data.stats.hebergements.length === 0) {
-        hebergementStackedChart.data.labels = [];
-        hebergementStackedChart.data.datasets = [];
-        hebergementStackedChart.update();
+        hebergementStackedChart_2.data.labels = [];
+        hebergementStackedChart_2.data.datasets = [];
+        hebergementStackedChart_2.update();
         return;
       }
       
@@ -779,7 +1013,7 @@
         });
         
         datasets.push({
-          label: uf.length > 20 ? uf.substring(0, 20) + '...' : uf,
+          label: uf,
           data: data,
           backgroundColor: colors[index % colors.length],
           borderColor: colors[index % colors.length].replace('0.8', '1'),
@@ -787,10 +1021,10 @@
           stack: 'hebergements'
         });
       });
-      
-      hebergementStackedChart.data.labels = semaines;
-      hebergementStackedChart.data.datasets = datasets;
-      hebergementStackedChart.update();
+
+      hebergementStackedChart_2.data.labels = semaines;
+      hebergementStackedChart_2.data.datasets = datasets;
+      hebergementStackedChart_2.update();
     }
     
     function updateUFHebergementChart(data) {
@@ -818,8 +1052,7 @@
         .slice(0, 8);
       
       const labels = sortedUFs.map(([ufLibelle,]) => {
-        // Tronquer les libellés trop longs
-        return ufLibelle.length > 25 ? ufLibelle.substring(0, 25) + '...' : ufLibelle;
+        return ufLibelle;
       });
       const chartData = sortedUFs.map(([, totalHebergements]) => totalHebergements);
       
@@ -863,6 +1096,7 @@
         tbody.appendChild(tr);
       });
     }
+    
     function update_hebergementTable(data) {
       const tbody = document.getElementById('hebergement-table-body');
       tbody.innerHTML = '';
@@ -887,5 +1121,181 @@
       });
     }
     
+    function updateHebergementStackedChart(data) {
+      
+      if (!data.stats.hebergements || data.stats.hebergements.length === 0) {
+        hebergementStackedChart.data.labels = [];
+        hebergementStackedChart.data.datasets[0].data = [];
+        hebergementStackedChart.data.datasets[1].data = [];
+        hebergementStackedChart.update();
+        return;
+      }
+      
+      // Grouper les hébergements par semaine (total)
+      const weeklyHospData = {};
+      data.stats.hebergements && data.stats.hebergements.forEach(row => {
+        const semaine = row.semaine_entree || 'Inconnue';
+        if (weeklyHospData[semaine]) {
+          weeklyHospData[semaine] += row.nombre_hospitalisations || 0;
+        } else {
+          weeklyHospData[semaine] = row.nombre_hospitalisations || 0;
+        }
+      });
+      
+      // Grouper les lits fermés par semaine
+      const weeklyLitsData = {};
+      data.stats.lits_fermes && data.stats.lits_fermes.forEach(row => {
+        weeklyLitsData[row.semaine] = row.lits_fermes_moyen || 0;
+      });
+
+      let semaines=[]
+      for (let i=1;i<=52;i++) {
+        semaines.push(i);
+        if (!weeklyHospData[i]) {
+          weeklyHospData[i] = 0;
+        }
+        if( !weeklyLitsData[i]) {
+          weeklyLitsData[i] = 0;
+        }
+      }
+      if (hebergementStackedChart == undefined) {
+        initHebergementStackedChart();
+      }
+      console.log(hebergementStackedChart.data.datasets);
+      hebergementStackedChart.data.labels = semaines;
+      hebergementStackedChart.data.datasets[0].data = semaines.map(week => weeklyHospData[week] || 0);
+      hebergementStackedChart.data.datasets[1].data = semaines.map(week => weeklyLitsData[week] || 0);
+      hebergementStackedChart.update();
+    }
+  
+    function filterDataBySelectedUFs() {
+      const ufSelect = $('#uf-associe-select');
+      const selectedUFs = ufSelect.val() || [];
+      
+      // Préparer les paramètres pour l'API
+      const params = new URLSearchParams();
+      // Ajouter les codes UF sélectionnés
+      params.append('code_uf_associe', selectedUFs);
+      
+      console.log('Appel API avec UFs sélectionnées:', selectedUFs);
+      console.log('URL API:', `/hebergement-hors-uf/api/get_lits_fermes_filtres/?${params}`);
+      
+      // Appeler l'API backend
+      if(selectedUFs.length === 0) {
+        console.log('Aucune UF sélectionnée, pas d\'appel API');
+        hebergementStackedChart.data.datasets[1].data = [];
+        hebergementStackedChart.update();
+        return;
+      }else{
+        fetch(`/hebergement-hors-uf/api/get_lits_fermes_filtres/?${params}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })        
+        .then(data => {
+          console.log('Données reçues de l\'API:', data);
+          
+          if (!data.lits_fermes || data.lits_fermes.length === 0) {
+            console.log('Aucune donnée de lits fermés trouvée pour les UFs sélectionnées');
+            hebergementStackedChart.data.datasets[1].data = [];
+            hebergementStackedChart.update();
+          }else{
+            let semaines=[]
+            for (let i=1;i<=52;i++) {
+              semaines.push(i);
+            }
+            hebergementStackedChart.data.datasets[1].data=semaines.map(week => {
+              const found = data.lits_fermes.find(row => row.semaine === week);
+              return found ? found.lits_fermes_moyen : 0;
+            });
+            hebergementStackedChart.update();
+          }
+        })
+        .catch(error => {
+            console.error('Erreur lors de l\'appel API:', error);
+        });
+      }
+    }
+    function updateTable(data) {
+      const ufSelect = $('#uf-associe-select');
+      
+      // Vider les options existantes
+      ufSelect.empty();
+      
+      if (!data || data.length === 0) {
+        ufSelect.append('<option value="">Aucune UF associée disponible</option>');
+        ufSelect.trigger('change');
+        return;
+      }
+      
+      // Ajouter les nouvelles options
+      ufsAssociees = data;
+      data.forEach((row, index) => {
+        const option = new Option(row.libelle_standard || row.code_uf, row.code_uf, false, false);
+        ufSelect.append(option);
+      });
+      // Select all by default
+      //selectAllUFsAssociees();
+      // Laisser la sélection vide initialement
+      ufSelect.val([]);
+      ufSelect.trigger('change');
+      
+      // Mettre à jour le badge de comptage
+      document.getElementById('uf-count-badge').textContent = '0 UF sélectionnée(s)';
+    }
+  
+    function filterDataBySelectedUFs() {
+      const ufSelect = $('#uf-associe-select');
+      const selectedUFs = ufSelect.val() || [];
+
+      // Préparer les paramètres pour l'API
+      const params = new URLSearchParams();
+      // Ajouter les codes UF sélectionnés
+      params.append('code_uf_associe', selectedUFs);
+      params.append('year', document.getElementById('year-filter').value);
+
+      console.log('Appel API avec UFs sélectionnées:', selectedUFs);
+      console.log('URL API:', `/hebergement-hors-uf/api/get_lits_fermes_filtres/?${params}`);
+
+      // Appeler l'API backend
+      if(selectedUFs.length === 0) {
+        console.log('Aucune UF sélectionnée, pas d\'appel API');
+        hebergementStackedChart.data.datasets[1].data = [];
+        hebergementStackedChart.update();
+        return;
+      } else {
+        fetch(`/hebergement-hors-uf/api/get_lits_fermes_filtres/?${params}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Données reçues de l\'API:', data);
+
+          if (!data.lits_fermes || data.lits_fermes.length === 0) {
+            console.log('Aucune donnée de lits fermés trouvée pour les UFs sélectionnées');
+            hebergementStackedChart.data.datasets[1].data = [];
+            hebergementStackedChart.update();
+          } else {
+            let semaines=[];
+            for (let i=1;i<=52;i++) {
+              semaines.push(i);
+            }
+            hebergementStackedChart.data.datasets[1].data = semaines.map(week => {
+              const found = data.lits_fermes.find(row => row.semaine == week);
+              return found ? found.lits_fermes_moyen : 0;
+            });
+            hebergementStackedChart.update();
+          }
+        })
+        .catch(error => {
+            console.error('Erreur lors de l\'appel API:', error);
+        });
+      }
+    }
   </script>
 {% endblock extra_scripts %}

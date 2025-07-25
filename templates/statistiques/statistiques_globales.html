@@ -37,9 +37,54 @@
     box-shadow: 0 2px 4px rgba(0,123,255,0.25);
   }
   .uf-code {
-    font-family: 'Courier New', monospace;
     font-weight: bold;
     color: #007bff;
+  }
+
+  /* Select2 custom styling */
+  .select2-container--default .select2-selection--single {
+    height: 38px !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 0.25rem !important;
+    background-color: #fff !important;
+    padding: 0.375rem 0.75rem !important;
+    line-height: 1.5 !important;
+    font-size: 1.2rem !important;
+  }
+
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 28px !important;
+    padding-left: 0 !important;
+    padding-right: 20px !important;
+    color: #495057 !important;
+  }
+
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px !important;
+    right: 10px !important;
+  }
+
+  .select2-dropdown {
+    border: 1px solid #ced4da !important;
+    border-radius: 0.25rem !important;
+    font-size: 1.2rem !important;
+  }
+
+  .select2-results__option {
+    padding: 8px 12px !important;
+    font-size: 1.2rem !important;
+  }
+
+  .select2-results__option--highlighted {
+    background-color: #007bff !important;
+    color: white !important;
+  }
+
+  .select2-search--dropdown .select2-search__field {
+    border: 1px solid #ced4da !important;
+    border-radius: 0.25rem !important;
+    padding: 4px 8px !important;
+    font-size: 1.2rem !important;
   }
 </style>
 <div class="content-wrapper">
@@ -125,7 +170,7 @@
                 <div>
                   <label for="em-select" class="font-weight-bold mb-2" style="font-size:1.3rem; color:#007bff;">Sélectionner une Équipe Médicale :</label>
                   <select class="form-control select-em" id="em-select" style="font-size:1.2rem; min-width:320px; max-width:100%;" disabled>
-                    <option value="">Sélectionner d'abord une année</option>
+                    <option value="">-- Rechercher et sélectionner une équipe médicale --</option>
                   </select>
                 </div>
               </div>
@@ -216,8 +261,8 @@
         <div class="col-12">
           <div class="card stats-card">
             <div class="card-body">
-              <div style="height: 420px;">
-                <canvas id="charge-em-chart" style="width:100%;height:100%;max-height:400px;"></canvas>
+              <div style="height: 600px;">
+                <canvas id="charge-em-chart" style="width:100%;height:100%;max-height:600px;"></canvas>
               </div>
             </div>
           </div>
@@ -230,6 +275,12 @@
 {% endblock content %}
 
 {% block extra_scripts %}
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- Select2 -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom/dist/chartjs-plugin-zoom.min.js"></script>
@@ -257,7 +308,13 @@ document.addEventListener('DOMContentLoaded', function() {
       // Disable EM select and load button
       emSelect.disabled = true;
       loadStatsBtn.disabled = true;
-      emSelect.innerHTML = '<option value="">Sélectionner d\'abord une année</option>';
+      
+      // Destroy existing Select2 instance if it exists
+      if ($('#em-select').hasClass('select2-hidden-accessible')) {
+        $('#em-select').select2('destroy');
+      }
+      
+      emSelect.innerHTML = '<option value="">-- Rechercher et sélectionner une équipe médicale --</option>';
       // Reset stats
       document.getElementById('total-ems').textContent = '-';
       document.getElementById('total-sejours').textContent = '-';
@@ -280,12 +337,31 @@ document.addEventListener('DOMContentLoaded', function() {
     fetch(`/statistiques/api/ems-by-year/?year=${year}`)
       .then(response => response.json())
       .then(data => {
-        emSelect.innerHTML = '<option value="">Sélectionner une équipe médicale</option>';
+        // Destroy existing Select2 instance if it exists
+        if ($('#em-select').hasClass('select2-hidden-accessible')) {
+          $('#em-select').select2('destroy');
+        }
+        
+        emSelect.innerHTML = '<option value="">-- Rechercher et sélectionner une équipe médicale --</option>';
         data.ems.forEach(em => {
           const option = document.createElement('option');
           option.value = em.code_em;
           option.textContent = em.libelle_em;
           emSelect.appendChild(option);
+        });
+        
+        // Initialize Select2 after populating options
+        $('#em-select').select2({
+          placeholder: "-- Rechercher et sélectionner une équipe médicale --",
+          allowClear: true,
+          language: {
+            noResults: function() {
+              return "Aucun résultat trouvé";
+            },
+            searching: function() {
+              return "Recherche en cours...";
+            }
+          }
         });
       })
       .catch(error => {
