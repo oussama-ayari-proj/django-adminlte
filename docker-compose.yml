@@ -1,27 +1,43 @@
-version: '3.8'
+
 services:
-  appseed-app:
-    container_name: appseed_app
+  optisoin-app:
+    image: oussamaayari2020/optisoin-app:2.3.2
+    container_name: optisoin
     restart: always
-    build: .
+    ports: 
+      - "8000:8000"
+    depends_on:
+      - mysql
     networks:
-      - db_network
-      - web_network
-  nginx:
-    container_name: nginx
+      - app_network
+  mlflow:
+    image: oussamaayari2020/mlflow-deployment:1.0.0
+    container_name: mlflow
     restart: always
-    image: "nginx:latest"
     ports:
-      - "5085:5085"
-    volumes:
-      - ./nginx:/etc/nginx/conf.d
+      - "5000:5000"
     networks:
-      - web_network
-    depends_on: 
-      - appseed-app
+      - app_network
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-server
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backup.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - app_network
+volumes:
+  mysql_data:
+
 networks:
-  db_network:
+  app_network:
     driver: bridge
-  web_network:
-    driver: bridge
- 
+

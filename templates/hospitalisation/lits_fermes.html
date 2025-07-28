@@ -59,6 +59,53 @@
   .text-purple {
     color: #6f42c1 !important;
   }
+  
+  /* Select2 custom styling */
+  .select2-container--default .select2-selection--single {
+    height: 60px !important;
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    font-size: 1.2rem !important;
+  }
+  
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 58px !important;
+    padding-left: 12px;
+    font-size: 1.2rem !important;
+  }
+  
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 58px !important;
+  }
+  
+  /* Also apply to regular select elements for consistency */
+  .form-control {
+    height: 60px !important;
+    font-size: 1.2rem !important;
+    line-height: 1.5 !important;
+  }
+  
+  .select2-dropdown {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    font-size: 1.2rem !important;
+  }
+  
+  .select2-results__option {
+    font-size: 1.2rem !important;
+    padding: 8px 12px;
+  }
+  
+  .select2-results__option--highlighted {
+    background-color: #227F79 !important;
+  }
+  
+  .select2-search--dropdown .select2-search__field {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    font-size: 1.2rem !important;
+  }
+  
   @media (max-width: 1200px) {
     html, body, .content-wrapper, .container-fluid {
       font-size: 1rem;
@@ -298,7 +345,15 @@
         <div class="row mt-8" id="graph-container-famille" style="display: none;margin-top: 100px;">
           <div class="d-flex">
             <div class="text-center col-6">
-              <div class="d-flex justify-content-center">
+              <div class="d-flex justify-content-center flex-column">
+                <!-- Score R² pour famille -->
+                <div class="mb-3">
+                  <div class="card bg-light border-primary">
+                    <div class="card-body py-2">
+                      <p><span id="r2-score-famille" class="badge badge-primary font-weight-bold" style="font-size: 1rem;">-</span> de la variance des lits fermés est expliquée par le modèle</p>
+                    </div>
+                  </div>
+                </div>
                 <img id="coefs-graph-famille" src="" alt="Graphique d'impact par famille de métier" class="img-fluid col-12">
               </div>
             </div>
@@ -311,7 +366,15 @@
         <div class="row mt-8" id="graph-container-sous-famille" style="display: none;margin-top: 100px;">
           <div class="d-flex">
             <div class="text-center col-6">
-              <div class="d-flex justify-content-center">
+              <div class="d-flex justify-content-center flex-column">
+                <!-- Score R² pour sous-famille -->
+                <div class="mb-3">
+                  <div class="card bg-light border-success">
+                    <div class="card-body py-2">
+                      <p><span id="r2-score-sous-famille" class="badge badge-success font-weight-bold" style="font-size: 1rem;">-</span> de la variance des lits fermés est expliquée par le modèle</p>
+                    </div>
+                  </div>
+                </div>
                 <img id="coefs-graph-sous-famille" src="" alt="Graphique d'impact par sous-famille de métier" class="img-fluid col-12">
               </div>
             </div>
@@ -325,6 +388,14 @@
           <div class="d-flex">
             <div class="text-center col-6">
               <div class="d-flex justify-content-center flex-column">
+                <!-- Score R² pour métiers -->
+                <div class="mb-3">
+                  <div class="card bg-light border-warning">
+                    <div class="card-body py-2">
+                      <p><span id="r2-score-metier" class="badge badge-warning font-weight-bold" style="font-size: 1rem;">-</span> de la variance des lits fermés est expliquée par le modèle</p>
+                    </div>
+                  </div>
+                </div>
                 <form method="get" class="form-inline mb-3" id="metier-graph-form">
                   <label for="metier-graph-dropdown" class="mr-2" style="font-size: 2.5rem;color:#227F79">Légende du graph:</label>
                   <select class="form-control mr-2" id="metier-graph-dropdown" name="metier_graph_libelle" style="font-size: 2rem;height: auto;">
@@ -459,6 +530,10 @@
 {% endblock content %}
 
 {% block extra_scripts %}
+  <!-- Select2 -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
@@ -472,6 +547,21 @@
     let litsOccupesChart;
     
     document.addEventListener('DOMContentLoaded', function() {
+      // Initialize Select2 for UF filter
+      $('#uf-filter').select2({
+        placeholder: 'Rechercher un UF...',
+        allowClear: false,
+        width: '100%',
+        language: {
+          noResults: function() {
+            return "Aucun résultat trouvé";
+          },
+          searching: function() {
+            return "Recherche en cours...";
+          }
+        }
+      });
+      
       // Initialize charts
       initializeLitsFermesChart();
       initializeLitsOccupesChart();
@@ -856,9 +946,11 @@
           span.textContent = '';
       }
     }
-    function displayRegressionExplanationAndGraph(reg_data,graph_data, graphContainerId,graphId, explanationId) {
+    function displayRegressionExplanationAndGraph(reg_data,graph_data, graphContainerId,graphId, explanationId, r2Score, r2ElementId) {
       const graphContainer = document.getElementById(graphContainerId);
       const explainDiv = document.getElementById(explanationId);
+      const r2Element = document.getElementById(r2ElementId);
+      
       if (reg_data && Object.keys(reg_data).length > 0
           && graph_data) {
           const coefs = reg_data;
@@ -882,10 +974,31 @@
                 return `<div style="font-size:1.3rem;margin-top:0.5rem;">${e}</div>`;
             }
           }).join('');
+          
+          // Update R² score
+          if (r2Score !== undefined && !isNaN(r2Score)) {
+            const r2Value = (r2Score * 100).toFixed(1);
+            r2Element.textContent = `${r2Value}%`;
+            
+            // Color coding based on R² quality
+            if (r2Score >= 0.7) {
+              r2Element.className = 'badge badge-success font-weight-bold';
+            } else if (r2Score >= 0.5) {
+              r2Element.className = 'badge badge-warning font-weight-bold';
+            } else {
+              r2Element.className = 'badge badge-danger font-weight-bold';
+            }
+          } else {
+            r2Element.textContent = '-';
+            r2Element.className = 'badge badge-secondary font-weight-bold';
+          }
+          
           document.getElementById(graphId).src = 'data:image/png;base64,' + graph_data;
           graphContainer.style.display = 'block'; // Show the graph container
         } else {
           explainDiv.innerHTML = '';
+          r2Element.textContent = '-';
+          r2Element.className = 'badge badge-secondary font-weight-bold';
           graphContainer.style.display = 'none'; // Hide the graph container
         }
     }
@@ -902,9 +1015,9 @@
           setSignificance(data.ccf_value_agents_abs_prevu, 'ccf-prevu-signif');
           document.getElementById('ccf-imprevu').textContent = (data.ccf_value_agents_abs_imprevu !== undefined) ? data.ccf_value_agents_abs_imprevu.toFixed(3) : '-';
           setSignificance(data.ccf_value_agents_abs_imprevu, 'ccf-imprevu-signif');
-          displayRegressionExplanationAndGraph(data.regression_res_metier, data.graph_metier, 'graph-container-metier', 'coefs-graph-metier', 'regression-explanation-metier');
-          displayRegressionExplanationAndGraph(data.regression_res_famille, data.graph_famille, 'graph-container-famille', 'coefs-graph-famille', 'regression-explanation-famille');
-          displayRegressionExplanationAndGraph(data.regression_res_sous_famille, data.graph_sous_famille, 'graph-container-sous-famille', 'coefs-graph-sous-famille', 'regression-explanation-sous-famille');
+          displayRegressionExplanationAndGraph(data.regression_res_metier, data.graph_metier, 'graph-container-metier', 'coefs-graph-metier', 'regression-explanation-metier', data.r2_score_metier, 'r2-score-metier');
+          displayRegressionExplanationAndGraph(data.regression_res_famille, data.graph_famille, 'graph-container-famille', 'coefs-graph-famille', 'regression-explanation-famille', data.r2_score_famille, 'r2-score-famille');
+          displayRegressionExplanationAndGraph(data.regression_res_sous_famille, data.graph_sous_famille, 'graph-container-sous-famille', 'coefs-graph-sous-famille', 'regression-explanation-sous-famille', data.r2_score_sous_famille, 'r2-score-sous-famille');
         })
         .catch(error => {
           console.error('Error fetching data:', error);

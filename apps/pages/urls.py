@@ -22,3 +22,4 @@ urlpatterns = [
     path('ajax_pole_filter/', views.ajax_pole_filter, name='ajax_pole_filter'),
     path('ajax_etb_filter/', views.ajax_etb_filter, name='ajax_etb_filter'),
 ]
+ 

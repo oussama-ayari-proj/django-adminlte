@@ -77,6 +77,7 @@ def get_data_metiers(request):
     metier_graph_option=request.GET.get('metier_graph_option')
 
     if code_uf and metiers_param:
+        print("inside first if")
         metiers = metiers_param.split(',')
         if metiers:
             rhs = rhs.filter(metier__in=metiers)
@@ -100,6 +101,7 @@ def get_data_metiers(request):
             'ccf_value_agents_abs_imprevu': ccf_value_agents_abs_imprevu,
         })
     if code_uf:
+        print("inside second if")
         df_rh = pd.DataFrame(list(rhs.values('semaine', 'metier', 'agents_abs_imprevu','abs_total', 'agents_abs_prevu','famille_metier', 'sous_famille_metier')))
         df_lits = pd.DataFrame(list(lits.values('semaine', 'lits_fermes_moyen')))
         
@@ -120,9 +122,9 @@ def get_data_metiers(request):
                 'ccf_value_agents_abs_prevu': ccf_value_agents_abs_prevu,
                 'ccf_value_agents_abs_imprevu': ccf_value_agents_abs_imprevu,
             })
-        res_metier, graph_metier = regression_call(df_rh,df_lits,'metier',code_uf, metier_graph_option)
-        res_famille, graph_famille = regression_call(df_rh,df_lits, 'famille_metier', code_uf, metier_graph_option)
-        res_sous_famille, graph_sous_famille = regression_call(df_rh,df_lits, 'sous_famille_metier', code_uf, metier_graph_option)
+        res_metier, graph_metier,r2_score_metier = regression_call(df_rh,df_lits,'metier',code_uf, metier_graph_option)
+        res_famille, graph_famille, r2_score_famille = regression_call(df_rh,df_lits, 'famille_metier', code_uf, metier_graph_option)
+        res_sous_famille, graph_sous_famille, r2_score_sous_famille = regression_call(df_rh,df_lits, 'sous_famille_metier', code_uf, metier_graph_option)
 
         return JsonResponse({
             'data': clean_json(df_res.to_dict(orient='records')),
@@ -134,7 +136,10 @@ def get_data_metiers(request):
             'regression_res_famille': res_famille,
             'graph_famille': graph_famille,
             'regression_res_sous_famille': res_sous_famille,
-            'graph_sous_famille': graph_sous_famille
+            'graph_sous_famille': graph_sous_famille,
+            'r2_score_metier': r2_score_metier,
+            'r2_score_famille': r2_score_famille,
+            'r2_score_sous_famille': r2_score_sous_famille,
         })
     else:
         return JsonResponse({'error': 'Invalid parameters'}, status=400)
@@ -157,7 +162,8 @@ def get_metier_graph(request):
         res_metier, graph_metier = regression_call(df_rh,df_lits,'metier',code_uf, metier_graph_option)
 
         return JsonResponse({
-            'graph_metier': graph_metier,  
+            'graph_metier': graph_metier,
+            'regression_res_metier': res_metier,  
         })
     elif code_uf:
 
@@ -165,6 +171,7 @@ def get_metier_graph(request):
 
         return JsonResponse({
             'graph_metier': graph_famille,
+            'regression_res_famille': res_famille,
         })
     else:
         return JsonResponse({'error': 'Invalid parameters'}, status=400)
@@ -200,7 +207,8 @@ def regression_lineaire(df, metiers=None):
     model.fit(X, y)
     coefs = {metier: round(float(model.coef_[i]),1) if model.coef_[i]>0 else 0 for i, metier in enumerate(metier_col_map.keys())}
     coefs['const'] = round(float(model.intercept_),1)
-    return coefs
+    r2_value = model.score(X, y)
+    return coefs, r2_value
 
 
 def figure_coeffs(data, title, mapping=None):
@@ -286,9 +294,7 @@ def regression_call(df,df_lits,col,code_uf, metier_graph_option):
     df_merged= pivot_df(df, 'semaine', col, 'agents_abs_prevu',df_lits)
     cols= RH.objects.filter(code_uf=code_uf).values_list(col, flat=True).distinct()
     cols = [c for c in cols if c]
-    res= regression_lineaire(df_merged, cols)
-            
-            # Create mapping
+    res, r2_score= regression_lineaire(df_merged, cols)
     mapping = None
     if col == 'sous_famille_metier':
                 # Map sous-famille to famille 
@@ -310,5 +316,5 @@ def regression_call(df,df_lits,col,code_uf, metier_graph_option):
                 if item['metier'] and item['famille_metier']:
                     mapping[item['metier']] = item['famille_metier']
     graph = figure_coeffs(res.copy(), col.replace('_', ' ').title(), mapping)
-    return res, graph
+    return res, graph, r2_score
         
