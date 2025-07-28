@@ -375,90 +375,6 @@ docker-compose down
 
 ## 🧪 Configuration de Développement
 
-### Tests
-```bash
-# Lancer tous les tests
-python manage.py test
-
-# Tests avec coverage
-pip install coverage
-coverage run --source='.' manage.py test
-coverage report
-coverage html
-
-# Tests spécifiques
-python manage.py test apps.hospitalisation
-python manage.py test apps.predictions.tests.test_models
-```
-
-### Linting et Formatage
-```bash
-# Installation des outils
-pip install black flake8 isort mypy
-
-# Formatage du code
-black .
-isort .
-
-# Vérification du style
-flake8 .
-
-# Vérification de types
-mypy .
-```
-
-### Variables d'environnement de développement
-```bash
-# .env.development
-DEBUG=True
-DJANGO_LOG_LEVEL=DEBUG
-SQL_DEBUG=True
-ENABLE_DEBUG_TOOLBAR=True
-
-# Base de données de test
-TEST_DATABASE_URL=sqlite:///:memory:
-```
-
----
-
-## 📊 Données de Test
-
-### Fixtures et données d'exemple
-```bash
-# Charger des données de test
-python manage.py loaddata fixtures/test_data.json
-
-# Créer des données factices
-python manage.py shell
->>> from django.core.management import call_command
->>> call_command('create_test_data')
-```
-
-### Script de génération de données
-```python
-# management/commands/create_test_data.py
-from django.core.management.base import BaseCommand
-from faker import Faker
-from apps.hospitalisation.models import UF, Sejour
-
-class Command(BaseCommand):
-    def handle(self, *args, **options):
-        fake = Faker('fr_FR')
-        
-        # Créer des UF de test
-        for i in range(10):
-            UF.objects.create(
-                code_uf=f"UF{i:03d}",
-                libelle_standard=fake.company(),
-                capacite=fake.random_int(min=10, max=50)
-            )
-        
-        self.stdout.write(
-            self.style.SUCCESS('Données de test créées avec succès')
-        )
-```
-
----
 
 ## 🔍 Dépannage
 
@@ -473,63 +389,8 @@ class Command(BaseCommand):
 | **Permission denied** | Vérifier les permissions des fichiers et dossiers |
 | **mysqlclient installation error** | Installer les dev tools: `apt-get install default-libmysqlclient-dev` (Linux) |
 
-### Commandes de Diagnostic
-```bash
-# Vérifier la configuration Django
-python manage.py check
 
-# Vérifier la configuration système
-python manage.py check --deploy
 
-# Informations sur la base de données
-python manage.py dbshell
-
-# Reconstruire l'index de recherche
-python manage.py rebuild_index
-```
-
-### Logs et Debugging
-```bash
-# Localisation des logs
-tail -f logs/django.log
-
-# Debug mode SQL
-export DJANGO_LOG_LEVEL=DEBUG
-
-# Profiling des performances
-pip install django-debug-toolbar
-# Ajouter 'debug_toolbar' dans INSTALLED_APPS
-```
-
----
-
-## 🚀 Déploiement
-
-### Préparation pour la Production
-```bash
-# Collecte des fichiers statiques
-python manage.py collectstatic --noinput
-
-# Compilation des messages
-python manage.py compilemessages
-
-# Vérification de sécurité
-python manage.py check --deploy
-
-# Sauvegarde de la base de données MySQL
-mysqldump -u hospital_user -p hospital_management > backup.sql
-```
-
-### Variables d'environnement de production
-```bash
-# .env.production
-DEBUG=False
-ALLOWED_HOSTS=your-domain.com,www.your-domain.com
-SECRET_KEY=your-production-secret-key
-DATABASE_URL=mysql://user:pass@localhost:3306/hospital_production
-```
-
----
 
 ## 📚 Ressources Additionnelles
 
@@ -544,40 +405,8 @@ DATABASE_URL=mysql://user:pass@localhost:3306/hospital_production
 - **Django Debug Toolbar** : https://django-debug-toolbar.readthedocs.io/
 - **Django REST Framework** : https://www.django-rest-framework.org/
 
-### IDE Configuration (VS Code)
-```json
-// .vscode/settings.json
-{
-    "python.defaultInterpreterPath": "./venv/bin/python",
-    "python.linting.enabled": true,
-    "python.linting.flake8Enabled": true,
-    "python.formatting.provider": "black",
-    "python.sortImports.args": ["--profile", "black"],
-    "files.exclude": {
-        "**/__pycache__": true,
-        "**/*.pyc": true
-    }
-}
-```
 
----
-
-## 🤝 Contribution
-
-### Workflow de Développement
-1. **Fork** du repository
-2. **Création** d'une branche feature
-3. **Développement** avec tests
-4. **Pull Request** avec description détaillée
-5. **Review** et merge
-
-### Standards de Code
-- **PEP 8** pour Python
-- **ESLint** pour JavaScript
-- **Tests unitaires** obligatoires
-- **Documentation** pour les nouvelles fonctionnalités
 
 ---
 
 *Guide d'installation mis à jour le 28 juillet 2025*
-*Version du système : Django AdminLTE Hospital Management v1.0*
