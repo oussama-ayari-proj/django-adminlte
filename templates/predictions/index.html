@@ -124,10 +124,20 @@
                 </div>
           </div>
         </div>
-
+        <div class="row mt-5">
+          <div class="col-12">
+            <hr style="border: 2px solid #227F79; margin: 2rem 0;">
+            <div class="text-center mb-4">
+              <h4 style="color: #227F79; font-weight: bold;">
+                <i class="fas fa-chart-line mr-2"></i>
+                Comparaison Besoin en lits vs Lits occupés
+              </h4>
+            </div>
+          </div>
+        </div>
         <div class="row mt-5">
           <div class="col-lg-12">
-            <h3>Comparaison Besoin en lits vs Lits occupés</h3>
+            <!-- <h3>Comparaison Besoin en lits vs Lits occupés</h3> -->
             
             <!-- Date Filter Controls -->
             <div class="row mb-3">
@@ -168,11 +178,13 @@
             </div>
           </div>
         </div>
+        
 
+        
         <!-- KPIs Comparison Table -->
         <div class="row mt-5">
           <div class="col-lg-12">
-            <h3>Comparaison des Proprietes statistiques</h3>
+            <!-- <h3>Comparaison des Proprietes statistiques</h3> -->
             <div class="card">
               <div class="card-header">
                 <h5 class="mb-0">
@@ -227,10 +239,10 @@
                         <td class="text-center" id="diff-ecart">-</td>
                       </tr>
                       <tr>
-                        <td><strong>Variance</strong></td>
-                        <td class="text-center" id="besoin-variance">-</td>
-                        <td class="text-center" id="lits-variance">-</td>
-                        <td class="text-center" id="diff-variance">-</td>
+                        <td><strong>Mode</strong></td>
+                        <td class="text-center" id="besoin-mode">-</td>
+                        <td class="text-center" id="lits-mode">-</td>
+                        <td class="text-center" id="diff-mode">-</td>
                       </tr>
                     </tbody>
                   </table>
@@ -241,33 +253,103 @@
         </div>
 
         <div class="row mt-5">
+          <div class="col-12">
+            <hr style="border: 2px solid #227F79; margin: 2rem 0;">
+            <div class="text-center mb-4">
+              <h4 style="color: #227F79; font-weight: bold;">
+                <i class="fas fa-chart-line mr-2"></i>
+                Prédiction personnalisée
+              </h4>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-5">
+          <div class="col-lg-12">
+            <!-- Variables Exogènes Card -->
+            <div class="card mt-3">
+              <div class="card-header bg-info text-white">
+                <h5 class="mb-0" style="font-size: 1.3rem;">
+                  <i class="fas fa-cogs mr-2"></i>
+                  Variables Exogènes Utilisées
+                </h5>
+              </div>
+              <div class="card-body">
+                <p class="text-muted mb-3" style="font-size: 1.1rem;">
+                  <i class="fas fa-info-circle mr-1"></i>
+                  Le modèle prend en compte ces 6 variables temporelles pour améliorer la précision des prédictions :
+                </p>
+                <div class="row">
+                  <div class="col-md-6">
+                    <ul class="list-unstyled">
+                      <li class="mb-2" style="font-size: 1.1rem;">
+                        <i class="fas fa-calendar-day text-primary mr-2"></i>
+                        <strong>Les jours fériés</strong>
+                      </li>
+                      <li class="mb-2" style="font-size: 1.1rem;">
+                        <i class="fas fa-school text-success mr-2"></i>
+                        <strong>Les périodes de vacances scolaires</strong>
+                      </li>
+                      <li class="mb-2" style="font-size: 1.1rem;">
+                        <i class="fas fa-calendar-alt text-warning mr-2"></i>
+                        <strong>Le mois de l'année</strong>
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="col-md-6">
+                    <ul class="list-unstyled">
+                      <li class="mb-2" style="font-size: 1.1rem;">
+                        <i class="fas fa-calendar-week text-info mr-2"></i>
+                        <strong>Le numéro de la semaine dans l'année</strong>
+                      </li>
+                      <li class="mb-2" style="font-size: 1.1rem;">
+                        <i class="fas fa-calendar text-secondary mr-2"></i>
+                        <strong>Le jour de la semaine</strong>
+                      </li>
+                      <li class="mb-2" style="font-size: 1.1rem;">
+                        <i class="fas fa-calendar-day text-danger mr-2"></i>
+                        <strong>Le jour du mois</strong>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="alert alert-light mt-3 mb-0">
+                  <div class="text-muted" style="font-size: 1rem;">
+                    <i class="fas fa-lightbulb mr-1"></i>
+                    Ces variables permettent au modèle de capturer les patterns saisonniers et calendaires qui influencent le besoin en lits.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-5">
           <div class="col-lg-6">
             <div class="card">
-              <div class="card-header">
-                <h5>Prédiction personnalisée</h5>
-              </div>
+              
               <div class="card-body">
                 <form id="prediction-form">
                   <div class="form-group">
-                    <label for="end-date">Date de fin de prédiction:</label>
-                    <input type="date" class="form-control" id="end-date" name="end_date" required>
+                    <label for="end-date" style="font-size: 1.2rem; font-weight: bold;">Horizon de la prédiction:</label>
+                    <input type="date" class="form-control" id="end-date" name="end_date" required style="font-size: 1.1rem; height: 45px;">
                   </div>
                   <div class="form-group">
                     <div class="form-check">
-                      <input type="checkbox" class="form-check-input" id="enable-intervals" name="enable_intervals">
-                      <label class="form-check-label" for="enable-intervals">
+                      <input type="checkbox" class="form-check-input" id="enable-intervals" name="enable_intervals" style="transform: scale(1.2);">
+                      <label class="form-check-label" for="enable-intervals" style="font-size: 1.1rem;">
                         <i class="fas fa-chart-area mr-1"></i>
-                        Afficher les intervalles de confiance
+                        Afficher les intervalles de confiance à 90%
                       </label>
                     </div>
-                    <small class="form-text text-muted">Affiche les bornes supérieures et inférieures de prédiction</small>
+                    <small class="form-text text-muted" style="font-size: 1rem;">Affiche les bornes supérieures et inférieures de prédiction à 90%</small>
                   </div>
-                  <button type="submit" class="btn btn-primary">
+                  <button type="submit" class="btn btn-primary" style="font-size: 1.1rem; padding: 10px 20px;">
                     <i class="fas fa-chart-line"></i> Générer prédiction
                   </button>
                 </form>
               </div>
             </div>
+            
+            
           </div>
           <div class="col-lg-6">
             <div class="card">
@@ -324,7 +406,6 @@
 
         <div class="row mt-5">
           <div class="col-lg-12">
-            <h3>Prédiction du besoin en lits (après réaffectation des hébergements)</h3>
             <div class="card">
               <div class="card-body">
                 <canvas id="besoins-uf-chart" width="100%" height="500"></canvas>
@@ -640,11 +721,9 @@
         } else {
           // Color code the MAE values (green for low, yellow for medium, red for high)
           const numericValue = parseFloat(value);
-          let colorClass = 'text-success'; // Green for low MAE
-          if (numericValue > 1) colorClass = 'text-warning'; // Yellow for medium MAE
-          if (numericValue > 2) colorClass = 'text-danger'; // Red for high MAE
           
-          element.innerHTML = `<span class="${colorClass}"><strong>${value}</strong></span>`;
+          
+          element.innerHTML = `<span><strong>${value}</strong></span>`;
         }
       }
     }
@@ -788,10 +867,10 @@
           updateMAEValue('mae-2-months', data.mae_values[1]);
           updateMAEValue('mae-3-months', data.mae_values[2]);
           
-          // Show success message if intervals were generated
-          if (enableIntervals && data.upper_bound && data.lower_bound) {
-            console.log('Intervalles de confiance générés avec succès');
-          }
+          // // Show success message if intervals were generated
+          // if (enableIntervals && data.upper_bound && data.lower_bound) {
+          //   console.log('Intervalles de confiance générés avec succès');
+          // }
         })
         .catch(error => {
           console.error('Error fetching predictions:', error);
@@ -812,7 +891,7 @@
           labels: [],
           datasets: [
             {
-              label: 'Lits occupés',
+              label: 'Historique Lits occupés',
               data: [],
               borderColor: 'rgb(0,123,255)',
               backgroundColor: 'rgba(40,167,69,0.1)',
@@ -824,7 +903,7 @@
               pointBorderColor: 'transparent'
             },
             {
-              label: 'Besoin en lits (Médiane)',
+              label: 'Besoin Théorique sans hébérgements',
               data: [],
               borderColor: 'red',
               backgroundColor: 'rgba(0,123,255,0.1)',
@@ -1082,9 +1161,9 @@
       document.getElementById('lits-ecart').textContent = formatNumber(litsKpis.std_value);
       document.getElementById('diff-ecart').innerHTML = calculateDifference(besoinKpis.std_median, litsKpis.std_value);
       
-      document.getElementById('besoin-variance').textContent = formatNumber(besoinKpis.var_median);
-      document.getElementById('lits-variance').textContent = formatNumber(litsKpis.var_value);
-      document.getElementById('diff-variance').innerHTML = calculateDifference(besoinKpis.var_median, litsKpis.var_value);
+      document.getElementById('besoin-mode').textContent = formatNumber(besoinKpis.mod_median);
+      document.getElementById('lits-mode').textContent = formatNumber(litsKpis.mod_value);
+      document.getElementById('diff-mode').innerHTML = calculateDifference(besoinKpis.mod_median, litsKpis.mod_value);
     }
     
     function clearKpisTable() {
@@ -1094,7 +1173,7 @@
         'besoin-max', 'lits-max', 'diff-max',
         'besoin-min', 'lits-min', 'diff-min',
         'besoin-ecart', 'lits-ecart', 'diff-ecart',
-        'besoin-variance', 'lits-variance', 'diff-variance'
+        'besoin-mode', 'lits-mode', 'diff-mode'
       ];
       
       kpiElements.forEach(elementId => {

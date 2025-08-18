@@ -12,15 +12,13 @@ if current_dir not in sys.path:
 from django.http import HttpResponse,JsonResponse
 from apps.pages.models import UF
 import mlflow
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from apps.correlation.models import Lit
 from apps.hospitalisation.models import Lits_occupes,Besoins
-from sm1chut.predictions.pred import predict,mae_for_uf
+from sm1chut.predictions.pred import mae_for_uf
 from apps.hospitalisation.views import get_lits_fermes_kpis
-from sklearn.metrics import mean_absolute_error as mae
-import numpy as np
-
+import requests
 # Create your views here.
 
 def index(request):
@@ -96,6 +94,8 @@ def get_predictions(request):
         latest_date = datetime.strptime(latest_date, '%Y-%m-%d').date()
 
     steps = (end_date - latest_date).days
+    print(f"Steps to predict: {steps}")
+    print(end_date, latest_date)
     if steps<=0:
         return HttpResponse("Please provide the number of steps to predict.", status=400)
 
@@ -116,38 +116,43 @@ def get_predictions(request):
                 'median': item['median']
             })
     
-    artifact_path = "pickle_folder/best_whole_data_1.pkl"
-    run_id = "cd72dba36e884d908987606bf93ca28e"
-    
-    forecaster = load_model(artifact_path, run_id)
-    artifact_path_mae = "pickle_folder/best_val_data_1.pkl"
-    run_id_mae = "6f28a05c734241108f5409b094a5e05f"
     data_test_query= querySet.filter(
             date__gte=three_months_ago,
             date__lte=latest_date
         ).order_by('date').values('date', 'median','code_uf')
     data_test= pd.DataFrame.from_records(data_test_query)
-    forecaster_mae = load_model(artifact_path_mae, run_id_mae)
     
-    tab=predict(str(code_uf),forecaster,steps,interval=interval)
-    formatted_dates = [date.strftime('%Y-%m-%d') if hasattr(date, 'strftime') else str(date).split('T')[0] for date in tab.index]
-    mae_dict=mae_for_uf(str(code_uf), forecaster_mae,data_test)
+    base_url = "http://model_mlflow:8080"
+    tab = test_predict_api(base_url,{
+        'code_uf': code_uf,
+        'steps': steps,
+        'interval': interval
+    })
+
+    pred_data = pd.DataFrame(tab)
+    print(data_test['date'].min(), data_test['date'].max())
+    
+    data_test['date'] = data_test['date'].astype(str)
+    mae_data = test_mae_simple(base_url,code_uf,data_test)
+
+   
     res = {
-        'date': formatted_dates,
-        'value' : list(tab['pred']),
-        'mae_months': list(mae_dict.keys()),
-        'mae_values': list(round(val,2) for val in mae_dict.values())
+        'date': list(pred_data['dates']),
+        'value' : list(pred_data['pred']),
+        'mae_months': mae_data['mae_keys'],
+        'mae_values': [round(val,2) for val in mae_data['mae_values']],
+       
     }
     
     
     if interval:
-        res['upper_bound'] =list(tab['upper_bound'])
-        res['lower_bound'] = list(tab['lower_bound'])
-    return JsonResponse(res)
+         res['upper_bound'] =list(pred_data['upper_bound'])
+         res['lower_bound'] = list(pred_data['lower_bound'])
+    return JsonResponse(res, safe=False)
     
-def load_model(artifact_path, run_id):
-    mlflow.set_tracking_uri("http://mlflow:5000")
-    mlflow.set_experiment("best_366")
+def load_model(artifact_path, run_id,baseurl):
+    mlflow.set_tracking_uri(baseurl)
+    mlflow.set_experiment("Default")
     model_uri = f"runs:/{run_id}/{artifact_path}"
 
     local_path = mlflow.artifacts.download_artifacts(model_uri)
@@ -237,4 +242,88 @@ def filter_ufs_with_mae_above_zero(request):
         
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+def test_predict_api(base_url,prediction_request):
     
+    try:
+        response = requests.get(f"{base_url}/health")
+        if response.status_code == 200:
+            health = response.json()
+            print(f"   ✅ API Status: {health['status']}")
+            print(f"   🤖 Models Loaded: {health['forecaster_loaded']}")
+        else:
+            print(f"   ❌ Health check failed: {response.status_code}")
+            return
+    except Exception as e:
+        print(f"   ❌ Cannot connect to API: {e}")
+        return
+    
+    # 2. Test prediction
+    print("\n2. Prediction...")
+    
+
+    try:
+        response = requests.post(
+            f"{base_url}/predict", 
+            json=prediction_request,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            print("✅ Prediction successful!") 
+            # Show prediction data info
+            pred_data = result['prediction']
+            if isinstance(pred_data, list):
+                print(f"📋 Prediction records: {len(pred_data)}")
+            
+            return pred_data
+              
+        else:
+            print(f"❌ Prediction failed: {response.status_code}")
+            print(f"📄 Error: {response.text}")
+            return []
+            
+    except Exception as e:
+        print(f"❌ Prediction error: {e}")
+        
+    print("\n🎉Testing completed!")
+    return []
+
+
+def test_mae_simple(base_url,code_uf: int, test_data: pd.DataFrame = None):
+    
+    
+    # Convert DataFrame to dict for API
+    data_dict = {
+        'data': test_data.to_dict(orient='records'),
+        'columns': test_data.columns.tolist()
+    }
+    
+    # API request
+    payload = {
+        "code_uf": code_uf,
+        "data_test": data_dict
+    }
+    print(data_dict)
+    try:
+        print(f"🧮 Testing MAE for UF {code_uf}...")
+        response = requests.post(
+            base_url+"/mae",
+            json=payload,
+            #timeout=30
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"✅ MAE: {result}")
+            print(f"📊 Data shape: {result.get('data_test_shape', 'N/A')}")
+            return result
+        else:
+            print(f"❌ Error {response.status_code}: {response.text}")
+            return None
+            
+    except Exception as e:
+        print(f"❌ Request failed: {e}")
+        return None

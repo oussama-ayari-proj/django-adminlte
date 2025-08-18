@@ -153,7 +153,7 @@
         <div class="row mt-4">
           <div class="col-lg-4">
             <div class="form-group">
-              <label for="uf-filter">Séléctionner un UF:</label>
+              <label for="uf-filter">Séléctionner une UF:</label>
               <select class="form-control" id="uf-filter">
                 {% for uf in ufs %}
                   <option value="{{ uf.code_uf }}">{{ uf.libelle_standard }}</option>
@@ -173,6 +173,154 @@
             </div>
           </div>
           
+        </div>
+
+        
+
+        <!-- Absences par Métier Section -->
+        <div class="row mt-5">
+          <div class="col-12">
+            <hr style="border: 2px solid #227F79; margin: 2rem 0;">
+            <div class="text-center mb-4">
+              <h4 style="color: #227F79; font-weight: bold;">
+                <i class="fas fa-chart-bar mr-2"></i>
+                Absences par Métier et Semaine
+              </h4>
+              <p class="text-muted">Graphique en barres empilées des absences par métier sur l'année sélectionnée</p>
+            </div>
+          </div>
+        </div>
+        <!-- Absences Filters Row -->
+        <div class="row mt-4">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="card-title">
+                  <i class="fas fa-filter mr-2"></i>
+                  Filtres des Absences
+                </h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-lg-4">
+                    <div class="form-group">
+                      <label for="famille-filter">Famille Métier:</label>
+                      <select class="form-control" id="famille-filter">
+                        <option value="">Toutes les familles</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-lg-4">
+                    <div class="form-group">
+                      <label for="sous-famille-filter">Sous-Famille Métier:</label>
+                      <select class="form-control" id="sous-famille-filter">
+                        <option value="">Toutes les sous-familles</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-lg-4">
+                    <div class="form-group">
+                      <label for="metier-filter">Métier:</label>
+                      <select class="form-control" id="metier-filter">
+                        <option value="">Tous les métiers</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Absences Stats Row 1 -->
+        <div class="row mt-4">            
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-user-times fa-3x text-warning"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Moyenne absences</h5>
+                                <div class="stat-number text-warning" id="mean-abs-total">-</div>
+                                <small class="text-muted">absences/semaine</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-arrow-down fa-3x text-info"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Minimum absences</h5>
+                                <div class="stat-number text-info" id="min-abs-total">-</div>
+                                <small class="text-muted">valeur minimale</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-arrow-up fa-3x text-danger"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Maximum absences</h5>
+                                <div class="stat-number text-danger" id="max-abs-total">-</div>
+                                <small class="text-muted">valeur maximale</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Absences Stats Row 2 -->
+        <div class="row mt-4">
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-chart-pie fa-3x text-purple"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Mode absences</h5>
+                                <div class="stat-number text-purple" id="mod-abs-total">-</div>
+                                <small class="text-muted">valeur la plus fréquente</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        
+            <div class="col-lg-4">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <i class="fas fa-chart-line fa-3x text-secondary"></i>
+                            <div class="text-right">
+                                <h5 class="card-title mb-1">Écart-type absences</h5>
+                                <div class="stat-number text-secondary" id="std-abs-total">-</div>
+                                <small class="text-muted">déviation standard</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Absences par Métier Chart -->
+        <div class="row mt-3">
+          <div class="col-12">
+            <div class="card">
+              
+              <div class="card-body">
+                <canvas id="absences-metier-chart" width="100%" height="500px"></canvas>
+              </div>
+            </div>
+          </div>
         </div>
         <!-- Chart Section -->
         <div class="row mt-5">
@@ -256,11 +404,11 @@
                 <div class="card stats-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
-                            <i class="fas fa-chart-bar fa-3x text-purple"></i>
+                            <i class="fas fa-chart-pie fa-3x text-purple"></i>
                             <div class="text-right">
-                                <h5 class="card-title mb-1">Variance lits fermés</h5>
-                                <div class="stat-number text-purple" id="var-lits-fermes">-</div>
-                                <small class="text-muted">mesure de dispersion</small>
+                                <h5 class="card-title mb-1">Mode lits fermés</h5>
+                                <div class="stat-number text-purple" id="mod-lits-fermes">-</div>
+                                <small class="text-muted">valeur la plus fréquente</small>
                             </div>
                         </div>
                     </div>
@@ -301,6 +449,8 @@
           </div>
         </div>
         
+        
+
         <!-- Lits Occupés Bar Chart Section -->
         <div class="row mt-5">
           <div class="col-12">
@@ -481,11 +631,11 @@
                 <div class="card stats-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
-                            <i class="fas fa-chart-bar fa-3x text-purple"></i>
+                            <i class="fas fa-chart-pie fa-3x text-purple"></i>
                             <div class="text-right">
-                                <h5 class="card-title mb-1">Variance lits occupés</h5>
-                                <div class="stat-number text-purple" id="var-lits-occupes">-</div>
-                                <small class="text-muted">mesure de dispersion</small>
+                                <h5 class="card-title mb-1">Mode lits occupés</h5>
+                                <div class="stat-number text-purple" id="mod-lits-occupes">-</div>
+                                <small class="text-muted">valeur la plus fréquente</small>
                             </div>
                         </div>
                     </div>
@@ -545,6 +695,7 @@
     let maxDate = null;
     let litsFermesChart;
     let litsOccupesChart;
+    let absencesMetierChart;
     
     document.addEventListener('DOMContentLoaded', function() {
       // Initialize Select2 for UF filter
@@ -562,19 +713,135 @@
         }
       });
       
+      // Initialize Select2 for absence filters
+      $('#famille-filter').select2({
+        placeholder: 'Rechercher une famille...',
+        allowClear: true,
+        width: '100%',
+        language: {
+          noResults: function() {
+            return "Aucun résultat trouvé";
+          },
+          searching: function() {
+            return "Recherche en cours...";
+          }
+        }
+      });
+      
+      $('#sous-famille-filter').select2({
+        placeholder: 'Rechercher une sous-famille...',
+        allowClear: true,
+        width: '100%',
+        language: {
+          noResults: function() {
+            return "Aucun résultat trouvé";
+          },
+          searching: function() {
+            return "Recherche en cours...";
+          }
+        }
+      });
+      
+      $('#metier-filter').select2({
+        placeholder: 'Rechercher un métier...',
+        allowClear: true,
+        width: '100%',
+        language: {
+          noResults: function() {
+            return "Aucun résultat trouvé";
+          },
+          searching: function() {
+            return "Recherche en cours...";
+          }
+        }
+      });
+      
       // Initialize charts
       initializeLitsFermesChart();
       initializeLitsOccupesChart();
+      initializeAbsencesMetierChart();
       
       loadData();
       
       // Add event listeners for filters
-      document.getElementById('uf-filter').addEventListener('change', loadData);
-      document.getElementById('year-filter').addEventListener('change', function() {
+      $('#uf-filter').on('change', function() {
+        
+        loadData();
+      });
+      $('#year-filter').on('change', function() {
         loadData();
       });
       
+      // Add event listeners for absence filters
+      $('#famille-filter').on('change', function() {
+        load_filtered_data();
+        filter_sous_familles();
+        filter_metiers();
+      });
+      $('#sous-famille-filter').on('change', function() {
+        load_filtered_data();
+        filter_metiers();
+      });
+      $('#metier-filter').on('change', function() {
+        load_filtered_data();
+        //filter_sous_familles();
+      });
+      
+      
     });
+
+    function filter_sous_familles() {
+      const selectedFamille = $('#famille-filter').val();
+      const selectedMetier = $('#metier-filter').val();
+      const sousFamilles = $('#sous-famille-filter');
+      const code_uf = $('#uf-filter').val();
+      const params = new URLSearchParams();
+
+      if (code_uf) {
+        params.append('code_uf', code_uf);
+      }
+      if (selectedFamille) {
+        params.append('famille', selectedFamille);
+      }
+      if (selectedMetier) {
+        params.append('metier', selectedMetier);
+      }
+      fetch(`/api/sous_familles?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Sous-familles:', data);
+          fill_sous_famille_metier_filters(data);
+        })
+        .catch(error => console.error('Error fetching sous-familles:', error));
+      
+    }
+
+    function filter_metiers() {
+      const selectedFamille = $('#famille-filter').val();
+      const selectedSousFamille = $('#sous-famille-filter').val();
+      const metiers = $('#metier-filter');
+      const code_uf = $('#uf-filter').val();
+
+      const params = new URLSearchParams();
+      if (code_uf) {
+        params.append('code_uf', code_uf);
+      }
+      if (selectedFamille) {
+        params.append('famille', selectedFamille);
+      }
+      if (selectedSousFamille) {
+        params.append('sous_famille', selectedSousFamille);
+      }
+      console.log(`/api/metiers?${params.toString()}`);
+      fetch(`/api/metiers?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+          console.log('Metiers:', data);
+          fill_metier_filters(data);
+        })
+        .catch(error => console.error('Error fetching métiers:', error));
+
+    }
 
     function initializeLitsFermesChart() {
       const ctx = document.getElementById('lits-fermes-chart').getContext('2d');
@@ -836,44 +1103,373 @@
         }
       });
     }
+
+    function initializeAbsencesMetierChart() {
+      const ctx = document.getElementById('absences-metier-chart').getContext('2d');
+      absencesMetierChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: [],
+          datasets: []
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            zoom: {
+              pan: {
+                enabled: true,
+                mode: 'xy',
+                speed: 10,
+                threshold: 10
+              },
+              limits: {
+                x: {min: 'original', max: 'original'},
+                y: {min: 0, max: 'original'}
+              },
+              zoom: {
+                wheel: {
+                  enabled: true,
+                },
+                pinch: {
+                  enabled: true
+                },
+                mode: 'x',
+              }
+            },
+            title: {
+              display: true,
+              text: 'Absences par Métier et Semaine',
+              font: {
+                size: 16
+              },
+              padding: 20
+            },
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 15,
+                font: {
+                  size: 12
+                },
+                generateLabels: function(chart) {
+                  const original = Chart.defaults.plugins.legend.labels.generateLabels;
+                  const labels = original.call(this, chart);
+                  // Don't truncate labels, show full métier names
+                  labels.forEach(label => {
+                    label.text = label.text; // Keep original text without truncation
+                  });
+                  return labels;
+                }
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              borderColor: 'rgba(34, 127, 121, 0.8)',
+              borderWidth: 1,
+              filter: function(tooltipItem) {
+                // Only show tooltips for items with abs_total > 0
+                return tooltipItem.parsed.y > 0;
+              },
+              callbacks: {
+                title: function(context) {
+                  return `Semaine ${context[0].label}`;
+                },
+                label: function(context) {
+                  if (context.parsed.y > 0) {
+                    return `${context.dataset.label}: ${context.parsed.y} absence(s)`;
+                  }
+                  return null;
+                },
+                afterBody: function(context) {
+                  // Calculate total for this semaine
+                  const semaine = context[0].label;
+                  let total = 0;
+                  context.forEach(item => {
+                    if (item.parsed.y > 0) {
+                      total += item.parsed.y;
+                    }
+                  });
+                  return total > 0 ? [`Total: ${total} absence(s)`] : [];
+                }
+              }
+            }
+          },
+          interaction: {
+            mode: 'index',
+            intersect: false
+          },
+          scales: {
+            x: {
+              display: true,
+              stacked: true,
+              title: {
+                display: true,
+                text: 'Semaine',
+                font: {
+                  size: 14
+                }
+              },
+              ticks: {
+                font: {
+                  size: 12
+                }
+              },
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.1)'
+              }
+            },
+            y: {
+              display: true,
+              stacked: true,
+              title: {
+                display: true,
+                text: 'Nombre d\'absences',
+                font: {
+                  size: 14
+                }
+              },
+              beginAtZero: true,
+              grid: {
+                display: true,
+                color: 'rgba(0, 0, 0, 0.1)'
+              },
+              ticks: {
+                stepSize: 1,
+                callback: function(value) {
+                  return Number.isInteger(value) ? value : '';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
     
+    function clearAllData() {
+      console.log('Clearing all data due to error');
+      
+      // Clear all statistics
+      document.getElementById('lits-fermes').textContent = '-';
+      document.getElementById('lits-installes').textContent = '-';
+      document.getElementById('min-lits-fermes').textContent = '-';
+      document.getElementById('max-lits-fermes').textContent = '-';
+      document.getElementById('std-lits-fermes').textContent = '-';
+      document.getElementById('mod-lits-fermes').textContent = '-';
+      
+      document.getElementById('lits-occupes').textContent = '-';
+      document.getElementById('min-lits-occupes').textContent = '-';
+      document.getElementById('max-lits-occupes').textContent = '-';
+      document.getElementById('std-lits-occupes').textContent = '-';
+      document.getElementById('mod-lits-occupes').textContent = '-';
+      
+      // Clear absence statistics
+      document.getElementById('mean-abs-total').textContent = '-';
+      document.getElementById('min-abs-total').textContent = '-';
+      document.getElementById('max-abs-total').textContent = '-';
+      document.getElementById('std-abs-total').textContent = '-';
+      document.getElementById('mod-abs-total').textContent = '-';
+      
+      // Clear all charts
+      if (litsFermesChart) {
+        litsFermesChart.data.labels = [];
+        litsFermesChart.data.datasets[0].data = [];
+        litsFermesChart.data.datasets[1].data = [];
+        litsFermesChart.update();
+      }
+      
+      if (litsOccupesChart) {
+        litsOccupesChart.data.labels = [];
+        litsOccupesChart.data.datasets[0].data = [];
+        litsOccupesChart.update();
+      }
+      
+      if (absencesMetierChart) {
+        absencesMetierChart.data.labels = [];
+        absencesMetierChart.data.datasets = [];
+        absencesMetierChart.update();
+      }
+      
+      // Clear correlation values
+      document.getElementById('ccf-abs-total').textContent = '-';
+      document.getElementById('ccf-prevu').textContent = '-';
+      document.getElementById('ccf-imprevu').textContent = '-';
+      document.getElementById('ccf-abs-total-signif').textContent = '';
+      document.getElementById('ccf-prevu-signif').textContent = '';
+      document.getElementById('ccf-imprevu-signif').textContent = '';
+      
+      // Hide and clear regression graphs
+      document.getElementById('graph-container-metier').style.display = 'none';
+      document.getElementById('graph-container-famille').style.display = 'none';
+      document.getElementById('graph-container-sous-famille').style.display = 'none';
+      document.getElementById('regression-explanation-metier').innerHTML = '';
+      document.getElementById('regression-explanation-famille').innerHTML = '';
+      document.getElementById('regression-explanation-sous-famille').innerHTML = '';
+      document.getElementById('coefs-graph-metier').src = '';
+      document.getElementById('coefs-graph-famille').src = '';
+      document.getElementById('coefs-graph-sous-famille').src = '';
+      document.getElementById('coefs-graph-metier').alt = 'Graphique indisponible';
+      document.getElementById('coefs-graph-famille').alt = 'Graphique indisponible';
+      document.getElementById('coefs-graph-sous-famille').alt = 'Graphique indisponible';
+      
+      // Clear R² scores
+      const r2Elements = ['r2-score-metier', 'r2-score-famille', 'r2-score-sous-famille'];
+      r2Elements.forEach(elementId => {
+        const element = document.getElementById(elementId);
+        if (element) {
+          element.textContent = '-';
+          element.className = 'badge badge-secondary font-weight-bold';
+        }
+      });
+    }
+    
+    function populateAbsenceFilters(data) {
+      console.log('Populating absence filters');
+      console.log('Filters data:', data);
+      famille_values = data[0]
+      sous_famille_values = data[1]
+      metier_values = data[2]
+      fill_famille_metier_filters(famille_values);
+      fill_sous_famille_metier_filters(sous_famille_values);
+      fill_metier_filters(metier_values);
+    }
+    
+    function fill_famille_metier_filters(data) {
+      console.log('Filling famille filters');
+      const familleFilter = document.getElementById('famille-filter');
+     
+      familleFilter.innerHTML = '<option value="">Sélectionner une famille</option>';
+
+      data.forEach(famille => {
+        const option = document.createElement('option');
+        option.value = famille.code_famille;
+        option.textContent = famille.famille_metier;
+        familleFilter.appendChild(option);
+      });
+    }
+    
+    function fill_sous_famille_metier_filters(data) {
+      const sousFamilleFilter = document.getElementById('sous-famille-filter');
+      
+      sousFamilleFilter.innerHTML = '<option value="">Sélectionner une sous-famille</option>';
+      
+      data.forEach(sousFamille => {
+        const option = document.createElement('option');
+        option.value = sousFamille.sous_famille_code;
+        option.textContent = sousFamille.sous_famille_metier;
+        sousFamilleFilter.appendChild(option);
+      });
+    }
+    
+    function fill_metier_filters(data) {
+      const metierFilter = document.getElementById('metier-filter');
+      
+      metierFilter.innerHTML = '<option value="">Sélectionner un métier</option>';
+      
+      data.forEach(metier => {
+        const option = document.createElement('option');
+        option.value = metier.code_metier;
+        option.textContent = metier.metier;
+        metierFilter.appendChild(option);
+      });
+    }
     
     function loadData() {
       const ufFilter = document.getElementById('uf-filter').value;
       const year = document.getElementById('year-filter').value;
+      console.log('Loading data with UF:', ufFilter, 'and Year:', year);
+      const params = new URLSearchParams();
+      if (ufFilter && year) {
+        params.append('code_uf', ufFilter);
+        params.append('year', year);
+        
+        fetch(`/api/stats/lits-fermes/?${params}`)
+          .then(response => response.json())
+          .then(data => {
+            console.log('Data fetched:', data);
+            populateAbsenceFilters(data.filtres);
+            updateStatistics(data);
+            updateLitsFermesChart(data.lits_data || []);
+            updateLitsOccupesChart(data.lits_occupes_data || []);
+            updateAbsencesMetierChart(data.absences_data || []);
+            get_data()
+          })
+          .catch(error => {
+            console.error('Error fetching data:', error);
+            clearAllData();
+          });
+        
+      }
+      
+      
+    }
+    
+    function load_filtered_data(){
+      const ufFilter = document.getElementById('uf-filter').value;
+      const year = document.getElementById('year-filter').value;
+      const familleFilter = document.getElementById('famille-filter').value;
+      const sousFamilleFilter = document.getElementById('sous-famille-filter').value;
+      const metierFilter = document.getElementById('metier-filter').value;
+
       
       const params = new URLSearchParams();
       if (ufFilter && year) {
         params.append('code_uf', ufFilter);
         params.append('year', year);
+        
+        if (metierFilter) {
+          params.append('code_metier', metierFilter);
+        }else if (sousFamilleFilter) {
+          params.append('code_sous_famille', sousFamilleFilter);
+        }else if (familleFilter) {
+          params.append('code_famille', familleFilter);
+        }
+        console.log('Filtered URL:', `/api/stats/lits-fermes/?${params}`);
         fetch(`/api/stats/lits-fermes/?${params}`)
           .then(response => response.json())
           .then(data => {
-            console.log('Data fetched:', data);
+            console.log('Filtered   fetched:', data);
             updateStatistics(data);
+            updateAbsencesMetierChart(data.absences_data || []);
+            get_data()
           })
-          .catch(error => console.error('Error fetching data:', error));
-        get_data()
+          .catch(error => {
+            console.error('Error fetching filtered data:', error);
+            clearAllData();
+          });
       }
-      
-      
     }
+    
     function updateStatistics(data) {
       document.getElementById('lits-fermes').textContent = data.mean_lits_fermes;
       document.getElementById('lits-installes').textContent = data.lits_installes;
       document.getElementById('min-lits-fermes').textContent = data.min_lits_fermes;
       document.getElementById('max-lits-fermes').textContent = data.max_lits_fermes;
       document.getElementById('std-lits-fermes').textContent = data.std_lits_fermes;
-      document.getElementById('var-lits-fermes').textContent = data.var_lits_fermes;
+      document.getElementById('mod-lits-fermes').textContent = data.mod_lits_fermes;
       
       document.getElementById('lits-occupes').textContent = data.mean_lits_occupes;
       document.getElementById('min-lits-occupes').textContent = data.min_lits_occupes;
       document.getElementById('max-lits-occupes').textContent = data.max_lits_occupes;
       document.getElementById('std-lits-occupes').textContent = data.std_lits_occupes;
-      document.getElementById('var-lits-occupes').textContent = data.var_lits_occupes;
+      document.getElementById('mod-lits-occupes').textContent = data.mod_lits_occupes;
+      
+      // Update absence statistics
+      document.getElementById('mean-abs-total').textContent = data.mean_abs_total;
+      document.getElementById('min-abs-total').textContent = data.min_abs_total;
+      document.getElementById('max-abs-total').textContent = data.max_abs_total;
+      document.getElementById('std-abs-total').textContent = data.std_abs_total;
+      document.getElementById('mod-abs-total').textContent = data.mod_abs_total;
+      
       // Update charts
-      updateLitsFermesChart(data.lits_data || []);
-      updateLitsOccupesChart(data.lits_occupes_data || []);
+      
     }
     
     function updateLitsFermesChart(litsData) {
@@ -929,6 +1525,77 @@
         litsOccupesChart.data.labels = [];
         litsOccupesChart.data.datasets[0].data = [];
         litsOccupesChart.update();
+      }
+    }
+
+    function updateAbsencesMetierChart(absencesData) {
+      console.log('Updating absences métier chart with data:', absencesData);
+      
+      if (absencesData && absencesData.length > 0) {
+        // Process data to create stacked bar chart
+        // Group data by semaine and metier
+        const groupedData = {};
+        const metiers = new Set();
+        
+        absencesData.forEach(item => {
+          
+            if (!groupedData[item.semaine]) {
+              groupedData[item.semaine] = {};
+            }
+            groupedData[item.semaine][item.metier] = item.abs_total;
+            metiers.add(item.metier);
+          
+        });
+        
+        // Convert sets to arrays and sort
+        const semaines = Object.keys(groupedData).sort((a, b) => parseInt(a) - parseInt(b));
+        const metiersList = Array.from(metiers).sort();
+        
+        // Generate a color for each métier
+        const colors = [
+          'rgba(255, 99, 132, 0.8)',
+          'rgba(54, 162, 235, 0.8)',
+          'rgba(255, 205, 86, 0.8)',
+          'rgba(75, 192, 192, 0.8)',
+          'rgba(153, 102, 255, 0.8)',
+          'rgba(255, 159, 64, 0.8)',
+          'rgba(199, 199, 199, 0.8)',
+          'rgba(83, 102, 255, 0.8)',
+          'rgba(255, 99, 255, 0.8)',
+          'rgba(99, 255, 132, 0.8)',
+          'rgba(255, 206, 84, 0.8)',
+          'rgba(54, 162, 235, 0.8)',
+          'rgba(255, 99, 132, 0.8)',
+          'rgba(75, 192, 192, 0.8)',
+          'rgba(153, 102, 255, 0.8)'
+        ];
+        
+        // Create datasets for each métier
+        const datasets = metiersList.map((metier, index) => {
+          const data = semaines.map(semaine => {
+            return groupedData[semaine][metier] || 0;
+          });
+          
+          return {
+            label: metier, // Full métier name without truncation
+            data: data,
+            backgroundColor: colors[index % colors.length],
+            borderColor: colors[index % colors.length].replace('0.8', '1'),
+            borderWidth: 1,
+            borderRadius: 2,
+            borderSkipped: false,
+          };
+        });
+        
+        // Update chart data
+        absencesMetierChart.data.labels = semaines;
+        absencesMetierChart.data.datasets = datasets;
+        absencesMetierChart.update();
+      } else {
+        // Clear chart if no data
+        absencesMetierChart.data.labels = [];
+        absencesMetierChart.data.datasets = [];
+        absencesMetierChart.update();
       }
     }
   
@@ -1020,27 +1687,8 @@
           displayRegressionExplanationAndGraph(data.regression_res_sous_famille, data.graph_sous_famille, 'graph-container-sous-famille', 'coefs-graph-sous-famille', 'regression-explanation-sous-famille', data.r2_score_sous_famille, 'r2-score-sous-famille');
         })
         .catch(error => {
-          console.error('Error fetching data:', error);
-          // Set correlation values to default
-          document.getElementById('ccf-abs-total').textContent = '-';
-          document.getElementById('ccf-prevu').textContent = '-';
-          document.getElementById('ccf-imprevu').textContent = '-';
-          document.getElementById('ccf-abs-total-signif').textContent = '';
-          document.getElementById('ccf-prevu-signif').textContent = '';
-          document.getElementById('ccf-imprevu-signif').textContent = '';
-          document.getElementById('graph-container-metier').style.display = 'none';
-          document.getElementById('graph-container-famille').style.display = 'none';
-          document.getElementById('graph-container-sous-famille').style.display = 'none';
-          document.getElementById('regression-explanation-metier').innerHTML = '';
-          document.getElementById('regression-explanation-famille').innerHTML = '';
-          document.getElementById('regression-explanation-sous-famille').innerHTML = '';
-          document.getElementById('coefs-graph-metier').src = '';
-          document.getElementById('coefs-graph-famille').src = '';
-          document.getElementById('coefs-graph-sous-famille').src = '';
-          document.getElementById('coefs-graph-metier').alt = 'Graphique indisponible';
-          document.getElementById('coefs-graph-famille').alt = 'Graphique indisponible';
-          document.getElementById('coefs-graph-sous-famille').alt = 'Graphique indisponible';
-
+          console.error('Error fetching correlation data:', error);
+          clearAllData();
         });
     }
 
@@ -1054,7 +1702,10 @@
           console.log('After metier graph select : ',data);
           document.getElementById("coefs-graph-metier").src = 'data:image/png;base64,' + data.graph_metier;
         })
-        .catch(error => console.error('Error fetching metier graph:', error));
+        .catch(error => {
+          console.error('Error fetching metier graph:', error);
+          clearAllData();
+        });
     });
   </script>
 {% endblock extra_scripts %}

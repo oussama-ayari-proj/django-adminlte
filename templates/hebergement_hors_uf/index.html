@@ -275,6 +275,7 @@
             </div>
           </div>
 
+        
           <div class="col-lg-4 col-6">
             <div class="card stats-card">
               <div class="card-body">
@@ -288,14 +289,25 @@
               </div>
             </div>
           </div>
-        </div>        
+        </div>
+        <div class="row mt-5">
+          <div class="col-12">
+            <hr style="border: 2px solid #227F79; margin: 2rem 0;">
+            <div class="text-center mb-4">
+              <h4 style="color: #227F79; font-weight: bold;">
+                <i class="fas fa-chart-line mr-2"></i>
+                🏥 Nombre d'hébergements hors matrice par UF
+              </h4>
+            </div>
+          </div>
+        </div>       
         <!-- Simple Chart Hospi par UF -->
         <div class="row mt-5">
           <div class="col-12">
             <div class="card mt-3">
-              <div class="card-header">
+              <!-- <div class="card-header">
                 <h3 class="card-title">🏥 Nombre d'hébergements hors matrice par UF</h3>
-              </div>
+              </div> -->
               <div class="card-body">
                 <canvas id="uf-hebergement-chart" style="height: 180px;"></canvas>
               </div>
@@ -304,13 +316,25 @@
           
         </div>
         
+
+        <div class="row mt-5">
+          <div class="col-12">
+            <hr style="border: 2px solid #227F79; margin: 2rem 0;">
+            <div class="text-center mb-4">
+              <h4 style="color: #227F79; font-weight: bold;">
+                <i class="fas fa-chart-line mr-2"></i>
+                📊 Hébergements par UF et par Semaine
+              </h4>
+            </div>
+          </div>
+        </div>
         <!-- Détails des UFs associés ( + Stacked Chart) -->
         <div class="row mt-4">
           <div class="col-12">
             <div class="card mt-3">
-                <div class="card-header">
+                <!-- <div class="card-header">
                   <h3 class="card-title">📊 Hébergements par UF et par Semaine</h3>
-                </div>
+                </div> -->
                 <div class="card-body">
                   <canvas id="hebergement-stacked-chart-2" style="height: 650px;"></canvas>
                 </div>
@@ -322,6 +346,17 @@
       </div>
 
         <!-- Second Row: UF Non Associées et Tableau de Données -->
+         <div class="row mt-5">
+          <div class="col-12">
+            <hr style="border: 2px solid #227F79; margin: 2rem 0;">
+            <div class="text-center mb-4">
+              <h4 style="color: #227F79; font-weight: bold;">
+                <i class="fas fa-chart-line mr-2"></i>
+                📊 Hébergements et Lits Fermés par Semaine
+              </h4>
+            </div>
+          </div>
+        </div>
         <div class="row mt-4">
           <div class="col-4">
             <div class="card">
@@ -352,21 +387,29 @@
               </div>
             </div>
           </div>
-          <div class="col-8">
+          <div class="col-8" style="height: 100%;">
             <div class="card mt-3">
-                <div class="card-header">
+                <!-- <div class="card-header">
                   <h3 class="card-title">📊 Hébergements et Lits Fermés par Semaine</h3>
-                </div>
+                </div> -->
                 <div class="card-body">
-                  <canvas id="hebergement-stacked-chart" style="height: 200px;"></canvas>
+                  <canvas id="hebergement-stacked-chart" height="400px"></canvas>
                 </div>
             </div>
           </div>
-        </div>        
+        </div>
+        
+        <div class="row mt-5">
+          <div class="col-12">
+            <hr style="border: 2px solid #227F79; margin: 2rem 0;">
+            
+          </div>
+        </div>
+        
         <div class="col-12">
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">📋 Données détaillées d'Hébergement</h3>
+                <h3 class="card-title">📋 Données détaillées des Hébergements hors matrice</h3>
               </div>              
               <div class="card-body">
                 <div class="table-responsive" style="height: 300px; overflow-y: auto; border: 3px solid #495057; border-radius: 5px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
@@ -1168,56 +1211,7 @@
       hebergementStackedChart.update();
     }
   
-    function filterDataBySelectedUFs() {
-      const ufSelect = $('#uf-associe-select');
-      const selectedUFs = ufSelect.val() || [];
-      
-      // Préparer les paramètres pour l'API
-      const params = new URLSearchParams();
-      // Ajouter les codes UF sélectionnés
-      params.append('code_uf_associe', selectedUFs);
-      
-      console.log('Appel API avec UFs sélectionnées:', selectedUFs);
-      console.log('URL API:', `/hebergement-hors-uf/api/get_lits_fermes_filtres/?${params}`);
-      
-      // Appeler l'API backend
-      if(selectedUFs.length === 0) {
-        console.log('Aucune UF sélectionnée, pas d\'appel API');
-        hebergementStackedChart.data.datasets[1].data = [];
-        hebergementStackedChart.update();
-        return;
-      }else{
-        fetch(`/hebergement-hors-uf/api/get_lits_fermes_filtres/?${params}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          return response.json();
-        })        
-        .then(data => {
-          console.log('Données reçues de l\'API:', data);
-          
-          if (!data.lits_fermes || data.lits_fermes.length === 0) {
-            console.log('Aucune donnée de lits fermés trouvée pour les UFs sélectionnées');
-            hebergementStackedChart.data.datasets[1].data = [];
-            hebergementStackedChart.update();
-          }else{
-            let semaines=[]
-            for (let i=1;i<=52;i++) {
-              semaines.push(i);
-            }
-            hebergementStackedChart.data.datasets[1].data=semaines.map(week => {
-              const found = data.lits_fermes.find(row => row.semaine === week);
-              return found ? found.lits_fermes_moyen : 0;
-            });
-            hebergementStackedChart.update();
-          }
-        })
-        .catch(error => {
-            console.error('Erreur lors de l\'appel API:', error);
-        });
-      }
-    }
+    
     function updateTable(data) {
       const ufSelect = $('#uf-associe-select');
       

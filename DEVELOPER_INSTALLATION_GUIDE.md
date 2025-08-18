@@ -81,16 +81,9 @@ Ce guide détaille l'installation et la configuration complète du système de g
 # Cloner le repository
 git clone https://github.com/oussama-ayari-proj/django-adminlte.git
 cd django-adminlte
-
+# IMPORTANT !! Décompresse le backup.rar avant cette commande !!!! en backup.sql
 # Lancer l'environnement complet avec Docker
 docker-compose up --build
-
-# Dans un autre terminal, importer les données de test
-docker-compose exec db mysql -u root -p hospital_db < backup.sql
-# Mot de passe : password
-
-# Créer un superutilisateur Django
-docker-compose exec web python manage.py createsuperuser
 ```
 
 #### Vérification de l'installation Docker

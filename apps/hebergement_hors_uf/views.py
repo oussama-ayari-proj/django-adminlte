@@ -7,6 +7,7 @@ from .models import EM,Matrice_EM_UF,export_UF
 from apps.hospitalisation.models import Hospitalisation
 from apps.pages.models import UF
 from apps.correlation.models import Lit
+import numpy as np
 
 def index(request):
     # Get available years from hospitalisation data
@@ -22,15 +23,15 @@ def calculer_lits_fermes(code_uf_associe,year):
     lits_fermes_data = []
     if isinstance(code_uf_associe, str):
         code_uf_associe = [code_uf_associe]
-    lits= Lit.objects.filter(
+    
+    
+    if len(code_uf_associe)==1:
+        lits= Lit.objects.filter(
             code_uf=code_uf_associe[0],
             semaine__endswith=f" - {year}"
         )
-    if not lits.exists():
-        return []
-    
-    if len(code_uf_associe)==1:
-        
+        if not lits.exists():
+            return []
         for lit in lits:
             semaine = lit.semaine.split(' - ')[0]
             print(type(semaine))
@@ -42,6 +43,10 @@ def calculer_lits_fermes(code_uf_associe,year):
             
         return lits_fermes_data
     for code_uf in code_uf_associe:
+        lits= Lit.objects.filter(
+            code_uf=code_uf,
+            semaine__endswith=f" - {year}"
+        )
         for lit in lits:
             semaine = lit.semaine.split(' - ')[0]
             lits_fermes_moyen = lit.lits_fermes_moyen or 0
@@ -53,7 +58,7 @@ def calculer_lits_fermes(code_uf_associe,year):
                 
     for semaine, lits_list in lits_fermes_by_week.items():
         if len(lits_list) > 0:
-            moyenne_lits_fermes = sum(lits_list) / len(lits_list)
+            moyenne_lits_fermes = sum(lits_list)
             lits_fermes_data.append({
                 'semaine': semaine,
                 'lits_fermes_moyen': round(moyenne_lits_fermes, 1)
@@ -87,6 +92,20 @@ def get_hebergement_stats(request):
         # Get UF associées details
         uf_associees = export_UF.objects.filter(code_uf__in=code_uf_associees).values('code_uf', 'libelle_standard')
         
+        # Filter UFs associées to only include those with lits_fermes > 0
+        year_int = int(year)
+        ufs_with_lits_fermes = []
+        for uf in uf_associees:
+            # Check if this UF has any lits_fermes > 0 for the given year
+            lits_count = Lit.objects.filter(
+                code_uf=uf['code_uf'],
+                semaine__endswith=f" - {year_int}",
+                lits_fermes_moyen__gt=0
+            ).count()
+            
+            if lits_count > 0:
+                ufs_with_lits_fermes.append(uf)
+        
         # Group hébergements efficiently
         hebergements_grouped = hebergements_data.values('semaine_entree', 'code_uf', 'ghs', 'type_sejour').annotate(
             nombre_hospitalisations=Count('id')
@@ -109,7 +128,7 @@ def get_hebergement_stats(request):
         
         return JsonResponse({
             'stats': stats,
-            'uf_associees': list(uf_associees)
+            'uf_associees': ufs_with_lits_fermes
         }, status=200)
         
     except Exception as e:

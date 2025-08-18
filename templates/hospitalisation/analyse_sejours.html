@@ -128,7 +128,7 @@
         <div class="row mt-4">
           <div class="col-lg-4">
             <div class="form-group">
-              <label for="uf-filter">Séléctionner un UF:</label>
+              <label for="uf-filter">Séléctionner une UF:</label>
               <select class="form-control" id="uf-filter">
                 <option value="">-- Rechercher et sélectionner une unité fonctionnelle --</option>
                 {% for uf in ufs %}
@@ -206,11 +206,11 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <i class="fas fa-bed fa-3x text-warning"></i>
-                    <div>
-                    <h5 class="card-title">Hébergements</h5>
-                    <div class="stat-number" id="nombre-hebergement-2">-</div>
-                    <small class="text-muted">(<span id="pourcentage-hebergement-2">-</span>%)</small>
-                  </div>
+                    <div style="margin-left: 20px;">
+                      <h5 class="card-title">Hébergements (hors matrice)</h5>
+                      <div class="stat-number" id="nombre-hebergement-2">-</div>
+                      <small class="text-muted">(<span id="pourcentage-hebergement-2">-</span>%)</small>
+                    </div>
                   
                 </div>
               </div>
@@ -259,7 +259,7 @@
             <div class="text-center mb-4">
               <h4 style="color: #227F79; font-weight: bold;">
                 <i class="fas fa-bed mr-2"></i>
-                Analyse des Hébergements Hors UF
+                Analyse des Hébergements Hors Matrice
               </h4>
               <p class="text-muted">Répartition des hébergements par équipe mobile et par date</p>
             </div>
@@ -272,11 +272,11 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <i class="fas fa-bed fa-3x text-warning"></i>
-                    <div>
-                    <h5 class="card-title">Hébergements</h5>
-                    <div class="stat-number" id="nombre-hebergement">-</div>
-                    <small class="text-muted">(<span id="pourcentage-hebergement">-</span>%)</small>
-                  </div>
+                    <div style="margin-left: 20px;">
+                      <h5 class="card-title">Hébergements hors matrice</h5>
+                      <div class="stat-number" id="nombre-hebergement">-</div>
+                      <small class="text-muted">(<span id="pourcentage-hebergement">-</span>%)</small>
+                    </div>
                   
                 </div>
               </div>

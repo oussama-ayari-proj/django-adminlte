@@ -151,7 +151,7 @@
               <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
-                    <h5 class="card-title">Hébergements Totaux</h5>
+                    <h5 class="card-title">Hébergements hors Matrice Totaux</h5>
                     <div class="stat-number" id="total-hebergements">-</div>
                   </div>
                   <i class="fas fa-bed fa-3x" style="color: #fd7e14;"></i>
@@ -462,7 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Update chart title
-        const chartTitle = '📊 Hospitalisation par UF et par jour';
+        const chartTitle = '📊 Charge par UF et par jour (Nombre de patients)';
         
         if (!chargeEmChart) {
           chargeEmChart = new Chart(ctx, {

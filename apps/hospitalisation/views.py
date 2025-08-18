@@ -270,18 +270,32 @@ def calculer_hebergements(code_uf,data):
 
 def index_lits_fermes(request):
     """View for the Lits Fermés page"""
-    ufs = UF.objects.order_by('libelle_standard')
+    # Get UFs that are present in both Lit and RH models
+    ufs_in_lit = Lit.objects.values_list('code_uf', flat=True).distinct()
+    ufs_in_rh = RH.objects.values_list('code_uf', flat=True).distinct()
+    
+    # Find intersection of UFs present in both models
+    common_ufs = set(ufs_in_lit) & set(ufs_in_rh)
+    
+    # Get UF details for common UFs only
+    ufs = UF.objects.filter(code_uf__in=common_ufs).order_by('libelle_standard')
     ufs_list = list(ufs.values('code_uf', 'libelle_standard'))
     available_years=[2023, 2024]
+
+    
+    
     return render(request, 'hospitalisation/lits_fermes.html', {
         'ufs': ufs_list, 
-        'available_years': available_years
+        'available_years': available_years,
+        
     })
 
 def get_lits_fermes_stats(request):
     code_uf = request.GET.get('code_uf')
     year = request.GET.get('year')
-    
+    famille = request.GET.get('code_famille')
+    sous_famille = request.GET.get('code_sous_famille')
+    metier = request.GET.get('code_metier')
     if not code_uf or not year:
         return JsonResponse({'error': 'Missing code_uf or year'}, status=400)
     
@@ -330,7 +344,14 @@ def get_lits_fermes_stats(request):
         # Calculate summary statistics
         
         stats_lits_occupes.update(stats_lits)
+        data_absences = get_absences(code_uf, year,famille,sous_famille,metier)
+        stats_lits_occupes['absences_data'] = data_absences
+        stats_absences = get_lits_fermes_kpis(get_absences_grouped(code_uf, year,famille,sous_famille,metier), 'abs_total')
+        stats_lits_occupes.update(stats_absences)
         
+        filtres = get_famille_sous_famille_metier(RH.objects.filter(code_uf=code_uf))
+        stats_lits_occupes['filtres'] = filtres
+
         return JsonResponse(stats_lits_occupes,safe=False)
         
     except Exception as e:
@@ -349,6 +370,7 @@ def get_lits_fermes_kpis(data,col,col2=None):
     max_target = max((target), default=0)
     var_target=np.var(target) if total_records > 0 else 0
     std_target = np.std(target) if total_records > 0 else 0
+    mod_target = max(set(target), key=target.count) if target else 0
 
     stats = {
         f'mean_{col}': round(avg_target, 1),
@@ -356,7 +378,126 @@ def get_lits_fermes_kpis(data,col,col2=None):
         f'max_{col}': round(max_target,1),
         f'std_{col}': round(std_target, 1) if std_target else 0,
         f'var_{col}': round(var_target, 1) if var_target else 0,
+        f'mod_{col}': round(mod_target,1),
     }
     if col2:
         stats['lits_installes'] = round(avg_lits_installes, 1)
     return stats
+
+
+def get_absences(uf, year,famille=None,sous_famille=None,metier=None):
+   
+    if year==2023:
+        return []
+    
+    queryset = RH.objects.filter(code_uf=uf)
+
+    if famille:
+        queryset = queryset.filter(code_famille=str(famille))
+    if sous_famille:
+        queryset = queryset.filter(sous_famille_code=str(sous_famille))
+    if metier:
+        queryset = queryset.filter(code_metier=str(metier))
+
+    data_rh = queryset.values(
+        'semaine',
+        'metier',
+        'abs_total',
+    ).order_by('semaine')
+
+    return list(data_rh)
+
+
+def get_absences_grouped(uf, year,famille=None,sous_famille=None,metier=None):
+    if year==2023:
+        return []
+    
+    queryset = RH.objects.filter(code_uf=uf)
+    
+    if famille:
+        queryset = queryset.filter(code_famille=str(famille))
+    if sous_famille:
+        queryset = queryset.filter(sous_famille_code=str(sous_famille))
+    if metier:
+        queryset = queryset.filter(code_metier=str(metier))
+
+    data_rh = queryset.values(
+        'semaine',
+    ).annotate(
+        abs_total=models.Sum('abs_total')
+    ).order_by('semaine')
+
+    # Convert to list of dictionaries
+    return list(data_rh)
+
+
+def get_famille_sous_famille_metier(queryset):
+    """API endpoint to get famille, sous_famille, and metier data"""
+    try:
+        
+        
+        famille_metier = queryset.values(
+            'famille_metier','code_famille'
+        ).distinct().order_by('famille_metier')
+
+        sous_famille_metier = queryset.values(
+            'sous_famille_metier','sous_famille_code'
+        ).distinct().order_by('sous_famille_metier')
+        
+        metier = queryset.values(
+            'metier','code_metier'
+        ).distinct().order_by('metier')
+        
+        
+        return [list(famille_metier), list(sous_famille_metier), list(metier)] 
+    
+    except Exception as e:
+        print(f"Error in get_famille_sous_famille_metier: {e}")
+        return []
+    
+
+def get_sous_familles(request):
+    """API endpoint to get sous_familles based on famille and metier"""
+    try:
+        famille = request.GET.get('famille')
+        metier = request.GET.get('metier')
+        code_uf = request.GET.get('code_uf')
+        queryset = RH.objects.filter(code_uf=code_uf)
+        
+        if famille:
+            queryset = queryset.filter(code_famille=famille)
+        if metier:
+            queryset = queryset.filter(code_metier=metier)
+        
+        sous_familles = queryset.values(
+            'sous_famille_metier', 'sous_famille_code'
+        ).distinct().order_by('sous_famille_metier')
+        
+        return JsonResponse(list(sous_familles), safe=False)
+    
+    except Exception as e:
+        print(f"Error in get_sous_familles: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
+    
+def get_metiers(request):
+    """API endpoint to get métiers based on famille and sous_famille"""
+    try:
+        famille = request.GET.get('famille')
+        sous_famille = request.GET.get('sous_famille')
+        code_uf = request.GET.get('code_uf')
+        queryset = RH.objects.filter(code_uf=code_uf)
+
+        if famille:
+            queryset = queryset.filter(code_famille=famille)
+        if sous_famille:
+            queryset = queryset.filter(sous_famille_code=sous_famille)
+        
+        metiers = queryset.values(
+            'metier', 'code_metier'
+        ).distinct().order_by('metier')
+        
+        return JsonResponse(list(metiers), safe=False)
+    
+    except Exception as e:
+        print(f"Error in get_metiers: {e}")
+        return JsonResponse({'error': str(e)}, status=500)

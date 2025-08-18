@@ -159,7 +159,7 @@ def get_metier_graph(request):
         df_lits.drop(columns=['week_number'], inplace=True)
     if code_uf and metier_graph_option:
 
-        res_metier, graph_metier = regression_call(df_rh,df_lits,'metier',code_uf, metier_graph_option)
+        res_metier, graph_metier,_ = regression_call(df_rh,df_lits,'metier',code_uf, metier_graph_option)
 
         return JsonResponse({
             'graph_metier': graph_metier,
@@ -167,7 +167,7 @@ def get_metier_graph(request):
         })
     elif code_uf:
 
-        res_famille, graph_famille = regression_call(df_rh,df_lits, 'famille_metier', code_uf, "famille")
+        res_famille, graph_famille,__ = regression_call(df_rh,df_lits, 'famille_metier', code_uf, "famille")
 
         return JsonResponse({
             'graph_metier': graph_famille,

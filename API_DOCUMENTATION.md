@@ -227,4 +227,4 @@ Ce document présente l'ensemble des APIs du système de gestion hospitalière D
 ---
 
 *Documentation générée le 28 juillet 2025*
-*Version du système : Django AdminLTE Hospital Management v1.0*
+*Version du système : Django AdminLTE Optisoin v1.0*

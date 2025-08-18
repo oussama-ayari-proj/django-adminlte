@@ -150,7 +150,7 @@
         <div class="row mt-4">
           <div class="col-lg-4">
             <div class="form-group">
-              <label for="uf-filter">Séléctionner un UF:</label>
+              <label for="uf-filter">Séléctionner une UF:</label>
               <select class="form-control" id="uf-filter">
                 <option value="">-- Rechercher et sélectionner une unité fonctionnelle --</option>
                 {% for uf in ufs %}
@@ -240,15 +240,19 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="d-flex flex-column flex-grow-1">
-                                <h5 class="card-title">
+                                <h5 class="card-title d-flex align-items-center justify-content-between">
+                                  <div>
                                     <i class="fas fa-user-md text-primary mr-2"></i>
-                                    Équipes Médicales associées
+                                    Équipes Médicales associées :
+                                  </div>
+                                  <div class="text-right">
+                                    <span class="badge badge-primary badge-pill" id="ems-count" style="font-size: 20px;">0</span>
+                                  </div>
                                 </h5>
+                                <br />
                                 <div class="ems-list" id="ems-associes">-</div>
                             </div>
-                            <div class="text-right">
-                                <span class="badge badge-primary badge-pill" id="ems-count">0</span>
-                            </div>
+                            
                         </div>
                     </div>
                 </div>

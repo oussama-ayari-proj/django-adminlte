@@ -9,4 +9,6 @@ urlpatterns = [
     path('api/date-ranges/', views.get_date_ranges, name='hospitalisation_date_ranges'),
     path('lits-fermes/', views.index_lits_fermes, name='index_lits_fermes'),
     path('api/stats/lits-fermes/', views.get_lits_fermes_stats, name='lits_fermes_stats'),
+    path('api/sous_familles/', views.get_sous_familles, name='sous_familles'),
+    path('api/metiers/', views.get_metiers, name='metiers'),
 ]
